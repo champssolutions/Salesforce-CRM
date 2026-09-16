@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const db = require('./src/config/database');
 const accountRoutes = require('./src/routes/accountRoutes');
+const contactRoutes = require('./src/routes/contactRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -70,6 +71,9 @@ app.delete('/api/users/:id', (req, res) => {
 
 // Accounts routes
 app.use('/api/accounts', accountRoutes);
+
+// Contacts routes
+app.use('/api/contacts', contactRoutes);
 
 // 404 handler
 app.use((req, res) => {

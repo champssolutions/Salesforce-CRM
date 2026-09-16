@@ -48,6 +48,23 @@ db.serialize(() => {
       console.error('Error creating accounts table:', err.message);
     }
   });
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS contacts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      account_id INTEGER NOT NULL,
+      first_name TEXT NOT NULL,
+      last_name TEXT,
+      email TEXT,
+      phone TEXT,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
+    );
+  `, (err) => {
+    if (err) {
+      console.error('Error creating contacts table:', err.message);
+    }
+  });
 });
 
 module.exports = db;
