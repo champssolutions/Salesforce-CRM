@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const db = require('./src/config/database');
+const accountRoutes = require('./src/routes/accountRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -17,6 +18,7 @@ app.get('/', (req, res) => {
   res.json({ message: 'Hey, welcome to the API!' });
 });
 
+// Users routes
 app.get('/api/users', (req, res) => {
   db.all('SELECT * FROM users ORDER BY id DESC', [], (err, users) => {
     if (err) {
@@ -65,6 +67,9 @@ app.delete('/api/users/:id', (req, res) => {
     res.json({ message: 'User deleted' });
   });
 });
+
+// Accounts routes
+app.use('/api/accounts', accountRoutes);
 
 // 404 handler
 app.use((req, res) => {

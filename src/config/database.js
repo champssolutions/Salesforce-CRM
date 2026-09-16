@@ -20,6 +20,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
 db.serialize(() => {
   db.run('PRAGMA journal_mode = WAL');
   db.run('PRAGMA foreign_keys = ON');
+
   db.run(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -29,7 +30,22 @@ db.serialize(() => {
     );
   `, (err) => {
     if (err) {
-      console.error('Error creating table:', err.message);
+      console.error('Error creating users table:', err.message);
+    }
+  });
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS accounts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      industry TEXT,
+      phone TEXT,
+      website TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+  `, (err) => {
+    if (err) {
+      console.error('Error creating accounts table:', err.message);
     }
   });
 });
