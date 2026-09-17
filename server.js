@@ -5,6 +5,7 @@ const db = require('./src/config/database');
 const accountRoutes = require('./src/routes/accountRoutes');
 const contactRoutes = require('./src/routes/contactRoutes');
 const productRoutes = require('./src/routes/productRoutes');
+const opportunityRoutes = require('./src/routes/opportunityRoutes');
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 
@@ -136,6 +137,42 @@ const swaggerOptions = {
             },
           },
         },
+        Opportunity: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'integer',
+              description: 'ID ของ Opportunity',
+            },
+            account_id: {
+              type: 'integer',
+              description: 'ID ของ Account ที่เกี่ยวข้อง',
+            },
+            name: {
+              type: 'string',
+              description: 'ชื่อของ Opportunity',
+            },
+            amount: {
+              type: 'number',
+              description: 'จำนวนเงินของ Opportunity',
+            },
+            stage: {
+              type: 'string',
+              description: 'สถานะของ Opportunity',
+              enum: ['Prospecting', 'Qualification', 'Proposal', 'Closed Won', 'Closed Lost'],
+            },
+            close_date: {
+              type: 'string',
+              format: 'date-time',
+              description: 'วันที่คาดว่าจะปิด',
+            },
+            created_at: {
+              type: 'string',
+              format: 'date-time',
+              description: 'วันที่สร้าง Opportunity',
+            },
+          },
+        },
       },
     },
   },
@@ -208,6 +245,9 @@ app.use('/api/contacts', contactRoutes);
 
 // Products routes
 app.use('/api/products', productRoutes);
+
+// Opportunities routes
+app.use('/api/opportunities', opportunityRoutes);
 
 // 404 handler
 app.use((req, res) => {

@@ -65,6 +65,23 @@ db.serialize(() => {
       console.error('Error creating contacts table:', err.message);
     }
   });
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS opportunities (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      account_id INTEGER NOT NULL,
+      name TEXT NOT NULL,
+      amount REAL,
+      stage TEXT CHECK (stage IN ('Prospecting', 'Qualification', 'Proposal', 'Closed Won', 'Closed Lost')),
+      close_date TEXT,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
+    );
+  `, (err) => {
+    if (err) {
+      console.error('Error creating opportunities table:', err.message);
+    }
+  });
 });
 
 module.exports = db;
