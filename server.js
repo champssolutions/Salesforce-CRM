@@ -44,6 +44,100 @@ const swaggerOptions = {
         description: 'Local Development Server',
       },
     ],
+    components: {
+      schemas: {
+        Account: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'integer',
+              description: 'ID ของ Account',
+            },
+            name: {
+              type: 'string',
+              description: 'ชื่อของ Account',
+            },
+            industry: {
+              type: 'string',
+              description: 'อุตสาหกรรมของ Account',
+            },
+            phone: {
+              type: 'string',
+              description: 'เบอร์โทรศัพท์ของ Account',
+            },
+            website: {
+              type: 'string',
+              description: 'เว็บไซต์ของ Account',
+            },
+            created_at: {
+              type: 'string',
+              format: 'date-time',
+              description: 'วันที่สร้าง Account',
+            },
+          },
+        },
+        Contact: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'integer',
+              description: 'ID ของ Contact',
+            },
+            account_id: {
+              type: 'integer',
+              description: 'ID ของ Account ที่เกี่ยวข้อง',
+            },
+            first_name: {
+              type: 'string',
+              description: 'ชื่อของ Contact',
+            },
+            last_name: {
+              type: 'string',
+              description: 'นามสกุลของ Contact',
+            },
+            email: {
+              type: 'string',
+              description: 'อีเมลของ Contact',
+            },
+            phone: {
+              type: 'string',
+              description: 'เบอร์โทรศัพท์ของ Contact',
+            },
+            created_at: {
+              type: 'string',
+              format: 'date-time',
+              description: 'วันที่สร้าง Contact',
+            },
+          },
+        },
+        Product: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'integer',
+              description: 'ID ของ Product',
+            },
+            name: {
+              type: 'string',
+              description: 'ชื่อของ Product',
+            },
+            description: {
+              type: 'string',
+              description: 'รายละเอียดของ Product',
+            },
+            price: {
+              type: 'number',
+              description: 'ราคาของ Product',
+            },
+            created_at: {
+              type: 'string',
+              format: 'date-time',
+              description: 'วันที่สร้าง Product',
+            },
+          },
+        },
+      },
+    },
   },
   apis: ['./src/routes/*.js', './src/routes/**/*.js', './server.js'],
 };
