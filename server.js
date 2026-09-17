@@ -87,6 +87,97 @@ app.use('/api/accounts', accountRoutes);
 // Contacts routes
 app.use('/api/contacts', contactRoutes);
 
+// Products routes
+app.get('/products', (req, res) => {
+  db.all('SELECT * FROM products ORDER BY id DESC', [], (err, products) => {
+    if (err) {
+      return res.status(500).json({ error: 'Database error' });
+    }
+    res.json(products);
+  });
+});
+
+app.get('/products/:id', (req, res) => {
+  db.get('SELECT * FROM products WHERE id = ?', [req.params.id], (err, product) => {
+    if (err) {
+      return res.status(500).json({ error: 'Database error' });
+    }
+    if (!product) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+    res.json(product);
+  });
+});
+
+app.post('/products', (req, res) => {
+  const { name, description, price } = req.body;
+
+  if (!name) {
+    return res.status(400).json({ error: 'name is required' });
+  }
+
+  db.run(
+    'INSERT INTO products (name, description, price) VALUES (?, ?, ?)',
+    [name, description || null, price !== undefined ? price : null],
+    function (err) {
+      if (err) {
+        return res.status(500).json({ error: 'Database error' });
+      }
+      res.status(201).json({
+        id: this.lastID,
+        name,
+        description: description || null,
+        price: price !== undefined ? price : null,
+      });
+    }
+  );
+});
+
+app.put('/products/:id', (req, res) => {
+  const { name, description, price } = req.body;
+
+  if (!name) {
+    return res.status(400).json({ error: 'name is required' });
+  }
+
+  db.get('SELECT id FROM products WHERE id = ?', [req.params.id], (err, product) => {
+    if (err) {
+      return res.status(500).json({ error: 'Database error' });
+    }
+    if (!product) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
+    db.run(
+      'UPDATE products SET name = ?, description = ?, price = ? WHERE id = ?',
+      [name, description || null, price !== undefined ? price : null, req.params.id],
+      function (err) {
+        if (err) {
+          return res.status(500).json({ error: 'Database error' });
+        }
+        res.json({
+          id: Number(req.params.id),
+          name,
+          description: description || null,
+          price: price !== undefined ? price : null,
+        });
+      }
+    );
+  });
+});
+
+app.delete('/products/:id', (req, res) => {
+  db.run('DELETE FROM products WHERE id = ?', [req.params.id], function (err) {
+    if (err) {
+      return res.status(500).json({ error: 'Database error' });
+    }
+    if (this.changes === 0) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+    res.json({ message: 'Product deleted' });
+  });
+});
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
@@ -98,6 +189,23 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+// Create products table if not exists, then start server
+db.run(`
+  CREATE TABLE IF NOT EXISTS products (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    description TEXT,
+    price REAL,
+    created_at TEXT DEFAULT (datetime('now'))
+  );
+`, (err) => {
+  if (err) {
+    console.error('Error creating products table:', err.message);
+  } else {
+    console.log('Products table ready');
+  }
+
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
 });
