@@ -5,6 +5,8 @@ const db = require('./src/config/database');
 const accountRoutes = require('./src/routes/accountRoutes');
 const contactRoutes = require('./src/routes/contactRoutes');
 const productRoutes = require('./src/routes/productRoutes');
+const swaggerJsdoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -26,6 +28,28 @@ app.use((req, res, next) => {
 
 // Static files
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Swagger / API Docs
+const swaggerOptions = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'CRM API',
+      version: '1.0.0',
+      description: 'API สำหรับจัดการ Accounts, Contacts และ Products',
+    },
+    servers: [
+      {
+        url: 'http://localhost:4000',
+        description: 'Local Development Server',
+      },
+    ],
+  },
+  apis: ['./src/routes/*.js', './src/controllers/*.js'],
+};
+
+const swaggerDocs = swaggerJsdoc(swaggerOptions);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // Routes
 app.get('/', (req, res) => {
@@ -120,5 +144,6 @@ db.run(`
 
   app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`API Docs available at http://localhost:${PORT}/api-docs`);
   });
 });
