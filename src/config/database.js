@@ -83,6 +83,22 @@ db.serialize(() => {
       console.error('Error creating opportunities table:', err.message);
     }
   });
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS products (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      code TEXT UNIQUE NOT NULL,
+      price REAL,
+      description TEXT,
+      is_active BOOLEAN DEFAULT 1,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+  `, (err) => {
+    if (err) {
+      console.error('Error creating products table:', err.message);
+    }
+  });
 });
 
 module.exports = db;

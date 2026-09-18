@@ -54,24 +54,29 @@ exports.getProductById = (req, res) => {
 
 // POST /api/products
 exports.createProduct = (req, res) => {
-  const { name, description, price } = req.body;
+  const { name, code, price, description, is_active } = req.body;
 
-  if (!name) {
-    return res.status(400).json({ error: 'name is required' });
+  if (!name || !code) {
+    return res.status(400).json({ error: 'name and code are required' });
   }
 
   db.run(
-    'INSERT INTO products (name, description, price) VALUES (?, ?, ?)',
-    [name, description || null, price !== undefined ? price : null],
+    'INSERT INTO products (name, code, price, description, is_active) VALUES (?, ?, ?, ?, ?)',
+    [name, code, price !== undefined ? price : null, description || null, is_active !== undefined ? is_active : 1],
     function (err) {
       if (err) {
+        if (err.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+          return res.status(409).json({ error: 'Code already exists' });
+        }
         return res.status(500).json({ error: 'Database error' });
       }
       res.status(201).json({
         id: this.lastID,
         name,
-        description: description || null,
+        code,
         price: price !== undefined ? price : null,
+        description: description || null,
+        is_active: is_active !== undefined ? is_active : 1,
       });
     }
   );
@@ -79,10 +84,10 @@ exports.createProduct = (req, res) => {
 
 // PUT /api/products/:id (Full Replace)
 exports.updateProduct = (req, res) => {
-  const { name, description, price } = req.body;
+  const { name, code, price, description, is_active } = req.body;
 
-  if (!name) {
-    return res.status(400).json({ error: 'name is required' });
+  if (!name || !code) {
+    return res.status(400).json({ error: 'name and code are required' });
   }
 
   db.get('SELECT id FROM products WHERE id = ?', [req.params.id], (err, product) => {
@@ -94,8 +99,8 @@ exports.updateProduct = (req, res) => {
     }
 
     db.run(
-      'UPDATE products SET name = ?, description = ?, price = ? WHERE id = ?',
-      [name, description || null, price !== undefined ? price : null, req.params.id],
+      'UPDATE products SET name = ?, code = ?, price = ?, description = ?, is_active = ? WHERE id = ?',
+      [name, code, price !== undefined ? price : null, description || null, is_active !== undefined ? is_active : 1, req.params.id],
       function (err) {
         if (err) {
           return res.status(500).json({ error: 'Database error' });
@@ -103,8 +108,10 @@ exports.updateProduct = (req, res) => {
         res.json({
           id: Number(req.params.id),
           name,
-          description: description || null,
+          code,
           price: price !== undefined ? price : null,
+          description: description || null,
+          is_active: is_active !== undefined ? is_active : 1,
         });
       }
     );
@@ -113,12 +120,14 @@ exports.updateProduct = (req, res) => {
 
 // PATCH /api/products/:id (Partial Update)
 exports.patchProduct = (req, res) => {
-  const { name, description, price } = req.body;
+  const { name, code, price, description, is_active } = req.body;
 
   const fields = {};
   if (name !== undefined) fields.name = name;
-  if (description !== undefined) fields.description = description;
+  if (code !== undefined) fields.code = code;
   if (price !== undefined) fields.price = price;
+  if (description !== undefined) fields.description = description;
+  if (is_active !== undefined) fields.is_active = is_active;
 
   if (Object.keys(fields).length === 0) {
     return res.status(400).json({ error: 'At least one field must be provided' });
@@ -126,6 +135,10 @@ exports.patchProduct = (req, res) => {
 
   if (fields.name !== undefined && !fields.name) {
     return res.status(400).json({ error: 'name cannot be empty' });
+  }
+
+  if (fields.code !== undefined && !fields.code) {
+    return res.status(400).json({ error: 'code cannot be empty' });
   }
 
   db.get('SELECT * FROM products WHERE id = ?', [req.params.id], (err, product) => {
@@ -154,8 +167,10 @@ exports.patchProduct = (req, res) => {
       const updated = {
         id: Number(req.params.id),
         name: fields.name !== undefined ? fields.name : product.name,
-        description: fields.description !== undefined ? (fields.description || null) : product.description,
+        code: fields.code !== undefined ? fields.code : product.code,
         price: fields.price !== undefined ? (fields.price !== undefined ? fields.price : null) : product.price,
+        description: fields.description !== undefined ? (fields.description || null) : product.description,
+        is_active: fields.is_active !== undefined ? fields.is_active : product.is_active,
       };
       res.json(updated);
     });

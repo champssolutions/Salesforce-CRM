@@ -32,9 +32,23 @@ const productController = require('../controllers/productController');
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Product'
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Product'
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     page:
+ *                       type: integer
+ *                     limit:
+ *                       type: integer
+ *                     total:
+ *                       type: integer
+ *                     totalPages:
+ *                       type: integer
  *       500:
  *         description: Database error
  */
@@ -81,21 +95,30 @@ router.get('/:id', productController.getProductById);
  *             type: object
  *             required:
  *               - name
+ *               - code
  *             properties:
  *               name:
  *                 type: string
  *                 example: สินค้า A
- *               description:
+ *               code:
  *                 type: string
- *                 example: รายละเอียดสินค้า
+ *                 example: SKU001
  *               price:
  *                 type: number
  *                 example: 999.99
+ *               description:
+ *                 type: string
+ *                 example: รายละเอียดสินค้า
+ *               is_active:
+ *                 type: boolean
+ *                 example: true
  *     responses:
  *       201:
  *         description: สร้าง Product สำเร็จ
  *       400:
- *         description: name is required
+ *         description: name and code are required
+ *       409:
+ *         description: Code already exists
  *       500:
  *         description: Database error
  */
@@ -122,18 +145,23 @@ router.post('/', productController.createProduct);
  *             type: object
  *             required:
  *               - name
+ *               - code
  *             properties:
  *               name:
  *                 type: string
- *               description:
+ *               code:
  *                 type: string
  *               price:
  *                 type: number
+ *               description:
+ *                 type: string
+ *               is_active:
+ *                 type: boolean
  *     responses:
  *       200:
  *         description: แก้ไข Product สำเร็จ
  *       400:
- *         description: name is required
+ *         description: name and code are required
  *       404:
  *         description: Product not found
  *       500:
@@ -163,10 +191,14 @@ router.put('/:id', productController.updateProduct);
  *             properties:
  *               name:
  *                 type: string
- *               description:
+ *               code:
  *                 type: string
  *               price:
  *                 type: number
+ *               description:
+ *                 type: string
+ *               is_active:
+ *                 type: boolean
  *     responses:
  *       200:
  *         description: แก้ไข Product สำเร็จ

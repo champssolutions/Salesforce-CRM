@@ -126,13 +126,21 @@ const swaggerOptions = {
               type: 'string',
               description: 'ชื่อของ Product',
             },
-            description: {
+            code: {
               type: 'string',
-              description: 'รายละเอียดของ Product',
+              description: 'รหัสสินค้า',
             },
             price: {
               type: 'number',
               description: 'ราคาของ Product',
+            },
+            description: {
+              type: 'string',
+              description: 'รายละเอียดของ Product',
+            },
+            is_active: {
+              type: 'boolean',
+              description: 'สถานะการใช้งานของ Product',
             },
             created_at: {
               type: 'string',
@@ -269,8 +277,10 @@ db.run(`
   CREATE TABLE IF NOT EXISTS products (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
-    description TEXT,
+    code TEXT UNIQUE NOT NULL,
     price REAL,
+    description TEXT,
+    is_active BOOLEAN DEFAULT 1,
     created_at TEXT DEFAULT (datetime('now'))
   );
 `, (err) => {
