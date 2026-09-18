@@ -25,7 +25,7 @@ exports.getDealById = (req, res) => {
 
 // GET /api/deals/account/:accountId
 exports.getDealsByAccountId = (req, res) => {
-  const accountId = req.params.id;
+  const accountId = req.params.accountId;
 
   db.get('SELECT id FROM accounts WHERE id = ?', [accountId], (err, account) => {
     if (err) {
