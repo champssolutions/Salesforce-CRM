@@ -153,6 +153,10 @@
                 <div class="modal-body">
                     <form id="addContactForm">
                         <div class="mb-3">
+                            <label for="contactAccountId" class="form-label">Account ID</label>
+                            <input type="number" class="form-control" id="contactAccountId" required>
+                        </div>
+                        <div class="mb-3">
                             <label for="contactFirstName" class="form-label">First Name</label>
                             <input type="text" class="form-control" id="contactFirstName" required>
                         </div>
@@ -393,6 +397,7 @@
         }
 
         async function addContact() {
+            const account_id = document.getElementById('contactAccountId').value;
             const first_name = document.getElementById('contactFirstName').value;
             const last_name = document.getElementById('contactLastName').value;
             const email = document.getElementById('contactEmail').value;
@@ -404,7 +409,7 @@
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ first_name, last_name, email, phone, title })
+                body: JSON.stringify({ account_id, first_name, last_name, email, phone, title })
             });
 
             if (response.ok) {
