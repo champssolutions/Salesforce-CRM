@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const cors = require('cors');
 const db = require('./src/config/database');
+const userRoutes = require('./src/routes/userRoutes');
 const accountRoutes = require('./src/routes/accountRoutes');
 const contactRoutes = require('./src/routes/contactRoutes');
 const productRoutes = require('./src/routes/productRoutes');
@@ -226,6 +227,28 @@ const swaggerOptions = {
             },
           },
         },
+        User: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'integer',
+              description: 'ID ของ User',
+            },
+            name: {
+              type: 'string',
+              description: 'ชื่อของ User',
+            },
+            email: {
+              type: 'string',
+              description: 'อีเมลของ User',
+            },
+            created_at: {
+              type: 'string',
+              format: 'date-time',
+              description: 'วันที่สร้าง User',
+            },
+          },
+        },
       },
     },
   },
@@ -241,54 +264,7 @@ app.get('/', (req, res) => {
 });
 
 // Users routes
-app.get('/api/users', (req, res) => {
-  db.all('SELECT * FROM users ORDER BY id DESC', [], (err, users) => {
-    if (err) {
-      return res.status(500).json({ error: 'Database error' });
-    }
-    res.json(users);
-  });
-});
-
-app.get('/api/users/:id', (req, res) => {
-  db.get('SELECT * FROM users WHERE id = ?', [req.params.id], (err, user) => {
-    if (err) {
-      return res.status(500).json({ error: 'Database error' });
-    }
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    res.json(user);
-  });
-});
-
-app.post('/api/users', (req, res) => {
-  const { name, email } = req.body;
-  if (!name || !email) {
-    return res.status(400).json({ error: 'name and email are required' });
-  }
-  db.run('INSERT INTO users (name, email) VALUES (?, ?)', [name, email], function (err) {
-    if (err) {
-      if (err.code === 'SQLITE_CONSTRAINT_UNIQUE') {
-        return res.status(409).json({ error: 'Email already exists' });
-      }
-      return res.status(500).json({ error: 'Database error' });
-    }
-    res.status(201).json({ id: this.lastID, name, email });
-  });
-});
-
-app.delete('/api/users/:id', (req, res) => {
-  db.run('DELETE FROM users WHERE id = ?', [req.params.id], function (err) {
-    if (err) {
-      return res.status(500).json({ error: 'Database error' });
-    }
-    if (this.changes === 0) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    res.json({ message: 'User deleted' });
-  });
-});
+app.use('/api/users', userRoutes);
 
 // Accounts routes
 app.use('/api/accounts', accountRoutes);
@@ -316,29 +292,8 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// Create deals table if not exists, then start server
-db.run(`
-  CREATE TABLE IF NOT EXISTS deals (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT NOT NULL,
-    amount REAL,
-    stage TEXT CHECK (stage IN ('Prospecting', 'Qualification', 'Proposal', 'Closed Won', 'Closed Lost')),
-    account_id INTEGER,
-    contact_id INTEGER,
-    close_date TEXT,
-    created_at TEXT DEFAULT (datetime('now')),
-    FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE SET NULL,
-    FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE SET NULL
-  );
-`, (err) => {
-  if (err) {
-    console.error('Error creating deals table:', err.message);
-  } else {
-    console.log('Deals table ready');
-  }
-
-  app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-    console.log(`API Docs available at http://localhost:${PORT}/api-docs`);
-  });
+// Start server
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`API Docs available at http://localhost:${PORT}/api-docs`);
 });
