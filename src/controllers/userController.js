@@ -1,84 +1,82 @@
 const db = require('../config/database');
 
-// Helper to promisify db.all
-const dbAll = (sql, params = []) => {
-  return new Promise((resolve, reject) => {
-    db.all(sql, params, (err, rows) => {
-      if (err) reject(err);
-      else resolve(rows);
-    });
-  });
-};
-
-// Helper to promisify db.get
-const dbGet = (sql, params = []) => {
-  return new Promise((resolve, reject) => {
-    db.get(sql, params, (err, row) => {
-      if (err) reject(err);
-      else resolve(row);
-    });
-  });
-};
-
-// Helper to promisify db.run
-const dbRun = (sql, params = []) => {
-  return new Promise(function (resolve, reject) {
-    db.run(sql, params, function (err) {
-      if (err) reject(err);
-      else resolve({ lastID: this.lastID, changes: this.changes });
-    });
-  });
-};
-
-// GET /api/users
 exports.getAllUsers = async (req, res) => {
   try {
-    const users = await dbAll('SELECT * FROM users ORDER BY id DESC');
+    const users = await db.all('SELECT * FROM users');
     res.json(users);
   } catch (err) {
+    console.error(err.message);
     res.status(500).json({ error: 'Database error' });
   }
 };
 
-// GET /api/users/:id
 exports.getUserById = async (req, res) => {
   try {
-    const user = await dbGet('SELECT * FROM users WHERE id = ?', [req.params.id]);
+    const user = await db.get('SELECT * FROM users WHERE id = ?', [req.params.id]);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
     res.json(user);
   } catch (err) {
+    console.error(err.message);
     res.status(500).json({ error: 'Database error' });
   }
 };
 
-// POST /api/users
 exports.createUser = async (req, res) => {
   const { name, email } = req.body;
+
   if (!name || !email) {
     return res.status(400).json({ error: 'name and email are required' });
   }
+
   try {
-    const result = await dbRun('INSERT INTO users (name, email) VALUES (?, ?)', [name, email]);
-    res.status(201).json({ id: result.lastID, name, email });
+    const stmt = await db.prepare('INSERT INTO users (name, email) VALUES (?, ?)');
+    const { lastID } = await stmt.run(name, email);
+    stmt.finalize();
+    res.status(201).json({ id: lastID, name, email });
   } catch (err) {
-    if (err.code === 'SQLITE_CONSTRAINT_UNIQUE') {
-      return res.status(409).json({ error: 'Email already exists' });
-    }
+    console.error(err.message);
     res.status(500).json({ error: 'Database error' });
   }
 };
 
-// DELETE /api/users/:id
-exports.deleteUser = async (req, res) => {
+exports.updateUser = async (req, res) => {
+  const { name, email } = req.body;
+
+  if (!name || !email) {
+    return res.status(400).json({ error: 'name and email are required' });
+  }
+
   try {
-    const result = await dbRun('DELETE FROM users WHERE id = ?', [req.params.id]);
-    if (result.changes === 0) {
+    const user = await db.get('SELECT * FROM users WHERE id = ?', [req.params.id]);
+    if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
+
+    const stmt = await db.prepare('UPDATE users SET name = ?, email = ? WHERE id = ?');
+    await stmt.run(name, email, req.params.id);
+    stmt.finalize();
+    res.json({ id: req.params.id, name, email });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ error: 'Database error' });
+  }
+};
+
+exports.deleteUser = async (req, res) => {
+  try {
+    const user = await db.get('SELECT * FROM users WHERE id = ?', [req.params.id]);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const stmt = await db.prepare('DELETE FROM users WHERE id = ?');
+    await stmt.run(req.params.id);
+    stmt.finalize();
     res.json({ message: 'User deleted' });
   } catch (err) {
+    console.error(err.message);
     res.status(500).json({ error: 'Database error' });
   }
 };
