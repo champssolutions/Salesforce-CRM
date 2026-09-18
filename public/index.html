@@ -279,8 +279,9 @@
         });
 
         async function loadAccounts() {
-            const response = await fetch('http://localhost:4000/accounts');
-            const accounts = await response.json();
+            const response = await fetch('http://localhost:4000/api/accounts');
+            const result = await response.json();
+            const accounts = result.data || result; // Handle paginated or direct array
             const tableBody = document.getElementById('accountsTable');
             tableBody.innerHTML = '';
             accounts.forEach(account => {
@@ -300,7 +301,7 @@
         }
 
         async function loadContacts() {
-            const response = await fetch('http://localhost:4000/contacts');
+            const response = await fetch('http://localhost:4000/api/contacts');
             const contacts = await response.json();
             const tableBody = document.getElementById('contactsTable');
             tableBody.innerHTML = '';
@@ -322,8 +323,9 @@
         }
 
         async function loadProducts() {
-            const response = await fetch('http://localhost:4000/products');
-            const products = await response.json();
+            const response = await fetch('http://localhost:4000/api/products');
+            const result = await response.json();
+            const products = result.data || result; // Handle paginated or direct array
             const tableBody = document.getElementById('productsTable');
             tableBody.innerHTML = '';
             products.forEach(product => {
@@ -344,7 +346,7 @@
         }
 
         async function loadDeals() {
-            const response = await fetch('http://localhost:4000/deals');
+            const response = await fetch('http://localhost:4000/api/deals');
             const deals = await response.json();
             const tableBody = document.getElementById('dealsTable');
             tableBody.innerHTML = '';
@@ -372,7 +374,7 @@
             const phone = document.getElementById('accountPhone').value;
             const website = document.getElementById('accountWebsite').value;
 
-            const response = await fetch('http://localhost:4000/accounts', {
+            const response = await fetch('http://localhost:4000/api/accounts', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -382,7 +384,9 @@
 
             if (response.ok) {
                 loadAccounts();
-                document.getElementById('addAccountModal').modal('hide');
+                const modal = bootstrap.Modal.getInstance(document.getElementById('addAccountModal'));
+                modal.hide();
+                document.getElementById('addAccountForm').reset();
             } else {
                 alert('Failed to add account');
             }
@@ -395,7 +399,7 @@
             const phone = document.getElementById('contactPhone').value;
             const title = document.getElementById('contactTitle').value;
 
-            const response = await fetch('http://localhost:4000/contacts', {
+            const response = await fetch('http://localhost:4000/api/contacts', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -405,7 +409,9 @@
 
             if (response.ok) {
                 loadContacts();
-                document.getElementById('addContactModal').modal('hide');
+                const modal = bootstrap.Modal.getInstance(document.getElementById('addContactModal'));
+                modal.hide();
+                document.getElementById('addContactForm').reset();
             } else {
                 alert('Failed to add contact');
             }
@@ -418,7 +424,7 @@
             const description = document.getElementById('productDescription').value;
             const is_active = document.getElementById('productIsActive').value === 'true';
 
-            const response = await fetch('http://localhost:4000/products', {
+            const response = await fetch('http://localhost:4000/api/products', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -428,7 +434,9 @@
 
             if (response.ok) {
                 loadProducts();
-                document.getElementById('addProductModal').modal('hide');
+                const modal = bootstrap.Modal.getInstance(document.getElementById('addProductModal'));
+                modal.hide();
+                document.getElementById('addProductForm').reset();
             } else {
                 alert('Failed to add product');
             }
@@ -442,7 +450,7 @@
             const contact_id = document.getElementById('dealContactId').value;
             const close_date = document.getElementById('dealCloseDate').value;
 
-            const response = await fetch('http://localhost:4000/deals', {
+            const response = await fetch('http://localhost:4000/api/deals', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -452,14 +460,16 @@
 
             if (response.ok) {
                 loadDeals();
-                document.getElementById('addDealModal').modal('hide');
+                const modal = bootstrap.Modal.getInstance(document.getElementById('addDealModal'));
+                modal.hide();
+                document.getElementById('addDealForm').reset();
             } else {
                 alert('Failed to add deal');
             }
         }
 
         async function deleteAccount(id) {
-            const response = await fetch(`http://localhost:4000/accounts/${id}`, {
+            const response = await fetch(`http://localhost:4000/api/accounts/${id}`, {
                 method: 'DELETE'
             });
 
@@ -471,7 +481,7 @@
         }
 
         async function deleteContact(id) {
-            const response = await fetch(`http://localhost:4000/contacts/${id}`, {
+            const response = await fetch(`http://localhost:4000/api/contacts/${id}`, {
                 method: 'DELETE'
             });
 
@@ -483,7 +493,7 @@
         }
 
         async function deleteProduct(id) {
-            const response = await fetch(`http://localhost:4000/products/${id}`, {
+            const response = await fetch(`http://localhost:4000/api/products/${id}`, {
                 method: 'DELETE'
             });
 
@@ -495,7 +505,7 @@
         }
 
         async function deleteDeal(id) {
-            const response = await fetch(`http://localhost:4000/deals/${id}`, {
+            const response = await fetch(`http://localhost:4000/api/deals/${id}`, {
                 method: 'DELETE'
             });
 
