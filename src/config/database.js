@@ -99,6 +99,25 @@ db.serialize(() => {
       console.error('Error creating products table:', err.message);
     }
   });
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS deals (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      amount REAL,
+      stage TEXT CHECK (stage IN ('Prospecting', 'Qualification', 'Proposal', 'Closed Won', 'Closed Lost')),
+      account_id INTEGER,
+      contact_id INTEGER,
+      close_date TEXT,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE SET NULL,
+      FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE SET NULL
+    );
+  `, (err) => {
+    if (err) {
+      console.error('Error creating deals table:', err.message);
+    }
+  });
 });
 
 module.exports = db;

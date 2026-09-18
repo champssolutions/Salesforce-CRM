@@ -6,6 +6,7 @@ const accountRoutes = require('./src/routes/accountRoutes');
 const contactRoutes = require('./src/routes/contactRoutes');
 const productRoutes = require('./src/routes/productRoutes');
 const opportunityRoutes = require('./src/routes/opportunityRoutes');
+const dealRoutes = require('./src/routes/dealRoutes');
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 
@@ -37,7 +38,7 @@ const swaggerOptions = {
     info: {
       title: 'CRM API',
       version: '1.0.0',
-      description: 'API สำหรับจัดการ Accounts, Contacts และ Products',
+      description: 'API สำหรับจัดการ Accounts, Contacts, Products และ Deals',
     },
     servers: [
       {
@@ -146,6 +147,46 @@ const swaggerOptions = {
               type: 'string',
               format: 'date-time',
               description: 'วันที่สร้าง Product',
+            },
+          },
+        },
+        Deal: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'integer',
+              description: 'ID ของ Deal',
+            },
+            title: {
+              type: 'string',
+              description: 'ชื่อของ Deal',
+            },
+            amount: {
+              type: 'number',
+              description: 'จำนวนเงินของ Deal',
+            },
+            stage: {
+              type: 'string',
+              description: 'สถานะของ Deal',
+              enum: ['Prospecting', 'Qualification', 'Proposal', 'Closed Won', 'Closed Lost'],
+            },
+            account_id: {
+              type: 'integer',
+              description: 'ID ของ Account ที่เกี่ยวข้อง',
+            },
+            contact_id: {
+              type: 'integer',
+              description: 'ID ของ Contact ที่เกี่ยวข้อง',
+            },
+            close_date: {
+              type: 'string',
+              format: 'date-time',
+              description: 'วันที่คาดว่าจะปิด',
+            },
+            created_at: {
+              type: 'string',
+              format: 'date-time',
+              description: 'วันที่สร้าง Deal',
             },
           },
         },
@@ -261,6 +302,9 @@ app.use('/api/products', productRoutes);
 // Opportunities routes
 app.use('/api/opportunities', opportunityRoutes);
 
+// Deals routes
+app.use('/api/deals', dealRoutes);
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
@@ -272,22 +316,25 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// Create products table if not exists, then start server
+// Create deals table if not exists, then start server
 db.run(`
-  CREATE TABLE IF NOT EXISTS products (
+  CREATE TABLE IF NOT EXISTS deals (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    code TEXT UNIQUE NOT NULL,
-    price REAL,
-    description TEXT,
-    is_active BOOLEAN DEFAULT 1,
-    created_at TEXT DEFAULT (datetime('now'))
+    title TEXT NOT NULL,
+    amount REAL,
+    stage TEXT CHECK (stage IN ('Prospecting', 'Qualification', 'Proposal', 'Closed Won', 'Closed Lost')),
+    account_id INTEGER,
+    contact_id INTEGER,
+    close_date TEXT,
+    created_at TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE SET NULL,
+    FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE SET NULL
   );
 `, (err) => {
   if (err) {
-    console.error('Error creating products table:', err.message);
+    console.error('Error creating deals table:', err.message);
   } else {
-    console.log('Products table ready');
+    console.log('Deals table ready');
   }
 
   app.listen(PORT, () => {
