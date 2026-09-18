@@ -104,6 +104,10 @@ const swaggerOptions = {
               type: 'string',
               description: 'เบอร์โทรศัพท์ของ Contact',
             },
+            title: {
+              type: 'string',
+              description: 'ตำแหน่งของ Contact',
+            },
             created_at: {
               type: 'string',
               format: 'date-time',

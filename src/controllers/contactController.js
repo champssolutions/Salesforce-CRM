@@ -46,7 +46,7 @@ exports.getContactsByAccountId = (req, res) => {
 
 // POST /api/contacts
 exports.createContact = (req, res) => {
-  const { account_id, first_name, last_name, email, phone } = req.body;
+  const { account_id, first_name, last_name, email, phone, title } = req.body;
 
   if (!account_id || !first_name) {
     return res.status(400).json({ error: 'account_id and first_name are required' });
@@ -61,8 +61,8 @@ exports.createContact = (req, res) => {
     }
 
     db.run(
-      'INSERT INTO contacts (account_id, first_name, last_name, email, phone) VALUES (?, ?, ?, ?, ?)',
-      [account_id, first_name, last_name || null, email || null, phone || null],
+      'INSERT INTO contacts (account_id, first_name, last_name, email, phone, title) VALUES (?, ?, ?, ?, ?, ?)',
+      [account_id, first_name, last_name || null, email || null, phone || null, title || null],
       function (err) {
         if (err) {
           return res.status(500).json({ error: 'Database error' });
@@ -74,6 +74,7 @@ exports.createContact = (req, res) => {
           last_name: last_name || null,
           email: email || null,
           phone: phone || null,
+          title: title || null,
         });
       }
     );
@@ -82,7 +83,7 @@ exports.createContact = (req, res) => {
 
 // PUT /api/contacts/:id
 exports.updateContact = (req, res) => {
-  const { account_id, first_name, last_name, email, phone } = req.body;
+  const { account_id, first_name, last_name, email, phone, title } = req.body;
 
   if (!first_name) {
     return res.status(400).json({ error: 'first_name is required' });
@@ -107,8 +108,8 @@ exports.updateContact = (req, res) => {
       }
 
       db.run(
-        'UPDATE contacts SET account_id = ?, first_name = ?, last_name = ?, email = ?, phone = ? WHERE id = ?',
-        [newAccountId, first_name, last_name || null, email || null, phone || null, req.params.id],
+        'UPDATE contacts SET account_id = ?, first_name = ?, last_name = ?, email = ?, phone = ?, title = ? WHERE id = ?',
+        [newAccountId, first_name, last_name || null, email || null, phone || null, title || null, req.params.id],
         function (err) {
           if (err) {
             return res.status(500).json({ error: 'Database error' });
@@ -120,6 +121,7 @@ exports.updateContact = (req, res) => {
             last_name: last_name || null,
             email: email || null,
             phone: phone || null,
+            title: title || null,
           });
         }
       );

@@ -51,6 +51,35 @@ router.get('/:id', contactController.getContactById);
 
 /**
  * @swagger
+ * /api/accounts/{accountId}/contacts:
+ *   get:
+ *     summary: ดึง Contacts ตาม Account ID
+ *     tags: [Contacts]
+ *     parameters:
+ *       - in: path
+ *         name: accountId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID ของ Account
+ *     responses:
+ *       200:
+ *         description: รายการ Contacts
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Contact'
+ *       404:
+ *         description: Account not found
+ *       500:
+ *         description: Database error
+ */
+router.get('/account/:accountId', contactController.getContactsByAccountId);
+
+/**
+ * @swagger
  * /api/contacts:
  *   post:
  *     summary: สร้าง Contact ใหม่
@@ -80,6 +109,9 @@ router.get('/:id', contactController.getContactById);
  *               phone:
  *                 type: string
  *                 example: 089-123-4567
+ *               title:
+ *                 type: string
+ *                 example: ผู้จัดการ
  *     responses:
  *       201:
  *         description: สร้าง Contact สำเร็จ
@@ -123,6 +155,8 @@ router.post('/', contactController.createContact);
  *               email:
  *                 type: string
  *               phone:
+ *                 type: string
+ *               title:
  *                 type: string
  *     responses:
  *       200:

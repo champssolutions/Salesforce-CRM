@@ -57,6 +57,7 @@ db.serialize(() => {
       last_name TEXT,
       email TEXT,
       phone TEXT,
+      title TEXT,
       created_at TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
     );
