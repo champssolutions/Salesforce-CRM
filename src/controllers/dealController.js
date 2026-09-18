@@ -1,82 +1,138 @@
 const db = require('../config/database');
 
+// กำหนดรายการ Stage ที่อนุญาตตาม CHECK constraint ในฐานข้อมูล
+const VALID_STAGES = ['Prospecting', 'Qualification', 'Proposal', 'Closed Won', 'Closed Lost'];
+
+// Promise wrappers for the callback-based sqlite3 API
+const all = (sql, params = []) => new Promise((resolve, reject) => {
+  db.all(sql, params, (err, rows) => (err ? reject(err) : resolve(rows)));
+});
+const get = (sql, params = []) => new Promise((resolve, reject) => {
+  db.get(sql, params, (err, row) => (err ? reject(err) : resolve(row)));
+});
+const run = (sql, params = []) => new Promise((resolve, reject) => {
+  db.run(sql, params, function (err) {
+    if (err) return reject(err);
+    resolve({ lastID: this.lastID, changes: this.changes });
+  });
+});
+
+// Normalize a foreign key: empty/undefined/null/"null" or missing parent -> null
+const normalizeFk = async (table, value) => {
+  if (value === undefined || value === null || value === '' || value === 'null') {
+    return null;
+  }
+  const row = await get(`SELECT id FROM ${table} WHERE id = ?`, [value]);
+  return row ? Number(value) : null;
+};
+
 exports.getAllDeals = async (req, res) => {
   try {
-    const deals = await db.all('SELECT * FROM deals');
+    const deals = await all('SELECT * FROM deals ORDER BY id DESC');
     res.json(deals);
   } catch (err) {
-    console.error(err.message);
+    console.error('getAllDeals Error:', err.message);
     res.status(500).json({ error: 'Database error' });
   }
 };
 
 exports.getDealById = async (req, res) => {
   try {
-    const deal = await db.get('SELECT * FROM deals WHERE id = ?', [req.params.id]);
+    const deal = await get('SELECT * FROM deals WHERE id = ?', [req.params.id]);
     if (!deal) {
       return res.status(404).json({ error: 'Deal not found' });
     }
     res.json(deal);
   } catch (err) {
-    console.error(err.message);
+    console.error('getDealById Error:', err.message);
     res.status(500).json({ error: 'Database error' });
   }
 };
 
 exports.createDeal = async (req, res) => {
-  const { title, amount, stage, account_id, contact_id, close_date } = req.body;
-
-  if (!title || !amount || !stage) {
-    return res.status(400).json({ error: 'title, amount, and stage are required' });
-  }
-
   try {
-    const stmt = await db.prepare('INSERT INTO deals (title, amount, stage, account_id, contact_id, close_date) VALUES (?, ?, ?, ?, ?, ?)');
-    const { lastID } = await stmt.run(title, amount, stage, account_id, contact_id, close_date);
-    stmt.finalize();
-    res.status(201).json({ id: lastID, title, amount, stage, account_id, contact_id, close_date });
+    const { title, amount, stage, account_id, contact_id, close_date } = req.body;
+
+    if (!title) {
+      return res.status(400).json({ error: 'title is required' });
+    }
+
+    const validAccountId = await normalizeFk('accounts', account_id);
+    const validContactId = await normalizeFk('contacts', contact_id);
+    const validAmount = amount ? Number(amount) : 0;
+    const finalStage = VALID_STAGES.includes(stage) ? stage : 'Prospecting';
+
+    const sql = `INSERT INTO deals (title, amount, stage, account_id, contact_id, close_date) VALUES (?, ?, ?, ?, ?, ?)`;
+    const params = [title, validAmount, finalStage, validAccountId, validContactId, close_date || null];
+
+    const { lastID } = await run(sql, params);
+
+    res.status(201).json({
+      id: lastID,
+      title,
+      amount: validAmount,
+      stage: finalStage,
+      account_id: validAccountId,
+      contact_id: validContactId,
+      close_date: close_date || null
+    });
   } catch (err) {
-    console.error(err.message);
-    res.status(500).json({ error: 'Database error' });
+    console.error('createDeal Error:', err.message);
+    res.status(500).json({ error: err.message });
   }
 };
 
 exports.updateDeal = async (req, res) => {
-  const { title, amount, stage, account_id, contact_id, close_date } = req.body;
-
-  if (!title || !amount || !stage) {
-    return res.status(400).json({ error: 'title, amount, and stage are required' });
-  }
-
   try {
-    const deal = await db.get('SELECT * FROM deals WHERE id = ?', [req.params.id]);
+    const { title, amount, stage, account_id, contact_id, close_date } = req.body;
+
+    if (!title) {
+      return res.status(400).json({ error: 'title is required' });
+    }
+
+    const deal = await get('SELECT * FROM deals WHERE id = ?', [req.params.id]);
     if (!deal) {
       return res.status(404).json({ error: 'Deal not found' });
     }
 
-    const stmt = await db.prepare('UPDATE deals SET title = ?, amount = ?, stage = ?, account_id = ?, contact_id = ?, close_date = ? WHERE id = ?');
-    await stmt.run(title, amount, stage, account_id, contact_id, close_date, req.params.id);
-    stmt.finalize();
-    res.json({ id: req.params.id, title, amount, stage, account_id, contact_id, close_date });
+    const validAccountId = (account_id === undefined)
+      ? deal.account_id
+      : await normalizeFk('accounts', account_id);
+    const validContactId = (contact_id === undefined)
+      ? deal.contact_id
+      : await normalizeFk('contacts', contact_id);
+    const validAmount = amount ? Number(amount) : 0;
+    const finalStage = VALID_STAGES.includes(stage) ? stage : 'Prospecting';
+
+    const sql = `UPDATE deals SET title = ?, amount = ?, stage = ?, account_id = ?, contact_id = ?, close_date = ? WHERE id = ?`;
+    const params = [title, validAmount, finalStage, validAccountId, validContactId, close_date || null, req.params.id];
+
+    await run(sql, params);
+
+    res.json({
+      id: Number(req.params.id),
+      title,
+      amount: validAmount,
+      stage: finalStage,
+      account_id: validAccountId,
+      contact_id: validContactId,
+      close_date: close_date || null
+    });
   } catch (err) {
-    console.error(err.message);
-    res.status(500).json({ error: 'Database error' });
+    console.error('updateDeal Error:', err.message);
+    res.status(500).json({ error: err.message });
   }
 };
 
 exports.deleteDeal = async (req, res) => {
   try {
-    const deal = await db.get('SELECT * FROM deals WHERE id = ?', [req.params.id]);
-    if (!deal) {
+    const { changes } = await run('DELETE FROM deals WHERE id = ?', [req.params.id]);
+    if (changes === 0) {
       return res.status(404).json({ error: 'Deal not found' });
     }
-
-    const stmt = await db.prepare('DELETE FROM deals WHERE id = ?');
-    await stmt.run(req.params.id);
-    stmt.finalize();
     res.json({ message: 'Deal deleted' });
   } catch (err) {
-    console.error(err.message);
-    res.status(500).json({ error: 'Database error' });
+    console.error('deleteDeal Error:', err.message);
+    res.status(500).json({ error: err.message });
   }
 };
