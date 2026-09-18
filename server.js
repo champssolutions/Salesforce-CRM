@@ -8,6 +8,7 @@ const contactRoutes = require('./src/routes/contactRoutes');
 const productRoutes = require('./src/routes/productRoutes');
 const opportunityRoutes = require('./src/routes/opportunityRoutes');
 const dealRoutes = require('./src/routes/dealRoutes');
+const leadRoutes = require('./src/routes/leadRoutes');
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 
@@ -29,8 +30,19 @@ app.use((req, res, next) => {
   next();
 });
 
-// Static files
+// Static files (รับผิดชอบส่ง index.html จากโฟลเดอร์ public)
 app.use(express.static(path.join(__dirname, 'public')));
+
+// API Routes
+app.use('/api/users', userRoutes);
+app.use('/api/accounts', accountRoutes);
+app.use('/api/contacts', contactRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/opportunities', opportunityRoutes);
+app.use('/api/deals', dealRoutes);
+app.use('/api/leads', leadRoutes);
+
+// (นำ app.get('/', ...) ออกไป เพื่อให้ express.static ทำงานส่งหน้าเว็บ public/index.html ได้)
 
 // Swagger / API Docs
 const swaggerOptions = {
@@ -280,6 +292,9 @@ app.use('/api/opportunities', opportunityRoutes);
 
 // Deals routes
 app.use('/api/deals', dealRoutes);
+
+// Leads routes
+app.use('/api/leads', leadRoutes);
 
 // 404 handler
 app.use((req, res) => {

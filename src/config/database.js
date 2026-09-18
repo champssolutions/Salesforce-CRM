@@ -19,7 +19,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
 
 db.serialize(() => {
   db.run('PRAGMA journal_mode = WAL');
-  db.run('PRAGMA foreign_keys = ON');
+  db.run('PRAGMA foreign_keys = OFF');
 
   db.run(`
     CREATE TABLE IF NOT EXISTS users (
@@ -28,11 +28,7 @@ db.serialize(() => {
       email TEXT UNIQUE NOT NULL,
       created_at TEXT DEFAULT (datetime('now'))
     );
-  `, (err) => {
-    if (err) {
-      console.error('Error creating users table:', err.message);
-    }
-  });
+  `);
 
   db.run(`
     CREATE TABLE IF NOT EXISTS accounts (
@@ -43,34 +39,26 @@ db.serialize(() => {
       website TEXT,
       created_at TEXT DEFAULT (datetime('now'))
     );
-  `, (err) => {
-    if (err) {
-      console.error('Error creating accounts table:', err.message);
-    }
-  });
+  `);
 
   db.run(`
     CREATE TABLE IF NOT EXISTS contacts (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      account_id INTEGER NOT NULL,
+      account_id INTEGER,
       first_name TEXT NOT NULL,
       last_name TEXT,
       email TEXT,
       phone TEXT,
       title TEXT,
       created_at TEXT DEFAULT (datetime('now')),
-      FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
+      FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE SET NULL
     );
-  `, (err) => {
-    if (err) {
-      console.error('Error creating contacts table:', err.message);
-    }
-  });
+  `);
 
   db.run(`
     CREATE TABLE IF NOT EXISTS opportunities (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      account_id INTEGER NOT NULL,
+      account_id INTEGER,
       name TEXT NOT NULL,
       amount REAL,
       stage TEXT CHECK (stage IN ('Prospecting', 'Qualification', 'Proposal', 'Closed Won', 'Closed Lost')),
@@ -78,11 +66,7 @@ db.serialize(() => {
       created_at TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
     );
-  `, (err) => {
-    if (err) {
-      console.error('Error creating opportunities table:', err.message);
-    }
-  });
+  `);
 
   db.run(`
     CREATE TABLE IF NOT EXISTS products (
@@ -94,11 +78,7 @@ db.serialize(() => {
       is_active BOOLEAN DEFAULT 1,
       created_at TEXT DEFAULT (datetime('now'))
     );
-  `, (err) => {
-    if (err) {
-      console.error('Error creating products table:', err.message);
-    }
-  });
+  `);
 
   db.run(`
     CREATE TABLE IF NOT EXISTS deals (
@@ -113,11 +93,20 @@ db.serialize(() => {
       FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE SET NULL,
       FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE SET NULL
     );
-  `, (err) => {
-    if (err) {
-      console.error('Error creating deals table:', err.message);
-    }
-  });
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS leads (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      first_name TEXT NOT NULL,
+      last_name TEXT,
+      company TEXT,
+      status TEXT DEFAULT 'New',
+      email TEXT,
+      phone TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+  `);
 });
 
 module.exports = db;
