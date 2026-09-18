@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="accounts-tab" data-bs-toggle="tab" data-bs-target="#accounts" type="button" role="tab" aria-controls="accounts" aria-selected="true">Accounts</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="contacts-tab" data-bs-toggle="tab" data-bs-target="#contacts" type="button" role="tab" aria-controls="contacts" aria-selected="false">Contacts</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="products-tab" data-bs-toggle="tab" data-bs-target="#products" type="button" role="tab" aria-controls="products" aria-selected="false">Products</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="deals-tab" data-bs-toggle="tab" data-bs-target="#deals" type="button" role="tab" aria-controls="deals" aria-selected="false">Deals</button>
+            </li>
+        </ul>
+        <div class="tab-content" id="myTabContent">
+            <div class="tab-pane fade show active" id="accounts" role="tabpanel" aria-labelledby="accounts-tab">
+                <h2 class="mt-3">Accounts</h2>
+                <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addAccountModal">Add Account</button>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Industry</th>
+                            <th>Phone</th>
+                            <th>Website</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="accountsTable">
+                        <!-- Accounts will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="tab-pane fade" id="contacts" role="tabpanel" aria-labelledby="contacts-tab">
+                <h2 class="mt-3">Contacts</h2>
+                <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addContactModal">Add Contact</button>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>First Name</th>
+                            <th>Last Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Title</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="contactsTable">
+                        <!-- Contacts will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="tab-pane fade" id="products" role="tabpanel" aria-labelledby="products-tab">
+                <h2 class="mt-3">Products</h2>
+                <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addProductModal">Add Product</button>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Code</th>
+                            <th>Price</th>
+                            <th>Description</th>
+                            <th>Is Active</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productsTable">
+                        <!-- Products will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="tab-pane fade" id="deals" role="tabpanel" aria-labelledby="deals-tab">
+                <h2 class="mt-3">Deals</h2>
+                <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addDealModal">Add Deal</button>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Title</th>
+                            <th>Amount</th>
+                            <th>Stage</th>
+                            <th>Account ID</th>
+                            <th>Contact ID</th>
+                            <th>Close Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dealsTable">
+                        <!-- Deals will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Account Modal -->
+    <div class="modal fade" id="addAccountModal" tabindex="-1" aria-labelledby="addAccountModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addAccountModalLabel">Add Account</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addAccountForm">
+                        <div class="mb-3">
+                            <label for="accountName" class="form-label">Name</label>
+                            <input type="text" class="form-control" id="accountName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="accountIndustry" class="form-label">Industry</label>
+                            <input type="text" class="form-control" id="accountIndustry">
+                        </div>
+                        <div class="mb-3">
+                            <label for="accountPhone" class="form-label">Phone</label>
+                            <input type="text" class="form-control" id="accountPhone">
+                        </div>
+                        <div class="mb-3">
+                            <label for="accountWebsite" class="form-label">Website</label>
+                            <input type="text" class="form-control" id="accountWebsite">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="addAccount()">Add</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Contact Modal -->
+    <div class="modal fade" id="addContactModal" tabindex="-1" aria-labelledby="addContactModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addContactModalLabel">Add Contact</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addContactForm">
+                        <div class="mb-3">
+                            <label for="contactFirstName" class="form-label">First Name</label>
+                            <input type="text" class="form-control" id="contactFirstName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="contactLastName" class="form-label">Last Name</label>
+                            <input type="text" class="form-control" id="contactLastName">
+                        </div>
+                        <div class="mb-3">
+                            <label for="contactEmail" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="contactEmail">
+                        </div>
+                        <div class="mb-3">
+                            <label for="contactPhone" class="form-label">Phone</label>
+                            <input type="text" class="form-control" id="contactPhone">
+                        </div>
+                        <div class="mb-3">
+                            <label for="contactTitle" class="form-label">Title</label>
+                            <input type="text" class="form-control" id="contactTitle">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="addContact()">Add</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Product Modal -->
+    <div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addProductModalLabel">Add Product</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addProductForm">
+                        <div class="mb-3">
+                            <label for="productName" class="form-label">Name</label>
+                            <input type="text" class="form-control" id="productName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="productCode" class="form-label">Code</label>
+                            <input type="text" class="form-control" id="productCode" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="productPrice" class="form-label">Price</label>
+                            <input type="number" class="form-control" id="productPrice">
+                        </div>
+                        <div class="mb-3">
+                            <label for="productDescription" class="form-label">Description</label>
+                            <textarea class="form-control" id="productDescription"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="productIsActive" class="form-label">Is Active</label>
+                            <select class="form-select" id="productIsActive">
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="addProduct()">Add</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Deal Modal -->
+    <div class="modal fade" id="addDealModal" tabindex="-1" aria-labelledby="addDealModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addDealModalLabel">Add Deal</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addDealForm">
+                        <div class="mb-3">
+                            <label for="dealTitle" class="form-label">Title</label>
+                            <input type="text" class="form-control" id="dealTitle" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="dealAmount" class="form-label">Amount</label>
+                            <input type="number" class="form-control" id="dealAmount" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="dealStage" class="form-label">Stage</label>
+                            <input type="text" class="form-control" id="dealStage" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="dealAccountId" class="form-label">Account ID</label>
+                            <input type="number" class="form-control" id="dealAccountId" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="dealContactId" class="form-label">Contact ID</label>
+                            <input type="number" class="form-control" id="dealContactId">
+                        </div>
+                        <div class="mb-3">
+                            <label for="dealCloseDate" class="form-label">Close Date</label>
+                            <input type="date" class="form-control" id="dealCloseDate">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="addDeal()">Add</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAccounts();
+            loadContacts();
+            loadProducts();
+            loadDeals();
+        });
+
+        async function loadAccounts() {
+            const response = await fetch('http://localhost:4000/accounts');
+            const accounts = await response.json();
+            const tableBody = document.getElementById('accountsTable');
+            tableBody.innerHTML = '';
+            accounts.forEach(account => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${account.id}</td>
+                    <td>${account.name}</td>
+                    <td>${account.industry}</td>
+                    <td>${account.phone}</td>
+                    <td>${account.website}</td>
+                    <td>
+                        <button type="button" class="btn btn-danger" onclick="deleteAccount(${account.id})">Delete</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        async function loadContacts() {
+            const response = await fetch('http://localhost:4000/contacts');
+            const contacts = await response.json();
+            const tableBody = document.getElementById('contactsTable');
+            tableBody.innerHTML = '';
+            contacts.forEach(contact => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${contact.id}</td>
+                    <td>${contact.first_name}</td>
+                    <td>${contact.last_name}</td>
+                    <td>${contact.email}</td>
+                    <td>${contact.phone}</td>
+                    <td>${contact.title}</td>
+                    <td>
+                        <button type="button" class="btn btn-danger" onclick="deleteContact(${contact.id})">Delete</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        async function loadProducts() {
+            const response = await fetch('http://localhost:4000/products');
+            const products = await response.json();
+            const tableBody = document.getElementById('productsTable');
+            tableBody.innerHTML = '';
+            products.forEach(product => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${product.id}</td>
+                    <td>${product.name}</td>
+                    <td>${product.code}</td>
+                    <td>${product.price}</td>
+                    <td>${product.description}</td>
+                    <td>${product.is_active ? 'Yes' : 'No'}</td>
+                    <td>
+                        <button type="button" class="btn btn-danger" onclick="deleteProduct(${product.id})">Delete</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        async function loadDeals() {
+            const response = await fetch('http://localhost:4000/deals');
+            const deals = await response.json();
+            const tableBody = document.getElementById('dealsTable');
+            tableBody.innerHTML = '';
+            deals.forEach(deal => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${deal.id}</td>
+                    <td>${deal.title}</td>
+                    <td>${deal.amount}</td>
+                    <td>${deal.stage}</td>
+                    <td>${deal.account_id}</td>
+                    <td>${deal.contact_id}</td>
+                    <td>${deal.close_date}</td>
+                    <td>
+                        <button type="button" class="btn btn-danger" onclick="deleteDeal(${deal.id})">Delete</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        async function addAccount() {
+            const name = document.getElementById('accountName').value;
+            const industry = document.getElementById('accountIndustry').value;
+            const phone = document.getElementById('accountPhone').value;
+            const website = document.getElementById('accountWebsite').value;
+
+            const response = await fetch('http://localhost:4000/accounts', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name, industry, phone, website })
+            });
+
+            if (response.ok) {
+                loadAccounts();
+                document.getElementById('addAccountModal').modal('hide');
+            } else {
+                alert('Failed to add account');
+            }
+        }
+
+        async function addContact() {
+            const first_name = document.getElementById('contactFirstName').value;
+            const last_name = document.getElementById('contactLastName').value;
+            const email = document.getElementById('contactEmail').value;
+            const phone = document.getElementById('contactPhone').value;
+            const title = document.getElementById('contactTitle').value;
+
+            const response = await fetch('http://localhost:4000/contacts', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ first_name, last_name, email, phone, title })
+            });
+
+            if (response.ok) {
+                loadContacts();
+                document.getElementById('addContactModal').modal('hide');
+            } else {
+                alert('Failed to add contact');
+            }
+        }
+
+        async function addProduct() {
+            const name = document.getElementById('productName').value;
+            const code = document.getElementById('productCode').value;
+            const price = document.getElementById('productPrice').value;
+            const description = document.getElementById('productDescription').value;
+            const is_active = document.getElementById('productIsActive').value === 'true';
+
+            const response = await fetch('http://localhost:4000/products', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name, code, price, description, is_active })
+            });
+
+            if (response.ok) {
+                loadProducts();
+                document.getElementById('addProductModal').modal('hide');
+            } else {
+                alert('Failed to add product');
+            }
+        }
+
+        async function addDeal() {
+            const title = document.getElementById('dealTitle').value;
+            const amount = document.getElementById('dealAmount').value;
+            const stage = document.getElementById('dealStage').value;
+            const account_id = document.getElementById('dealAccountId').value;
+            const contact_id = document.getElementById('dealContactId').value;
+            const close_date = document.getElementById('dealCloseDate').value;
+
+            const response = await fetch('http://localhost:4000/deals', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ title, amount, stage, account_id, contact_id, close_date })
+            });
+
+            if (response.ok) {
+                loadDeals();
+                document.getElementById('addDealModal').modal('hide');
+            } else {
+                alert('Failed to add deal');
+            }
+        }
+
+        async function deleteAccount(id) {
+            const response = await fetch(`http://localhost:4000/accounts/${id}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                loadAccounts();
+            } else {
+                alert('Failed to delete account');
+            }
+        }
+
+        async function deleteContact(id) {
+            const response = await fetch(`http://localhost:4000/contacts/${id}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                loadContacts();
+            } else {
+                alert('Failed to delete contact');
+            }
+        }
+
+        async function deleteProduct(id) {
+            const response = await fetch(`http://localhost:4000/products/${id}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                loadProducts();
+            } else {
+                alert('Failed to delete product');
+            }
+        }
+
+        async function deleteDeal(id) {
+            const response = await fetch(`http://localhost:4000/deals/${id}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                loadDeals();
+            } else {
+                alert('Failed to delete deal');
+            }
+        }
+    </script>
+</body>
+</html>
