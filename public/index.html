@@ -24,7 +24,7 @@
             <li class="nav-item">
                 <button class="nav-link active" id="accounts-tab" data-bs-toggle="tab" data-bs-target="#accounts" type="button">Accounts</button>
             </li>
-                        <li class="nav-item">
+            <li class="nav-item">
                 <button class="nav-link" id="leads-tab" data-bs-toggle="tab" data-bs-target="#leads" type="button">Leads</button>
             </li>
             <li class="nav-item">
@@ -102,6 +102,40 @@
                         </tr>
                     </thead>
                     <tbody id="contactsTable"></tbody>
+                </table>
+            </div>
+
+            <!-- Cases Tab -->
+            <div class="tab-pane fade" id="cases" role="tabpanel">
+                <h2 class="mt-3">Cases</h2>
+                <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addCaseModal">Add Case</button>
+                <table class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Title</th>
+                            <th>Description</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="casesTable"></tbody>
+                </table>
+            </div>
+
+            <!-- Tasks Tab -->
+            <div class="tab-pane fade" id="tasks" role="tabpanel">
+                <h2 class="mt-3">Tasks</h2>
+                <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addTaskModal">Add Task</button>
+                <table class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Title</th>
+                            <th>Description</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tasksTable"></tbody>
                 </table>
             </div>
 
@@ -321,47 +355,59 @@
         </div>
     </div>
 
-    <!-- Add Deal Modal -->
-    <div class="modal fade" id="addDealModal" tabindex="-1">
+    <!-- Add Case Modal -->
+    <div class="modal fade" id="addCaseModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Add Deal</h5>
+                    <h5 class="modal-title">Add Case</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="addDealForm">
-                        <div class="mb-3"><label class="form-label">Title *</label><input type="text" class="form-control" id="dealTitle" required></div>
-                        <div class="mb-3"><label class="form-label">Amount *</label><input type="number" class="form-control" id="dealAmount" required></div>
-                        <div class="mb-3">
-                            <label class="form-label">Stage *</label>
-                            <select class="form-select" id="dealStage" required>
-                                <option value="Prospecting">Prospecting</option>
-                                <option value="Qualification">Qualification</option>
-                                <option value="Proposal">Proposal</option>
-                                <option value="Closed Won">Closed Won</option>
-                                <option value="Closed Lost">Closed Lost</option>
-                            </select>
-                        </div>
-                        <div class="mb-3"><label class="form-label">Close Date</label><input type="date" class="form-control" id="dealCloseDate"></div>
+                    <form id="addCaseForm">
+                        <div class="mb-3"><label class="form-label">Title</label><input type="text" class="form-control" id="caseTitle" required></div>
+                        <div class="mb-3"><label class="form-label">Description</label><textarea class="form-control" id="caseDescription"></textarea></div>
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="addDeal()">Add</button>
+                    <button type="button" class="btn btn-primary" onclick="addCase()">Add</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Add Task Modal -->
+    <div class="modal fade" id="addTaskModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Task</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addTaskForm">
+                        <div class="mb-3"><label class="form-label">Title</label><input type="text" class="form-control" id="taskTitle" required></div>
+                        <div class="mb-3"><label class="form-label">Description</label><textarea class="form-control" id="taskDescription"></textarea></div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="addTask()">Add</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             loadAccounts();
             loadContacts();
             loadProducts();
             loadDeals();
-            loadLeads();
+            loadCases();
+            loadTasks();
         });
 
         // แสดงผลค่า null / undefined เป็นเครื่องหมาย -
@@ -464,6 +510,40 @@
             } catch (e) { console.error('loadDeals Error:', e); }
         }
 
+        async function loadCases() {
+            try {
+                const res = await fetch('/api/cases');
+                const data = await res.json();
+                const list = Array.isArray(data) ? data : (data.data || []);
+                const tbody = document.getElementById('casesTable');
+                tbody.innerHTML = list.map(item => `
+                    <tr>
+                        <td>${fmt(item.id)}</td>
+                        <td>${fmt(item.title)}</td>
+                        <td>${fmt(item.description)}</td>
+                        <td><button class="btn btn-danger btn-sm" onclick="deleteCase(${item.id})">Delete</button></td>
+                    </tr>
+                `).join('');
+            } catch (e) { console.error('loadCases Error:', e); }
+        }
+
+        async function loadTasks() {
+            try {
+                const res = await fetch('/api/tasks');
+                const data = await res.json();
+                const list = Array.isArray(data) ? data : (data.data || []);
+                const tbody = document.getElementById('tasksTable');
+                tbody.innerHTML = list.map(item => `
+                    <tr>
+                        <td>${fmt(item.id)}</td>
+                        <td>${fmt(item.title)}</td>
+                        <td>${fmt(item.description)}</td>
+                        <td><button class="btn btn-danger btn-sm" onclick="deleteTask(${item.id})">Delete</button></td>
+                    </tr>
+                `).join('');
+            } catch (e) { console.error('loadTasks Error:', e); }
+        }
+
         async function addAccount() {
             const body = {
                 name: document.getElementById('accountName').value,
@@ -520,18 +600,32 @@
             }
         }
 
-        async function addDeal() {
+        async function addCase() {
             const body = {
-                title: document.getElementById('dealTitle').value,
-                amount: document.getElementById('dealAmount').value,
-                stage: document.getElementById('dealStage').value,
-                close_date: document.getElementById('dealCloseDate').value
+                title: document.getElementById('caseTitle').value,
+                description: document.getElementById('caseDescription').value
             };
-            const res = await fetch('/api/deals', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+            const res = await fetch('/api/cases', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
             if (res.ok) {
-                loadDeals();
-                bootstrap.Modal.getInstance(document.getElementById('addDealModal')).hide();
-                document.getElementById('addDealForm').reset();
+                loadCases();
+                bootstrap.Modal.getInstance(document.getElementById('addCaseModal')).hide();
+                document.getElementById('addCaseForm').reset();
+                toastSuccess('เพิ่มข้อมูลเรียบร้อยแล้ว');
+            } else {
+                toastError('เพิ่มข้อมูลไม่สำเร็จ');
+            }
+        }
+
+        async function addTask() {
+            const body = {
+                title: document.getElementById('taskTitle').value,
+                description: document.getElementById('taskDescription').value
+            };
+            const res = await fetch('/api/tasks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+            if (res.ok) {
+                loadTasks();
+                bootstrap.Modal.getInstance(document.getElementById('addTaskModal')).hide();
+                document.getElementById('addTaskForm').reset();
                 toastSuccess('เพิ่มข้อมูลเรียบร้อยแล้ว');
             } else {
                 toastError('เพิ่มข้อมูลไม่สำเร็จ');
@@ -556,10 +650,16 @@
             if (res.ok) { toastSuccess('ลบข้อมูลสำเร็จ'); loadProducts(); }
             else { toastError('ลบข้อมูลไม่สำเร็จ'); }
         }
-        async function deleteDeal(id) {
+        async function deleteCase(id) {
             if (!(await confirmDelete())) return;
-            const res = await fetch(`/api/deals/${id}`, { method: 'DELETE' });
-            if (res.ok) { toastSuccess('ลบข้อมูลสำเร็จ'); loadDeals(); }
+            const res = await fetch(`/api/cases/${id}`, { method: 'DELETE' });
+            if (res.ok) { toastSuccess('ลบข้อมูลสำเร็จ'); loadCases(); }
+            else { toastError('ลบข้อมูลไม่สำเร็จ'); }
+        }
+        async function deleteTask(id) {
+            if (!(await confirmDelete())) return;
+            const res = await fetch(`/api/tasks/${id}`, { method: 'DELETE' });
+            if (res.ok) { toastSuccess('ลบข้อมูลสำเร็จ'); loadTasks(); }
             else { toastError('ลบข้อมูลไม่สำเร็จ'); }
         }
 
