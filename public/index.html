@@ -6,6 +6,17 @@
     <title>CRM Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .kanban-board { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; align-items: flex-start; }
+        .kanban-col { flex: 1 0 220px; min-width: 220px; background: #eef2f6; border-radius: 8px; padding: 10px; }
+        .kanban-col.drag-over { outline: 2px dashed #2cb1bc; outline-offset: -2px; }
+        .kanban-col-header { font-weight: 600; font-size: .9rem; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .kanban-col-body { min-height: 40px; }
+        .kanban-card { background: #fff; border: 1px solid #d9e2ec; border-radius: 6px; padding: 8px 10px; margin-bottom: 8px; cursor: grab; }
+        .kanban-card.dragging { opacity: .45; }
+        .kanban-card .deal-amount { font-weight: 600; color: #0e7c3f; }
+        .kanban-stage-select { font-size: .78rem; padding: 2px 6px; height: auto; }
+    </style>
 </head>
 <body>
     <div class="container mt-5">
@@ -111,22 +122,82 @@
             <!-- Deals Tab -->
             <div class="tab-pane fade" id="deals" role="tabpanel">
                 <h2 class="mt-3">Deals</h2>
-                <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addDealModal">Add Deal</button>
-                <table class="table table-bordered table-striped">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Title</th>
-                            <th>Amount</th>
-                            <th>Stage</th>
-                            <th>Account ID</th>
-                            <th>Contact ID</th>
-                            <th>Close Date</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="dealsTable"></tbody>
-                </table>
+
+                <!-- Sales Analytics Bar -->
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <div class="card border-primary h-100"><div class="card-body py-3">
+                            <div class="text-muted small">Total Pipeline Amount</div>
+                            <div class="fs-4 fw-bold" id="statTotalAmount">-</div>
+                        </div></div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-success h-100"><div class="card-body py-3">
+                            <div class="text-muted small">Win Rate (Closed Won)</div>
+                            <div class="fs-4 fw-bold" id="statWinRate">-</div>
+                        </div></div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-secondary h-100"><div class="card-body py-3">
+                            <div class="text-muted small">จำนวน Deals</div>
+                            <div class="fs-4 fw-bold" id="statDealCount">-</div>
+                        </div></div>
+                    </div>
+                </div>
+
+                <!-- Deals Filters + Export -->
+                <div class="row g-2 align-items-end mb-3">
+                    <div class="col-6 col-md-3">
+                        <label class="form-label small mb-1">Account</label>
+                        <select class="form-select form-select-sm" id="dealFilterAccount" onchange="applyDealFilters()">
+                            <option value="">ทั้งหมด</option>
+                        </select>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label small mb-1">Close Date (จาก)</label>
+                        <input type="date" class="form-control form-control-sm" id="dealFilterFrom" onchange="applyDealFilters()">
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label small mb-1">Close Date (ถึง)</label>
+                        <input type="date" class="form-control form-control-sm" id="dealFilterTo" onchange="applyDealFilters()">
+                    </div>
+                    <div class="col-6 col-md-3 d-flex gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-secondary flex-fill" onclick="resetDealFilters()">ล้างตัวกรอง</button>
+                        <button type="button" class="btn btn-sm btn-success flex-fill" onclick="exportPipeline()">Export CSV</button>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDealModal">Add Deal</button>
+                    <div class="btn-group" role="group" aria-label="Deals view toggle">
+                        <button type="button" class="btn btn-outline-secondary active" id="dealsTableViewBtn" onclick="setDealsView('table')">Table View</button>
+                        <button type="button" class="btn btn-outline-secondary" id="dealsKanbanViewBtn" onclick="setDealsView('kanban')">Kanban View</button>
+                    </div>
+                </div>
+
+                <!-- Table View -->
+                <div id="dealsTableView">
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Title</th>
+                                <th>Amount</th>
+                                <th>Stage</th>
+                                <th>Account ID</th>
+                                <th>Contact ID</th>
+                                <th>Close Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dealsTable"></tbody>
+                    </table>
+                </div>
+
+                <!-- Kanban View -->
+                <div id="dealsKanbanView" class="d-none">
+                    <div class="text-muted small mb-2">ลากการ์ดเพื่อย้าย Stage หรือเลือก Stage จาก dropdown บนการ์ดได้เลย</div>
+                    <div class="kanban-board" id="kanbanBoard"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -320,6 +391,7 @@
                 const res = await fetch('/api/accounts');
                 const data = await res.json();
                 const list = Array.isArray(data) ? data : (data.data || []);
+                populateDealAccountFilter(list);
                 const tbody = document.getElementById('accountsTable');
                 tbody.innerHTML = list.map(item => `
                     <tr>
@@ -381,19 +453,8 @@
                 const result = await res.json();
                 const deals = result.data || result;
                 console.log('loadDeals data:', deals);
-                const tbody = document.getElementById('dealsTable');
-                tbody.innerHTML = deals.map(item => `
-                    <tr>
-                        <td>${fmt(item.id)}</td>
-                        <td>${fmt(item.title)}</td>
-                        <td>${fmt(item.amount)}</td>
-                        <td>${fmt(item.stage)}</td>
-                        <td>${fmt(item.account_id)}</td>
-                        <td>${fmt(item.contact_id)}</td>
-                        <td>${fmt(item.close_date)}</td>
-                        <td><button class="btn btn-danger btn-sm" onclick="deleteDeal(${item.id})">Delete</button></td>
-                    </tr>
-                `).join('');
+                dealsCache = Array.isArray(deals) ? deals : [];
+                renderDeals();
             } catch (e) { console.error('loadDeals Error:', e); }
         }
 
@@ -561,6 +622,186 @@
             } else {
                 toastError('เพิ่มข้อมูลไม่สำเร็จ');
             }
+        }
+
+        // ===== Deals Pipeline (Sales Analytics + Kanban Board) =====
+        const DEAL_STAGES = ['Prospecting', 'Qualification', 'Proposal', 'Closed Won', 'Closed Lost'];
+        let dealsView = 'table';
+        let dealsCache = [];
+        let draggedDealId = null;
+
+        function setDealsView(view) {
+            dealsView = view;
+            document.getElementById('dealsTableView').classList.toggle('d-none', view !== 'table');
+            document.getElementById('dealsKanbanView').classList.toggle('d-none', view !== 'kanban');
+            document.getElementById('dealsTableViewBtn').classList.toggle('active', view === 'table');
+            document.getElementById('dealsKanbanViewBtn').classList.toggle('active', view === 'kanban');
+            if (view === 'kanban') renderKanban(filteredDeals());
+        }
+
+        function updateDealsAnalytics(deals) {
+            const list = Array.isArray(deals) ? deals : [];
+            const total = list.reduce((s, d) => s + (Number(d.amount) || 0), 0);
+            const won = list.filter(d => d.stage === 'Closed Won').length;
+            const winRate = list.length ? (won / list.length) * 100 : 0;
+            document.getElementById('statTotalAmount').textContent = total.toLocaleString(undefined, { maximumFractionDigits: 2 });
+            document.getElementById('statWinRate').textContent = winRate.toFixed(1) + '%';
+            document.getElementById('statDealCount').textContent = list.length;
+        }
+
+        function renderKanban(deals) {
+            const board = document.getElementById('kanbanBoard');
+            if (!board) return;
+            const list = Array.isArray(deals) ? deals : [];
+            board.innerHTML = DEAL_STAGES.map(stage => {
+                const items = list.filter(d => d.stage === stage);
+                const sum = items.reduce((s, d) => s + (Number(d.amount) || 0), 0);
+                const cards = items.map(kanbanCard).join('') || '<div class="text-muted small px-1">—</div>';
+                return `
+                    <div class="kanban-col" data-stage="${stage}" ondragover="onKanbanDragOver(event)" ondragleave="onKanbanDragLeave(event)" ondrop="onKanbanDrop(event, '${stage}')">
+                        <div class="kanban-col-header"><span>${stage}</span><span class="badge bg-dark">${items.length}</span></div>
+                        <div class="kanban-col-body">${cards}</div>
+                        <div class="text-muted small mt-2">รวม: ${sum.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function kanbanCard(d) {
+            const amount = (d.amount === null || d.amount === undefined) ? '-' : Number(d.amount).toLocaleString(undefined, { maximumFractionDigits: 2 });
+            const options = DEAL_STAGES.map(s => `<option value="${s}"${s === d.stage ? ' selected' : ''}>${s}</option>`).join('');
+            return `
+                <div class="kanban-card" draggable="true" data-deal-id="${d.id}" ondragstart="onKanbanDragStart(event, ${d.id})" ondragend="onKanbanDragEnd(event)">
+                    <div class="fw-semibold">${fmt(d.title)}</div>
+                    <div class="deal-amount">${amount}</div>
+                    <div class="text-muted small">#${d.id} • ปิด: ${fmt(d.close_date)}</div>
+                    <select class="form-select form-select-sm kanban-stage-select mt-2" onchange="changeDealStage(${d.id}, this.value)">${options}</select>
+                </div>
+            `;
+        }
+
+        function onKanbanDragStart(e, id) {
+            draggedDealId = id;
+            e.currentTarget.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', String(id));
+        }
+        function onKanbanDragEnd(e) {
+            e.currentTarget.classList.remove('dragging');
+            document.querySelectorAll('.kanban-col.drag-over').forEach(el => el.classList.remove('drag-over'));
+        }
+        function onKanbanDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            e.currentTarget.classList.add('drag-over');
+        }
+        function onKanbanDragLeave(e) {
+            e.currentTarget.classList.remove('drag-over');
+        }
+        async function onKanbanDrop(e, stage) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+            let id = draggedDealId;
+            if (id === null || id === undefined) {
+                const raw = e.dataTransfer.getData('text/plain');
+                id = raw ? Number(raw) : NaN;
+            }
+            draggedDealId = null;
+            if (!id) return;
+            await changeDealStage(id, stage);
+        }
+
+        async function changeDealStage(id, stage) {
+            if (!DEAL_STAGES.includes(stage)) return;
+            try {
+                const res = await fetch(`/api/deals/${id}/stage`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ stage })
+                });
+                if (res.ok) { toastSuccess('อัปเดต Stage สำเร็จ'); }
+                else { toastError('อัปเดต Stage ไม่สำเร็จ'); }
+            } catch (e) {
+                console.error('changeDealStage Error:', e);
+                toastError('อัปเดต Stage ไม่สำเร็จ');
+            }
+            loadDeals();
+        }
+
+        // ===== Deals Filters (Account / Close date range) + Export CSV =====
+        let dealsFilter = { account: '', from: '', to: '' };
+
+        function populateDealAccountFilter(accounts) {
+            const sel = document.getElementById('dealFilterAccount');
+            if (!sel) return;
+            const current = sel.value;
+            const opts = ['<option value="">ทั้งหมด</option>'].concat(
+                (accounts || []).map(a => `<option value="${a.id}">${fmt(a.name)} (#${a.id})</option>`)
+            );
+            sel.innerHTML = opts.join('');
+            if (current) sel.value = current;
+        }
+
+        function filteredDeals() {
+            return dealsCache.filter(d => {
+                if (dealsFilter.account !== '' && String(d.account_id) !== String(dealsFilter.account)) return false;
+                if (dealsFilter.from && (!d.close_date || String(d.close_date).slice(0, 10) < dealsFilter.from)) return false;
+                if (dealsFilter.to && (!d.close_date || String(d.close_date).slice(0, 10) > dealsFilter.to)) return false;
+                return true;
+            });
+        }
+
+        function applyDealFilters() {
+            dealsFilter.account = document.getElementById('dealFilterAccount').value;
+            dealsFilter.from = document.getElementById('dealFilterFrom').value;
+            dealsFilter.to = document.getElementById('dealFilterTo').value;
+            renderDeals();
+        }
+
+        function resetDealFilters() {
+            document.getElementById('dealFilterAccount').value = '';
+            document.getElementById('dealFilterFrom').value = '';
+            document.getElementById('dealFilterTo').value = '';
+            applyDealFilters();
+        }
+
+        function renderDeals() {
+            const list = filteredDeals();
+            updateDealsAnalytics(list);
+            if (dealsView === 'kanban') renderKanban(list);
+            const tbody = document.getElementById('dealsTable');
+            if (!tbody) return;
+            tbody.innerHTML = list.map(item => `
+                <tr>
+                    <td>${fmt(item.id)}</td>
+                    <td>${fmt(item.title)}</td>
+                    <td>${fmt(item.amount)}</td>
+                    <td>${fmt(item.stage)}</td>
+                    <td>${fmt(item.account_id)}</td>
+                    <td>${fmt(item.contact_id)}</td>
+                    <td>${fmt(item.close_date)}</td>
+                    <td><button class="btn btn-danger btn-sm" onclick="deleteDeal(${item.id})">Delete</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function exportPipeline() {
+            const list = filteredDeals();
+            if (!list.length) { toastError('ไม่มีข้อมูลสำหรับ export'); return; }
+            const headers = ['ID', 'Title', 'Amount', 'Stage', 'Account ID', 'Contact ID', 'Close Date'];
+            const esc = (v) => '"' + ((v === null || v === undefined) ? '' : String(v)).replace(/"/g, '""') + '"';
+            const rows = list.map(d => [d.id, d.title, d.amount, d.stage, d.account_id, d.contact_id, d.close_date].map(esc).join(','));
+            const csv = [headers.map(esc).join(',')].concat(rows).join('\r\n');
+            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'deals-pipeline-' + new Date().toISOString().slice(0, 10) + '.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            toastSuccess('Export pipeline สำเร็จ');
         }
     </script>
 </body>
