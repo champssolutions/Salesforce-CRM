@@ -165,6 +165,37 @@ async function deleteTask(taskId) {
 
 // Initialize the app
 document.addEventListener('DOMContentLoaded', () => {
-  fetchCases();
-  fetchTasks();
+  loadAccounts();
+  loadContacts();
+  loadProducts();
+  loadDeals();
+  loadCases();
+  loadTasks();
 });
+
+// Add Account
+async function addAccount() {
+  const body = {
+    name: document.getElementById('accountName').value,
+    industry: document.getElementById('accountIndustry').value,
+    phone: document.getElementById('accountPhone').value,
+    website: document.getElementById('accountWebsite').value
+  };
+  const res = await fetch('/api/accounts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  if (res.ok) {
+    loadAccounts();
+    bootstrap.Modal.getInstance(document.getElementById('addAccountModal')).hide();
+    document.getElementById('addAccountForm').reset();
+    Swal.fire({
+      icon: 'success',
+      title: 'Success!',
+      text: 'Account created successfully',
+    });
+  } else {
+    Swal.fire({
+      icon: 'error',
+      title: 'Error!',
+      text: 'Failed to create account',
+    });
+  }
+}

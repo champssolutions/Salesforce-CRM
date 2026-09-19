@@ -23,6 +23,12 @@
         <ul class="nav nav-tabs" id="myTab" role="tablist">
             <li class="nav-item">
                 <button class="nav-link active" id="accounts-tab" data-bs-toggle="tab" data-bs-target="#accounts" type="button" onclick="loadAccounts()">Accounts</button>
+                <button class="nav-link" id="leads-tab" data-bs-toggle="tab" data-bs-target="#leads" type="button" onclick="loadLeads()">Leads</button>
+                <button class="nav-link" id="contacts-tab" data-bs-toggle="tab" data-bs-target="#contacts" type="button" onclick="loadContacts()">Contacts</button>
+                <button class="nav-link" id="cases-tab" data-bs-toggle="tab" data-bs-target="#cases" type="button" onclick="loadCases()">Cases</button>
+                <button class="nav-link" id="tasks-tab" data-bs-toggle="tab" data-bs-target="#tasks" type="button" onclick="loadTasks()">Tasks</button>
+                <button class="nav-link" id="products-tab" data-bs-toggle="tab" data-bs-target="#products" type="button" onclick="loadProducts()">Products</button>
+                <button class="nav-link" id="deals-tab" data-bs-toggle="tab" data-bs-target="#deals" type="button" onclick="loadDeals()">Deals</button>
             </li>
             <li class="nav-item">
                 <button class="nav-link" id="leads-tab" data-bs-toggle="tab" data-bs-target="#leads" type="button" onclick="loadLeads()">Leads</button>
@@ -394,6 +400,30 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     <button type="button" class="btn btn-primary" onclick="addTask()">Add</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Account Modal -->
+    <div class="modal fade" id="addAccountModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Account</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addAccountForm">
+                        <div class="mb-3"><label class="form-label">Name</label><input type="text" class="form-control" id="accountName" required></div>
+                        <div class="mb-3"><label class="form-label">Industry</label><input type="text" class="form-control" id="accountIndustry"></div>
+                        <div class="mb-3"><label class="form-label">Phone</label><input type="text" class="form-control" id="accountPhone"></div>
+                        <div class="mb-3"><label class="form-label">Website</label><input type="text" class="form-control" id="accountWebsite"></div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="addAccount()">Add</button>
                 </div>
             </div>
         </div>
