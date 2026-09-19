@@ -1,65 +1,120 @@
-const Case = require('../models/Case');
+const db = require('../config/database');
 
-// Get all cases
+// Promise wrappers for the callback-based sqlite3 API
+const all = (sql, params = []) => new Promise((resolve, reject) => {
+  db.all(sql, params, (err, rows) => (err ? reject(err) : resolve(rows)));
+});
+const get = (sql, params = []) => new Promise((resolve, reject) => {
+  db.get(sql, params, (err, row) => (err ? reject(err) : resolve(row)));
+});
+const run = (sql, params = []) => new Promise((resolve, reject) => {
+  db.run(sql, params, function (err) {
+    if (err) return reject(err);
+    resolve({ lastID: this.lastID, changes: this.changes });
+  });
+});
+
+// Normalize a foreign key: empty/undefined/null/"null" or missing parent -> null
+const normalizeFk = async (table, value) => {
+  if (value === undefined || value === null || value === '' || value === 'null') {
+    return null;
+  }
+  const row = await get(`SELECT id FROM ${table} WHERE id = ?`, [value]);
+  return row ? Number(value) : null;
+};
+
+// GET /api/cases
 exports.getAllCases = async (req, res) => {
   try {
-    const cases = await Case.find();
+    const cases = await all('SELECT * FROM cases ORDER BY id DESC');
     res.json(cases);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ error: err.message });
   }
 };
 
-// Get a single case by ID
+// GET /api/cases/:id
 exports.getCaseById = async (req, res) => {
   try {
-    const caseItem = await Case.findById(req.params.id);
+    const caseItem = await get('SELECT * FROM cases WHERE id = ?', [req.params.id]);
     if (!caseItem) {
-      return res.status(404).json({ message: 'Case not found' });
+      return res.status(404).json({ error: 'Case not found' });
     }
     res.json(caseItem);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ error: err.message });
   }
 };
 
-// Create a new case
+// POST /api/cases
 exports.createCase = async (req, res) => {
-  const caseItem = new Case({
-    title: req.body.title,
-    description: req.body.description
-  });
-
   try {
-    const newCase = await caseItem.save();
-    res.status(201).json(newCase);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
+    const { title, description } = req.body;
+
+    if (!title) {
+      return res.status(400).json({ error: 'title is required' });
+    }
+
+    const { lastID } = await run(
+      'INSERT INTO cases (title, description) VALUES (?, ?)',
+      [title, description]
+    );
+
+    res.status(201).json({
+      id: lastID,
+      title,
+      description,
+      created_at: new Date().toISOString()
+    });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ error: err.message });
   }
 };
 
-// Update a case
+// PUT /api/cases/:id
 exports.updateCase = async (req, res) => {
   try {
-    const updatedCase = await Case.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!updatedCase) {
-      return res.status(404).json({ message: 'Case not found' });
+    const { title, description } = req.body;
+
+    if (!title) {
+      return res.status(400).json({ error: 'title is required' });
     }
-    res.json(updatedCase);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
+
+    const caseItem = await get('SELECT * FROM cases WHERE id = ?', [req.params.id]);
+    if (!caseItem) {
+      return res.status(404).json({ error: 'Case not found' });
+    }
+
+    await run(
+      'UPDATE cases SET title = ?, description = ? WHERE id = ?',
+      [title, description, req.params.id]
+    );
+
+    res.json({
+      id: Number(req.params.id),
+      title,
+      description,
+      created_at: caseItem.created_at
+    });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ error: err.message });
   }
 };
 
-// Delete a case
+// DELETE /api/cases/:id
 exports.deleteCase = async (req, res) => {
   try {
-    const deletedCase = await Case.findByIdAndDelete(req.params.id);
-    if (!deletedCase) {
-      return res.status(404).json({ message: 'Case not found' });
+    const { changes } = await run('DELETE FROM cases WHERE id = ?', [req.params.id]);
+    if (changes === 0) {
+      return res.status(404).json({ error: 'Case not found' });
     }
     res.json({ message: 'Case deleted' });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ error: err.message });
   }
 };
