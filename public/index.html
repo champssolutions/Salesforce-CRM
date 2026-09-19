@@ -199,4 +199,716 @@
                     </div>
                     <div class="col-6 col-md-3">
                         <label class="form-label small mb-1">Close Date (ถึง)</label>
-                        <input type="date" class="form-control form-control-sm" id="dealFilterTo" onchange="applyDeal
+                        <input type="date" class="form-control form-control-sm" id="dealFilterTo" onchange="applyDealFilters()">
+                    </div>
+                    <div class="col-6 col-md-3 d-flex gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-secondary flex-fill" onclick="resetDealFilters()">ล้างตัวกรอง</button>
+                        <button type="button" class="btn btn-sm btn-success flex-fill" onclick="exportPipeline()">Export CSV</button>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDealModal">Add Deal</button>
+                    <div class="btn-group" role="group" aria-label="Deals view toggle">
+                        <button type="button" class="btn btn-outline-secondary active" id="dealsTableViewBtn" onclick="setDealsView('table')">Table View</button>
+                        <button type="button" class="btn btn-outline-secondary" id="dealsKanbanViewBtn" onclick="setDealsView('kanban')">Kanban View</button>
+                    </div>
+                </div>
+
+                <!-- Table View -->
+                <div id="dealsTableView">
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Title</th>
+                                <th>Amount</th>
+                                <th>Stage</th>
+                                <th>Account ID</th>
+                                <th>Contact ID</th>
+                                <th>Close Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dealsTable"></tbody>
+                    </table>
+                </div>
+
+                <!-- Kanban View -->
+                <div id="dealsKanbanView" class="d-none">
+                    <div class="text-muted small mb-2">ลากการ์ดเพื่อย้าย Stage หรือเลือก Stage จาก dropdown บนการ์ดได้เลย</div>
+                    <div class="kanban-board" id="kanbanBoard"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Account Modal -->
+    <div class="modal fade" id="addAccountModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Account</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addAccountForm">
+                        <div class="mb-3"><label class="form-label">Name</label><input type="text" class="form-control" id="accountName" required></div>
+                        <div class="mb-3"><label class="form-label">Industry</label><input type="text" class="form-control" id="accountIndustry"></div>
+                        <div class="mb-3"><label class="form-label">Phone</label><input type="text" class="form-control" id="accountPhone"></div>
+                        <div class="mb-3"><label class="form-label">Website</label><input type="text" class="form-control" id="accountWebsite"></div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="addAccount()">Add</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Lead Modal -->
+    <div class="modal fade" id="addLeadModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Lead</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addLeadForm">
+                        <div class="mb-3"><label class="form-label">First Name *</label><input type="text" class="form-control" id="leadFirstName" required></div>
+                        <div class="mb-3"><label class="form-label">Last Name</label><input type="text" class="form-control" id="leadLastName"></div>
+                        <div class="mb-3"><label class="form-label">Company</label><input type="text" class="form-control" id="leadCompany"></div>
+                        <div class="mb-3"><label class="form-label">Email</label><input type="email" class="form-control" id="leadEmail"></div>
+                        <div class="mb-3"><label class="form-label">Phone</label><input type="text" class="form-control" id="leadPhone"></div>
+                        <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" id="leadStatus">
+                                <option value="New" selected>New</option>
+                                <option value="Contacted">Contacted</option>
+                                <option value="Qualified">Qualified</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="addLead()">Add</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Contact Modal -->
+    <div class="modal fade" id="addContactModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Contact</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addContactForm">
+                        <div class="mb-3"><label class="form-label">First Name *</label><input type="text" class="form-control" id="contactFirstName" required></div>
+                        <div class="mb-3"><label class="form-label">Last Name</label><input type="text" class="form-control" id="contactLastName"></div>
+                        <div class="mb-3"><label class="form-label">Email</label><input type="email" class="form-control" id="contactEmail"></div>
+                        <div class="mb-3"><label class="form-label">Phone</label><input type="text" class="form-control" id="contactPhone"></div>
+                        <div class="mb-3"><label class="form-label">Title</label><input type="text" class="form-control" id="contactTitle"></div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="addContact()">Add</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Product Modal -->
+    <div class="modal fade" id="addProductModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Product</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addProductForm">
+                        <div class="mb-3"><label class="form-label">Name</label><input type="text" class="form-control" id="productName" required></div>
+                        <div class="mb-3"><label class="form-label">Code</label><input type="text" class="form-control" id="productCode" required></div>
+                        <div class="mb-3"><label class="form-label">Price</label><input type="number" class="form-control" id="productPrice"></div>
+                        <div class="mb-3"><label class="form-label">Description</label><textarea class="form-control" id="productDescription"></textarea></div>
+                        <div class="mb-3">
+                            <label class="form-label">Is Active</label>
+                            <select class="form-select" id="productIsActive">
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="addProduct()">Add</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Case Modal -->
+    <div class="modal fade" id="addCaseModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Case</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addCaseForm">
+                        <div class="mb-3"><label class="form-label">Title</label><input type="text" class="form-control" id="caseTitle" required></div>
+                        <div class="mb-3"><label class="form-label">Description</label><textarea class="form-control" id="caseDescription"></textarea></div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="addCase()">Add</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Task Modal -->
+    <div class="modal fade" id="addTaskModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Task</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addTaskForm">
+                        <div class="mb-3"><label class="form-label">Title</label><input type="text" class="form-control" id="taskTitle" required></div>
+                        <div class="mb-3"><label class="form-label">Description</label><textarea class="form-control" id="taskDescription"></textarea></div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="addTask()">Add</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAccounts();
+            loadContacts();
+            loadProducts();
+            loadDeals();
+            loadCases();
+            loadTasks();
+        });
+
+        // แสดงผลค่า null / undefined เป็นเครื่องหมาย -
+        const fmt = (val) => (val === null || val === undefined || val === '') ? '-' : val;
+
+        // SweetAlert2 helpers (toast + confirm)
+        const toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 1600,
+            timerProgressBar: true,
+        });
+        const toastSuccess = (title) => toast.fire({ icon: 'success', title });
+        const toastError = (title) => toast.fire({ icon: 'error', title });
+
+        async function confirmDelete() {
+            const { isConfirmed } = await Swal.fire({
+                title: 'คุณต้องการลบข้อมูลนี้ใช่หรือไม่?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'ยืนยัน',
+                cancelButtonText: 'ยกเลิก',
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                reverseButtons: true,
+            });
+            return isConfirmed;
+        }
+
+        async function loadAccounts() {
+            try {
+                const res = await fetch('/api/accounts');
+                const data = await res.json();
+                const list = Array.isArray(data) ? data : (data.data || []);
+                populateDealAccountFilter(list);
+                const tbody = document.getElementById('accountsTable');
+                tbody.innerHTML = list.map(item => `
+                    <tr>
+                        <td>${fmt(item.id)}</td>
+                        <td>${fmt(item.name)}</td>
+                        <td>${fmt(item.industry)}</td>
+                        <td>${fmt(item.phone)}</td>
+                        <td>${fmt(item.website)}</td>
+                        <td><button class="btn btn-danger btn-sm" onclick="deleteAccount(${item.id})">Delete</button></td>
+                    </tr>
+                `).join('');
+            } catch (e) { console.error('loadAccounts Error:', e); }
+        }
+
+        async function loadContacts() {
+            try {
+                const res = await fetch('/api/contacts');
+                const result = await res.json();
+                const contacts = result.data || result;
+                console.log('loadContacts data:', contacts);
+                const tbody = document.getElementById('contactsTable');
+                tbody.innerHTML = contacts.map(item => `
+                    <tr>
+                        <td>${fmt(item.id)}</td>
+                        <td>${fmt(item.first_name)}</td>
+                        <td>${fmt(item.last_name)}</td>
+                        <td>${fmt(item.email)}</td>
+                        <td>${fmt(item.phone)}</td>
+                        <td>${fmt(item.title)}</td>
+                        <td><button class="btn btn-danger btn-sm" onclick="deleteContact(${item.id})">Delete</button></td>
+                    </tr>
+                `).join('');
+            } catch (e) { console.error('loadContacts Error:', e); }
+        }
+
+        async function loadProducts() {
+            try {
+                const res = await fetch('/api/products');
+                const data = await res.json();
+                const list = Array.isArray(data) ? data : (data.data || []);
+                const tbody = document.getElementById('productsTable');
+                tbody.innerHTML = list.map(item => `
+                    <tr>
+                        <td>${fmt(item.id)}</td>
+                        <td>${fmt(item.name)}</td>
+                        <td>${fmt(item.code)}</td>
+                        <td>${fmt(item.price)}</td>
+                        <td>${fmt(item.description)}</td>
+                        <td>${item.is_active ? 'Yes' : 'No'}</td>
+                        <td><button class="btn btn-danger btn-sm" onclick="deleteProduct(${item.id})">Delete</button></td>
+                    </tr>
+                `).join('');
+            } catch (e) { console.error('loadProducts Error:', e); }
+        }
+
+        async function loadDeals() {
+            try {
+                const res = await fetch('/api/deals');
+                const result = await res.json();
+                const deals = result.data || result;
+                console.log('loadDeals data:', deals);
+                dealsCache = Array.isArray(deals) ? deals : [];
+                renderDeals();
+            } catch (e) { console.error('loadDeals Error:', e); }
+        }
+
+        async function loadCases() {
+            try {
+                const res = await fetch('/api/cases');
+                const data = await res.json();
+                const list = Array.isArray(data) ? data : (data.data || []);
+                const tbody = document.getElementById('casesTable');
+                tbody.innerHTML = list.map(item => `
+                    <tr>
+                        <td>${fmt(item.id)}</td>
+                        <td>${fmt(item.title)}</td>
+                        <td>${fmt(item.description)}</td>
+                        <td><button class="btn btn-danger btn-sm" onclick="deleteCase(${item.id})">Delete</button></td>
+                    </tr>
+                `).join('');
+            } catch (e) { console.error('loadCases Error:', e); }
+        }
+
+        async function loadTasks() {
+            try {
+                const res = await fetch('/api/tasks');
+                const data = await res.json();
+                const list = Array.isArray(data) ? data : (data.data || []);
+                const tbody = document.getElementById('tasksTable');
+                tbody.innerHTML = list.map(item => `
+                    <tr>
+                        <td>${fmt(item.id)}</td>
+                        <td>${fmt(item.title)}</td>
+                        <td>${fmt(item.description)}</td>
+                        <td><button class="btn btn-danger btn-sm" onclick="deleteTask(${item.id})">Delete</button></td>
+                    </tr>
+                `).join('');
+            } catch (e) { console.error('loadTasks Error:', e); }
+        }
+
+        async function addAccount() {
+            const body = {
+                name: document.getElementById('accountName').value,
+                industry: document.getElementById('accountIndustry').value,
+                phone: document.getElementById('accountPhone').value,
+                website: document.getElementById('accountWebsite').value
+            };
+            const res = await fetch('/api/accounts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+            if (res.ok) {
+                loadAccounts();
+                bootstrap.Modal.getInstance(document.getElementById('addAccountModal')).hide();
+                document.getElementById('addAccountForm').reset();
+                toastSuccess('เพิ่มข้อมูลเรียบร้อยแล้ว');
+            } else {
+                toastError('เพิ่มข้อมูลไม่สำเร็จ');
+            }
+        }
+
+        async function addContact() {
+            const body = {
+                first_name: document.getElementById('contactFirstName').value,
+                last_name: document.getElementById('contactLastName').value,
+                email: document.getElementById('contactEmail').value,
+                phone: document.getElementById('contactPhone').value,
+                title: document.getElementById('contactTitle').value
+            };
+            const res = await fetch('/api/contacts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+            if (res.ok) {
+                loadContacts();
+                bootstrap.Modal.getInstance(document.getElementById('addContactModal')).hide();
+                document.getElementById('addContactForm').reset();
+                toastSuccess('เพิ่มข้อมูลเรียบร้อยแล้ว');
+            } else {
+                toastError('เพิ่มข้อมูลไม่สำเร็จ');
+            }
+        }
+
+        async function addProduct() {
+            const body = {
+                name: document.getElementById('productName').value,
+                code: document.getElementById('productCode').value,
+                price: document.getElementById('productPrice').value,
+                description: document.getElementById('productDescription').value,
+                is_active: document.getElementById('productIsActive').value === 'true'
+            };
+            const res = await fetch('/api/products', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+            if (res.ok) {
+                loadProducts();
+                bootstrap.Modal.getInstance(document.getElementById('addProductModal')).hide();
+                document.getElementById('addProductForm').reset();
+                toastSuccess('เพิ่มข้อมูลเรียบร้อยแล้ว');
+            } else {
+                toastError('เพิ่มข้อมูลไม่สำเร็จ');
+            }
+        }
+
+        async function addCase() {
+            const body = {
+                title: document.getElementById('caseTitle').value,
+                description: document.getElementById('caseDescription').value
+            };
+            const res = await fetch('/api/cases', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+            if (res.ok) {
+                loadCases();
+                bootstrap.Modal.getInstance(document.getElementById('addCaseModal')).hide();
+                document.getElementById('addCaseForm').reset();
+                toastSuccess('เพิ่มข้อมูลเรียบร้อยแล้ว');
+            } else {
+                toastError('เพิ่มข้อมูลไม่สำเร็จ');
+            }
+        }
+
+        async function addTask() {
+            const body = {
+                title: document.getElementById('taskTitle').value,
+                description: document.getElementById('taskDescription').value
+            };
+            const res = await fetch('/api/tasks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+            if (res.ok) {
+                loadTasks();
+                bootstrap.Modal.getInstance(document.getElementById('addTaskModal')).hide();
+                document.getElementById('addTaskForm').reset();
+                toastSuccess('เพิ่มข้อมูลเรียบร้อยแล้ว');
+            } else {
+                toastError('เพิ่มข้อมูลไม่สำเร็จ');
+            }
+        }
+
+        async function deleteAccount(id) {
+            if (!(await confirmDelete())) return;
+            const res = await fetch(`/api/accounts/${id}`, { method: 'DELETE' });
+            if (res.ok) { toastSuccess('ลบข้อมูลสำเร็จ'); loadAccounts(); }
+            else { toastError('ลบข้อมูลไม่สำเร็จ'); }
+        }
+        async function deleteContact(id) {
+            if (!(await confirmDelete())) return;
+            const res = await fetch(`/api/contacts/${id}`, { method: 'DELETE' });
+            if (res.ok) { toastSuccess('ลบข้อมูลสำเร็จ'); loadContacts(); }
+            else { toastError('ลบข้อมูลไม่สำเร็จ'); }
+        }
+        async function deleteProduct(id) {
+            if (!(await confirmDelete())) return;
+            const res = await fetch(`/api/products/${id}`, { method: 'DELETE' });
+            if (res.ok) { toastSuccess('ลบข้อมูลสำเร็จ'); loadProducts(); }
+            else { toastError('ลบข้อมูลไม่สำเร็จ'); }
+        }
+        async function deleteCase(id) {
+            if (!(await confirmDelete())) return;
+            const res = await fetch(`/api/cases/${id}`, { method: 'DELETE' });
+            if (res.ok) { toastSuccess('ลบข้อมูลสำเร็จ'); loadCases(); }
+            else { toastError('ลบข้อมูลไม่สำเร็จ'); }
+        }
+        async function deleteTask(id) {
+            if (!(await confirmDelete())) return;
+            const res = await fetch(`/api/tasks/${id}`, { method: 'DELETE' });
+            if (res.ok) { toastSuccess('ลบข้อมูลสำเร็จ'); loadTasks(); }
+            else { toastError('ลบข้อมูลไม่สำเร็จ'); }
+        }
+
+        async function loadLeads() {
+            try {
+                const res = await fetch('/api/leads');
+                const result = await res.json();
+                const leads = result.data || result;
+                console.log('loadLeads data:', leads);
+                const tbody = document.getElementById('leadsTable');
+                tbody.innerHTML = leads.map(item => `
+                    <tr>
+                        <td>${fmt(item.id)}</td>
+                        <td>${fmt(item.first_name)}</td>
+                        <td>${fmt(item.last_name)}</td>
+                        <td>${fmt(item.company)}</td>
+                        <td>${item.status === 'Converted' ? '<span class="badge bg-success">Converted</span>' : `<span class="badge bg-secondary">${fmt(item.status)}</span>`}</td>
+                        <td>${fmt(item.email)}</td>
+                        <td>${fmt(item.phone)}</td>
+                        <td>
+                            <button class="btn btn-success btn-sm" onclick="convertLead(${item.id})" ${item.status === 'Converted' ? 'disabled' : ''}>Convert to Opportunity</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteLead(${item.id})">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (e) { console.error('loadLeads Error:', e); }
+        }
+
+        async function convertLead(id) {
+            const { isConfirmed } = await Swal.fire({
+                title: 'แปลง Lead เป็น Opportunity',
+                text: 'ระบบจะสร้าง Account, Contact และ Deal จาก Lead นี้อัตโนมัติ',
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonText: 'ยืนยัน',
+                cancelButtonText: 'ยกเลิก',
+            });
+            if (!isConfirmed) return;
+            const res = await fetch(`/api/leads/${id}/convert`, { method: 'POST' });
+            if (res.ok) { toastSuccess('แปลงข้อมูลสำเร็จ'); loadLeads(); }
+            else { toastError('แปลงข้อมูลไม่สำเร็จ'); }
+        }
+
+        async function deleteLead(id) {
+            if (!(await confirmDelete())) return;
+            const res = await fetch(`/api/leads/${id}`, { method: 'DELETE' });
+            if (res.ok) { toastSuccess('ลบข้อมูลสำเร็จ'); loadLeads(); }
+            else { toastError('ลบข้อมูลไม่สำเร็จ'); }
+        }
+
+        async function addLead() {
+            const body = {
+                first_name: document.getElementById('leadFirstName').value,
+                last_name: document.getElementById('leadLastName').value,
+                company: document.getElementById('leadCompany').value,
+                email: document.getElementById('leadEmail').value,
+                phone: document.getElementById('leadPhone').value,
+                status: document.getElementById('leadStatus').value
+            };
+            const res = await fetch('/api/leads', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+            if (res.ok) {
+                loadLeads();
+                bootstrap.Modal.getInstance(document.getElementById('addLeadModal')).hide();
+                document.getElementById('addLeadForm').reset();
+                toastSuccess('เพิ่มข้อมูลเรียบร้อยแล้ว');
+            } else {
+                toastError('เพิ่มข้อมูลไม่สำเร็จ');
+            }
+        }
+
+        // ===== Deals Pipeline (Sales Analytics + Kanban Board) =====
+        const DEAL_STAGES = ['Prospecting', 'Qualification', 'Proposal', 'Closed Won', 'Closed Lost'];
+        let dealsView = 'table';
+        let dealsCache = [];
+        let draggedDealId = null;
+
+        function setDealsView(view) {
+            dealsView = view;
+            document.getElementById('dealsTableView').classList.toggle('d-none', view !== 'table');
+            document.getElementById('dealsKanbanView').classList.toggle('d-none', view !== 'kanban');
+            document.getElementById('dealsTableViewBtn').classList.toggle('active', view === 'table');
+            document.getElementById('dealsKanbanViewBtn').classList.toggle('active', view === 'kanban');
+            if (view === 'kanban') renderKanban(filteredDeals());
+        }
+
+        function updateDealsAnalytics(deals) {
+            const list = Array.isArray(deals) ? deals : [];
+            const total = list.reduce((s, d) => s + (Number(d.amount) || 0), 0);
+            const won = list.filter(d => d.stage === 'Closed Won').length;
+            const winRate = list.length ? (won / list.length) * 100 : 0;
+            document.getElementById('statTotalAmount').textContent = total.toLocaleString(undefined, { maximumFractionDigits: 2 });
+            document.getElementById('statWinRate').textContent = winRate.toFixed(1) + '%';
+            document.getElementById('statDealCount').textContent = list.length;
+        }
+
+        function renderKanban(deals) {
+            const board = document.getElementById('kanbanBoard');
+            if (!board) return;
+            const list = Array.isArray(deals) ? deals : [];
+            board.innerHTML = DEAL_STAGES.map(stage => {
+                const items = list.filter(d => d.stage === stage);
+                const sum = items.reduce((s, d) => s + (Number(d.amount) || 0), 0);
+                const cards = items.map(kanbanCard).join('') || '<div class="text-muted small px-1">—</div>';
+                return `
+                    <div class="kanban-col" data-stage="${stage}" ondragover="onKanbanDragOver(event)" ondragleave="onKanbanDragLeave(event)" ondrop="onKanbanDrop(event, '${stage}')">
+                        <div class="kanban-col-header"><span>${stage}</span><span class="badge bg-dark">${items.length}</span></div>
+                        <div class="kanban-col-body">${cards}</div>
+                        <div class="text-muted small mt-2">รวม: ${sum.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function kanbanCard(d) {
+            const amount = (d.amount === null || d.amount === undefined) ? '-' : Number(d.amount).toLocaleString(undefined, { maximumFractionDigits: 2 });
+            const options = DEAL_STAGES.map(s => `<option value="${s}"${s === d.stage ? ' selected' : ''}>${s}</option>`).join('');
+            return `
+                <div class="kanban-card" draggable="true" data-deal-id="${d.id}" ondragstart="onKanbanDragStart(event, ${d.id})" ondragend="onKanbanDragEnd(event)">
+                    <div class="fw-semibold">${fmt(d.title)}</div>
+                    <div class="deal-amount">${amount}</div>
+                    <div class="text-muted small">#${d.id} • ปิด: ${fmt(d.close_date)}</div>
+                    <select class="form-select form-select-sm kanban-stage-select mt-2" onchange="changeDealStage(${d.id}, this.value)">${options}</select>
+                </div>
+            `;
+        }
+
+        function onKanbanDragStart(e, id) {
+            draggedDealId = id;
+            e.currentTarget.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', String(id));
+        }
+        function onKanbanDragEnd(e) {
+            e.currentTarget.classList.remove('dragging');
+            document.querySelectorAll('.kanban-col.drag-over').forEach(el => el.classList.remove('drag-over'));
+        }
+        function onKanbanDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            e.currentTarget.classList.add('drag-over');
+        }
+        function onKanbanDragLeave(e) {
+            e.currentTarget.classList.remove('drag-over');
+        }
+        async function onKanbanDrop(e, stage) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+            let id = draggedDealId;
+            if (id === null || id === undefined) {
+                const raw = e.dataTransfer.getData('text/plain');
+                id = raw ? Number(raw) : NaN;
+            }
+            draggedDealId = null;
+            if (!id) return;
+            await changeDealStage(id, stage);
+        }
+
+        async function changeDealStage(id, stage) {
+            if (!DEAL_STAGES.includes(stage)) return;
+            try {
+                const res = await fetch(`/api/deals/${id}/stage`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ stage })
+                });
+                if (res.ok) { toastSuccess('อัปเดต Stage สำเร็จ'); }
+                else { toastError('อัปเดต Stage ไม่สำเร็จ'); }
+            } catch (e) {
+                console.error('changeDealStage Error:', e);
+                toastError('อัปเดต Stage ไม่สำเร็จ');
+            }
+            loadDeals();
+        }
+
+        // ===== Deals Filters (Account / Close date range) + Export CSV =====
+        let dealsFilter = { account: '', from: '', to: '' };
+
+        function populateDealAccountFilter(accounts) {
+            const sel = document.getElementById('dealFilterAccount');
+            if (!sel) return;
+            const current = sel.value;
+            const opts = ['<option value="">ทั้งหมด</option>'].concat(
+                (accounts || []).map(a => `<option value="${a.id}">${fmt(a.name)} (#${a.id})</option>`)
+            );
+            sel.innerHTML = opts.join('');
+            if (current) sel.value = current;
+        }
+
+        function filteredDeals() {
+            return dealsCache.filter(d => {
+                if (dealsFilter.account !== '' && String(d.account_id) !== String(dealsFilter.account)) return false;
+                if (dealsFilter.from && (!d.close_date || String(d.close_date).slice(0, 10) < dealsFilter.from)) return false;
+                if (dealsFilter.to && (!d.close_date || String(d.close_date).slice(0, 10) > dealsFilter.to)) return false;
+                return true;
+            });
+        }
+
+        function applyDealFilters() {
+            dealsFilter.account = document.getElementById('dealFilterAccount').value;
+            dealsFilter.from = document.getElementById('dealFilterFrom').value;
+            dealsFilter.to = document.getElementById('dealFilterTo').value;
+            renderDeals();
+        }
+
+        function resetDealFilters() {
+            document.getElementById('dealFilterAccount').value = '';
+            document.getElementById('dealFilterFrom').value = '';
+            document.getElementById('dealFilterTo').value = '';
+            applyDealFilters();
+        }
+
+        function renderDeals() {
+            const list = filteredDeals();
+            updateDealsAnalytics(list);
+            if (dealsView === 'kanban') renderKanban(list);
+            const tbody = document.getElementById('dealsTable');
+            if (!tbody) return;
+            tbody.innerHTML = list.map(item => `
+                <tr>
+                    <td>${fmt(item.id)}</td>
+                    <td>${fmt(item.title)}</td>
+                    <td>${fmt(item.amount)}</td>
+                    <td>${fmt(item.stage)}</td>
+                    <td>${fmt(item.account_id)}</td>
+                    <td>${fmt(item.contact_id)}</td>
+                    <td>${fmt(item.close_date)}</td>
+                    <td><button class="btn btn-danger btn-sm" onclick="deleteDeal(${item.id})">Delete</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function exportPipeline() {
+            const list = filteredDeals();
+            if (!list.length) { toastError('ไม่มีข้อมูลสำหรับ export'); return; }
+            const headers = ['ID', 'Title', 'Amount', 'Stage', 'Account ID', 'Contact ID', 'Close Date'];
+            const esc = (v) => '"' + ((v === null || v === undefined) ? '' : String(v)).replace(/"/g, '""') + '"';
+            const rows = list.map(d => [d.id, d.title, d.amount, d.stage, d.account_id, d.contact_id, d.close_date].map(esc).join(','));
+            const csv = [headers.map(esc).join(',')].concat(rows).join('\r\n');
+            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'deals-pipeline-' + new Date().toISOString().slice(0, 10) + '.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            toastSuccess('Export pipeline สำเร็จ');
+        }
+    </script>
+</body>
+</html>
