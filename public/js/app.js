@@ -8,6 +8,11 @@ async function fetchCases() {
     renderCases(response.data);
   } catch (error) {
     console.error('Error fetching cases:', error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error!',
+      text: 'Failed to fetch cases',
+    });
   }
 }
 
@@ -84,6 +89,11 @@ async function fetchTasks() {
     renderTasks(response.data);
   } catch (error) {
     console.error('Error fetching tasks:', error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error!',
+      text: 'Failed to fetch tasks',
+    });
   }
 }
 

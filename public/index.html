@@ -513,10 +513,11 @@
         async function loadCases() {
             try {
                 const res = await fetch('/api/cases');
-                const data = await res.json();
-                const list = Array.isArray(data) ? data : (data.data || []);
+                const result = await res.json();
+                const cases = result.data || result;
+                console.log('loadCases data:', cases);
                 const tbody = document.getElementById('casesTable');
-                tbody.innerHTML = list.map(item => `
+                tbody.innerHTML = cases.map(item => `
                     <tr>
                         <td>${fmt(item.id)}</td>
                         <td>${fmt(item.title)}</td>

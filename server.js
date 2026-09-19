@@ -9,6 +9,8 @@ const productRoutes = require('./src/routes/productRoutes');
 const opportunityRoutes = require('./src/routes/opportunityRoutes');
 const dealRoutes = require('./src/routes/dealRoutes');
 const leadRoutes = require('./src/routes/leadRoutes');
+const caseRoutes = require('./src/routes/caseRoutes'); // Import case routes
+const taskRoutes = require('./src/routes/taskRoutes'); // Import task routes
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 
@@ -41,8 +43,8 @@ app.use('/api/products', productRoutes);
 app.use('/api/opportunities', opportunityRoutes);
 app.use('/api/deals', dealRoutes);
 app.use('/api/leads', leadRoutes);
-
-// (นำ app.get('/', ...) ออกไป เพื่อให้ express.static ทำงานส่งหน้าเว็บ public/index.html ได้)
+app.use('/api/cases', caseRoutes); // Register case routes
+app.use('/api/tasks', taskRoutes); // Register task routes
 
 // Swagger / API Docs
 const swaggerOptions = {
@@ -295,6 +297,12 @@ app.use('/api/deals', dealRoutes);
 
 // Leads routes
 app.use('/api/leads', leadRoutes);
+
+// Cases routes
+app.use('/api/cases', caseRoutes); // Register case routes
+
+// Tasks routes
+app.use('/api/tasks', taskRoutes); // Register task routes
 
 // 404 handler
 app.use((req, res) => {
