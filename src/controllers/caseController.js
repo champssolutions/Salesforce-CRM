@@ -1,11 +1,17 @@
 const db = require('../config/database');
 
 const all = (sql, params = []) => new Promise((resolve, reject) => {
-  db.all(sql, params, (err, rows) => (err ? reject(err) : resolve(rows)));
+  db.all(sql, params, (err, rows) => {
+    if (err) return reject(err);
+    resolve(rows);
+  });
 });
 
 const get = (sql, params = []) => new Promise((resolve, reject) => {
-  db.get(sql, params, (err, row) => (err ? reject(err) : resolve(row)));
+  db.get(sql, params, (err, row) => {
+    if (err) return reject(err);
+    resolve(row);
+  });
 });
 
 const run = (sql, params = []) => new Promise((resolve, reject) => {
