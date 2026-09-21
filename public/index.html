@@ -21,32 +21,26 @@
 <body>
     <div class="container mt-5">
         <ul class="nav nav-tabs" id="myTab" role="tablist">
-            <li class="nav-item">
-                <button class="nav-link active" id="accounts-tab" data-bs-toggle="tab" data-bs-target="#accounts" type="button" onclick="loadAccounts()">Accounts</button>
-                <button class="nav-link" id="leads-tab" data-bs-toggle="tab" data-bs-target="#leads" type="button" onclick="loadLeads()">Leads</button>
-                <button class="nav-link" id="contacts-tab" data-bs-toggle="tab" data-bs-target="#contacts" type="button" onclick="loadContacts()">Contacts</button>
-                <button class="nav-link" id="cases-tab" data-bs-toggle="tab" data-bs-target="#cases" type="button" onclick="loadCases()">Cases</button>
-                <button class="nav-link" id="tasks-tab" data-bs-toggle="tab" data-bs-target="#tasks" type="button" onclick="loadTasks()">Tasks</button>
-                <button class="nav-link" id="products-tab" data-bs-toggle="tab" data-bs-target="#products" type="button" onclick="loadProducts()">Products</button>
-                <button class="nav-link" id="deals-tab" data-bs-toggle="tab" data-bs-target="#deals" type="button" onclick="loadDeals()">Deals</button>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="accounts-tab" data-bs-toggle="tab" data-bs-target="#accounts" type="button" role="tab" onclick="loadAccounts()">Accounts</button>
             </li>
-            <li class="nav-item">
-                <button class="nav-link" id="leads-tab" data-bs-toggle="tab" data-bs-target="#leads" type="button" onclick="loadLeads()">Leads</button>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="leads-tab" data-bs-toggle="tab" data-bs-target="#leads" type="button" role="tab" onclick="loadLeads()">Leads</button>
             </li>
-            <li class="nav-item">
-                <button class="nav-link" id="contacts-tab" data-bs-toggle="tab" data-bs-target="#contacts" type="button" onclick="loadContacts()">Contacts</button>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="contacts-tab" data-bs-toggle="tab" data-bs-target="#contacts" type="button" role="tab" onclick="loadContacts()">Contacts</button>
             </li>
-            <li class="nav-item">
-                <button class="nav-link" id="cases-tab" data-bs-toggle="tab" data-bs-target="#cases" type="button" onclick="loadCases()">Cases</button>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="cases-tab" data-bs-toggle="tab" data-bs-target="#cases" type="button" role="tab" onclick="loadCases()">Cases</button>
             </li>
-            <li class="nav-item">
-                <button class="nav-link" id="tasks-tab" data-bs-toggle="tab" data-bs-target="#tasks" type="button" onclick="loadTasks()">Tasks</button>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tasks-tab" data-bs-toggle="tab" data-bs-target="#tasks" type="button" role="tab" onclick="loadTasks()">Tasks</button>
             </li>
-            <li class="nav-item">
-                <button class="nav-link" id="products-tab" data-bs-toggle="tab" data-bs-target="#products" type="button" onclick="loadProducts()">Products</button>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="products-tab" data-bs-toggle="tab" data-bs-target="#products" type="button" role="tab" onclick="loadProducts()">Products</button>
             </li>
-            <li class="nav-item">
-                <button class="nav-link" id="deals-tab" data-bs-toggle="tab" data-bs-target="#deals" type="button" onclick="loadDeals()">Deals</button>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="deals-tab" data-bs-toggle="tab" data-bs-target="#deals" type="button" role="tab" onclick="loadDeals()">Deals</button>
             </li>
         </ul>
 
@@ -405,25 +399,42 @@
         </div>
     </div>
 
-    <!-- Add Account Modal -->
-    <div class="modal fade" id="addAccountModal" tabindex="-1">
+    <!-- Add Deal Modal -->
+    <div class="modal fade" id="addDealModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Add Account</h5>
+                    <h5 class="modal-title">Add Deal</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="addAccountForm">
-                        <div class="mb-3"><label class="form-label">Name</label><input type="text" class="form-control" id="accountName" required></div>
-                        <div class="mb-3"><label class="form-label">Industry</label><input type="text" class="form-control" id="accountIndustry"></div>
-                        <div class="mb-3"><label class="form-label">Phone</label><input type="text" class="form-control" id="accountPhone"></div>
-                        <div class="mb-3"><label class="form-label">Website</label><input type="text" class="form-control" id="accountWebsite"></div>
+                    <form id="addDealForm">
+                        <div class="mb-3"><label class="form-label">Title *</label><input type="text" class="form-control" id="dealTitle" required></div>
+                        <div class="mb-3"><label class="form-label">Amount</label><input type="number" class="form-control" id="dealAmount" value="0"></div>
+                        <div class="mb-3">
+                            <label class="form-label">Stage</label>
+                            <select class="form-select" id="dealStage">
+                                <option value="Prospecting">Prospecting</option>
+                                <option value="Qualification">Qualification</option>
+                                <option value="Proposal">Proposal</option>
+                                <option value="Closed Won">Closed Won</option>
+                                <option value="Closed Lost">Closed Lost</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Account</label>
+                            <select class="form-select" id="dealAccount"></select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Contact</label>
+                            <select class="form-select" id="dealContact"></select>
+                        </div>
+                        <div class="mb-3"><label class="form-label">Close Date</label><input type="date" class="form-control" id="dealCloseDate"></div>
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="addAccount()">Add</button>
+                    <button type="button" class="btn btn-primary" onclick="addDeal()">Add</button>
                 </div>
             </div>
         </div>
@@ -474,6 +485,7 @@
                 const data = await res.json();
                 const list = Array.isArray(data) ? data : (data.data || []);
                 populateDealAccountFilter(list);
+                populateDealAccountSelect(list);
                 const tbody = document.getElementById('accountsTable');
                 tbody.innerHTML = list.map(item => `
                     <tr>
@@ -494,6 +506,7 @@
                 const result = await res.json();
                 const contacts = result.data || result;
                 console.log('loadContacts data:', contacts);
+                populateDealContactSelect(contacts);
                 const tbody = document.getElementById('contactsTable');
                 tbody.innerHTML = contacts.map(item => `
                     <tr>
@@ -692,6 +705,51 @@
             const res = await fetch(`/api/tasks/${id}`, { method: 'DELETE' });
             if (res.ok) { toastSuccess('ลบข้อมูลสำเร็จ'); loadTasks(); }
             else { toastError('ลบข้อมูลไม่สำเร็จ'); }
+        }
+
+        async function addDeal() {
+            const body = {
+                title: document.getElementById('dealTitle').value,
+                amount: document.getElementById('dealAmount').value,
+                stage: document.getElementById('dealStage').value,
+                account_id: document.getElementById('dealAccount').value,
+                contact_id: document.getElementById('dealContact').value,
+                close_date: document.getElementById('dealCloseDate').value
+            };
+            const res = await fetch('/api/deals', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+            if (res.ok) {
+                loadDeals();
+                bootstrap.Modal.getInstance(document.getElementById('addDealModal')).hide();
+                document.getElementById('addDealForm').reset();
+                toastSuccess('เพิ่มข้อมูลเรียบร้อยแล้ว');
+            } else {
+                toastError('เพิ่มข้อมูลไม่สำเร็จ');
+            }
+        }
+
+        async function deleteDeal(id) {
+            if (!(await confirmDelete())) return;
+            const res = await fetch(`/api/deals/${id}`, { method: 'DELETE' });
+            if (res.ok) { toastSuccess('ลบข้อมูลสำเร็จ'); loadDeals(); }
+            else { toastError('ลบข้อมูลไม่สำเร็จ'); }
+        }
+
+        function populateDealAccountSelect(accounts) {
+            const sel = document.getElementById('dealAccount');
+            if (!sel) return;
+            const opts = ['<option value="">-- เลือก Account --</option>'].concat(
+                (accounts || []).map(a => `<option value="${a.id}">${fmt(a.name)}</option>`)
+            );
+            sel.innerHTML = opts.join('');
+        }
+
+        function populateDealContactSelect(contacts) {
+            const sel = document.getElementById('dealContact');
+            if (!sel) return;
+            const opts = ['<option value="">-- เลือก Contact --</option>'].concat(
+                (contacts || []).map(c => `<option value="${c.id}">${fmt(c.first_name)} ${fmt(c.last_name)}</option>`)
+            );
+            sel.innerHTML = opts.join('');
         }
 
         async function loadLeads() {

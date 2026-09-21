@@ -124,6 +124,30 @@ exports.updateDeal = async (req, res) => {
   }
 };
 
+// PATCH /api/deals/:id/stage — เปลี่ยน Stage ของ Deal (ใช้จาก Kanban board)
+exports.patchDealStage = async (req, res) => {
+  try {
+    const { stage } = req.body;
+
+    if (!VALID_STAGES.includes(stage)) {
+      return res.status(400).json({ error: 'Invalid stage' });
+    }
+
+    const deal = await get('SELECT * FROM deals WHERE id = ?', [req.params.id]);
+    if (!deal) {
+      return res.status(404).json({ error: 'Deal not found' });
+    }
+
+    await run('UPDATE deals SET stage = ? WHERE id = ?', [stage, req.params.id]);
+
+    const updated = await get('SELECT * FROM deals WHERE id = ?', [req.params.id]);
+    res.json(updated);
+  } catch (err) {
+    console.error('patchDealStage Error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+};
+
 exports.deleteDeal = async (req, res) => {
   try {
     const { changes } = await run('DELETE FROM deals WHERE id = ?', [req.params.id]);
