@@ -6,6 +6,7 @@ router.get('/', dealController.getAllDeals);
 router.get('/:id', dealController.getDealById);
 router.post('/', dealController.createDeal);
 router.put('/:id', dealController.updateDeal);
+router.patch('/:id/stage', dealController.patchDealStage);
 router.delete('/:id', dealController.deleteDeal);
 
 module.exports = router;

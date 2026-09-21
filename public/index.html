@@ -21,27 +21,13 @@
 <body>
     <div class="container mt-5">
         <ul class="nav nav-tabs" id="myTab" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="accounts-tab" data-bs-toggle="tab" data-bs-target="#accounts" type="button" role="tab">Accounts</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="leads-tab" data-bs-toggle="tab" data-bs-target="#leads" type="button" role="tab">Leads</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="contacts-tab" data-bs-toggle="tab" data-bs-target="#contacts" type="button" role="tab">Contacts</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="cases-tab" data-bs-toggle="tab" data-bs-target="#cases" type="button" role="tab">Cases</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="tasks-tab" data-bs-toggle="tab" data-bs-target="#tasks" type="button" role="tab">Tasks</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="products-tab" data-bs-toggle="tab" data-bs-target="#products" type="button" role="tab">Products</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="deals-tab" data-bs-toggle="tab" data-bs-target="#deals" type="button" role="tab">Deals</button>
-            </li>
+            <li class="nav-item" role="presentation"><button class="nav-link active" id="accounts-tab" data-bs-toggle="tab" data-bs-target="#accounts" type="button" role="tab">Accounts</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link" id="leads-tab" data-bs-toggle="tab" data-bs-target="#leads" type="button" role="tab">Leads</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link" id="contacts-tab" data-bs-toggle="tab" data-bs-target="#contacts" type="button" role="tab">Contacts</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link" id="cases-tab" data-bs-toggle="tab" data-bs-target="#cases" type="button" role="tab">Cases</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link" id="tasks-tab" data-bs-toggle="tab" data-bs-target="#tasks" type="button" role="tab">Tasks</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link" id="products-tab" data-bs-toggle="tab" data-bs-target="#products" type="button" role="tab">Products</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link" id="deals-tab" data-bs-toggle="tab" data-bs-target="#deals" type="button" role="tab">Deals</button></li>
         </ul>
 
         <div class="tab-content" id="myTabContent">
@@ -50,16 +36,7 @@
                 <h2 class="mt-3">Accounts</h2>
                 <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addAccountModal">Add Account</button>
                 <table class="table table-bordered table-striped">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Industry</th>
-                            <th>Phone</th>
-                            <th>Website</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>ID</th><th>Name</th><th>Industry</th><th>Phone</th><th>Website</th><th>Actions</th></tr></thead>
                     <tbody id="accountsTable"></tbody>
                 </table>
             </div>
@@ -69,18 +46,7 @@
                 <h2 class="mt-3">Leads</h2>
                 <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addLeadModal">Add Lead</button>
                 <table class="table table-bordered table-striped">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>First Name</th>
-                            <th>Last Name</th>
-                            <th>Company</th>
-                            <th>Status</th>
-                            <th>Email</th>
-                            <th>Phone</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>ID</th><th>First Name</th><th>Last Name</th><th>Company</th><th>Status</th><th>Email</th><th>Phone</th><th>Actions</th></tr></thead>
                     <tbody id="leadsTable"></tbody>
                 </table>
             </div>
@@ -90,17 +56,7 @@
                 <h2 class="mt-3">Contacts</h2>
                 <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addContactModal">Add Contact</button>
                 <table class="table table-bordered table-striped">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>First Name</th>
-                            <th>Last Name</th>
-                            <th>Email</th>
-                            <th>Phone</th>
-                            <th>Title</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>ID</th><th>First Name</th><th>Last Name</th><th>Email</th><th>Phone</th><th>Title</th><th>Actions</th></tr></thead>
                     <tbody id="contactsTable"></tbody>
                 </table>
             </div>
@@ -110,14 +66,7 @@
                 <h2 class="mt-3">Cases</h2>
                 <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addCaseModal">Add Case</button>
                 <table class="table table-bordered table-striped">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Title</th>
-                            <th>Description</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>ID</th><th>Title</th><th>Description</th><th>Actions</th></tr></thead>
                     <tbody id="casesTable"></tbody>
                 </table>
             </div>
@@ -127,14 +76,7 @@
                 <h2 class="mt-3">Tasks</h2>
                 <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addTaskModal">Add Task</button>
                 <table class="table table-bordered table-striped">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Title</th>
-                            <th>Description</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>ID</th><th>Title</th><th>Description</th><th>Actions</th></tr></thead>
                     <tbody id="tasksTable"></tbody>
                 </table>
             </div>
@@ -144,17 +86,7 @@
                 <h2 class="mt-3">Products</h2>
                 <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addProductModal">Add Product</button>
                 <table class="table table-bordered table-striped">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Code</th>
-                            <th>Price</th>
-                            <th>Description</th>
-                            <th>Is Active</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>ID</th><th>Name</th><th>Code</th><th>Price</th><th>Description</th><th>Is Active</th><th>Actions</th></tr></thead>
                     <tbody id="productsTable"></tbody>
                 </table>
             </div>
@@ -166,22 +98,13 @@
                 <!-- Sales Analytics Bar -->
                 <div class="row g-3 mb-3">
                     <div class="col-md-4">
-                        <div class="card border-primary h-100"><div class="card-body py-3">
-                            <div class="text-muted small">Total Pipeline Amount</div>
-                            <div class="fs-4 fw-bold" id="statTotalAmount">-</div>
-                        </div></div>
+                        <div class="card border-primary h-100"><div class="card-body py-3"><div class="text-muted small">Total Pipeline Amount</div><div class="fs-4 fw-bold" id="statTotalAmount">-</div></div></div>
                     </div>
                     <div class="col-md-4">
-                        <div class="card border-success h-100"><div class="card-body py-3">
-                            <div class="text-muted small">Win Rate (Closed Won)</div>
-                            <div class="fs-4 fw-bold" id="statWinRate">-</div>
-                        </div></div>
+                        <div class="card border-success h-100"><div class="card-body py-3"><div class="text-muted small">Win Rate (Closed Won)</div><div class="fs-4 fw-bold" id="statWinRate">-</div></div></div>
                     </div>
                     <div class="col-md-4">
-                        <div class="card border-secondary h-100"><div class="card-body py-3">
-                            <div class="text-muted small">จำนวน Deals</div>
-                            <div class="fs-4 fw-bold" id="statDealCount">-</div>
-                        </div></div>
+                        <div class="card border-secondary h-100"><div class="card-body py-3"><div class="text-muted small">จำนวน Deals</div><div class="fs-4 fw-bold" id="statDealCount">-</div></div></div>
                     </div>
                 </div>
 
@@ -189,9 +112,7 @@
                 <div class="row g-2 align-items-end mb-3">
                     <div class="col-6 col-md-3">
                         <label class="form-label small mb-1">Account</label>
-                        <select class="form-select form-select-sm" id="dealFilterAccount" onchange="applyDealFilters()">
-                            <option value="">ทั้งหมด</option>
-                        </select>
+                        <select class="form-select form-select-sm" id="dealFilterAccount" onchange="applyDealFilters()"><option value="">ทั้งหมด</option></select>
                     </div>
                     <div class="col-6 col-md-3">
                         <label class="form-label small mb-1">Close Date (จาก)</label>
@@ -206,9 +127,10 @@
                         <button type="button" class="btn btn-sm btn-success flex-fill" onclick="exportPipeline()">Export CSV</button>
                     </div>
                 </div>
+
                 <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDealModal">Add Deal</button>
-                    <div class="btn-group" role="group" aria-label="Deals view toggle">
+                    <div class="btn-group" role="group">
                         <button type="button" class="btn btn-outline-secondary active" id="dealsTableViewBtn" onclick="setDealsView('table')">Table View</button>
                         <button type="button" class="btn btn-outline-secondary" id="dealsKanbanViewBtn" onclick="setDealsView('kanban')">Kanban View</button>
                     </div>
@@ -217,18 +139,7 @@
                 <!-- Table View -->
                 <div id="dealsTableView">
                     <table class="table table-bordered table-striped">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Title</th>
-                                <th>Amount</th>
-                                <th>Stage</th>
-                                <th>Account ID</th>
-                                <th>Contact ID</th>
-                                <th>Close Date</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
+                        <thead><tr><th>ID</th><th>Title</th><th>Amount</th><th>Stage</th><th>Account ID</th><th>Contact ID</th><th>Close Date</th><th>Actions</th></tr></thead>
                         <tbody id="dealsTable"></tbody>
                     </table>
                 </div>
@@ -242,208 +153,112 @@
         </div>
     </div>
 
-    <!-- Add Account Modal -->
+    <!-- Modals -->
     <div class="modal fade" id="addAccountModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Add Account</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="addAccountForm">
-                        <div class="mb-3"><label class="form-label">Name</label><input type="text" class="form-control" id="accountName" required></div>
-                        <div class="mb-3"><label class="form-label">Industry</label><input type="text" class="form-control" id="accountIndustry"></div>
-                        <div class="mb-3"><label class="form-label">Phone</label><input type="text" class="form-control" id="accountPhone"></div>
-                        <div class="mb-3"><label class="form-label">Website</label><input type="text" class="form-control" id="accountWebsite"></div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="addAccount()">Add</button>
-                </div>
-            </div>
-        </div>
+        <div class="modal-dialog"><div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">Add Account</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body"><form id="addAccountForm">
+                <div class="mb-3"><label class="form-label">Name *</label><input type="text" class="form-control" id="accountName" required></div>
+                <div class="mb-3"><label class="form-label">Industry</label><input type="text" class="form-control" id="accountIndustry"></div>
+                <div class="mb-3"><label class="form-label">Phone</label><input type="text" class="form-control" id="accountPhone"></div>
+                <div class="mb-3"><label class="form-label">Website</label><input type="text" class="form-control" id="accountWebsite"></div>
+            </form></div>
+            <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button><button type="button" class="btn btn-primary" onclick="addAccount()">Add</button></div>
+        </div></div>
     </div>
 
-    <!-- Add Lead Modal -->
     <div class="modal fade" id="addLeadModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Add Lead</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="addLeadForm">
-                        <div class="mb-3"><label class="form-label">First Name *</label><input type="text" class="form-control" id="leadFirstName" required></div>
-                        <div class="mb-3"><label class="form-label">Last Name</label><input type="text" class="form-control" id="leadLastName"></div>
-                        <div class="mb-3"><label class="form-label">Company</label><input type="text" class="form-control" id="leadCompany"></div>
-                        <div class="mb-3"><label class="form-label">Email</label><input type="email" class="form-control" id="leadEmail"></div>
-                        <div class="mb-3"><label class="form-label">Phone</label><input type="text" class="form-control" id="leadPhone"></div>
-                        <div class="mb-3">
-                            <label class="form-label">Status</label>
-                            <select class="form-select" id="leadStatus">
-                                <option value="New" selected>New</option>
-                                <option value="Contacted">Contacted</option>
-                                <option value="Qualified">Qualified</option>
-                            </select>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="addLead()">Add</button>
-                </div>
-            </div>
-        </div>
+        <div class="modal-dialog"><div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">Add Lead</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body"><form id="addLeadForm">
+                <div class="mb-3"><label class="form-label">First Name *</label><input type="text" class="form-control" id="leadFirstName" required></div>
+                <div class="mb-3"><label class="form-label">Last Name</label><input type="text" class="form-control" id="leadLastName"></div>
+                <div class="mb-3"><label class="form-label">Company</label><input type="text" class="form-control" id="leadCompany"></div>
+                <div class="mb-3"><label class="form-label">Email</label><input type="email" class="form-control" id="leadEmail"></div>
+                <div class="mb-3"><label class="form-label">Phone</label><input type="text" class="form-control" id="leadPhone"></div>
+                <div class="mb-3"><label class="form-label">Status</label><select class="form-select" id="leadStatus"><option value="New" selected>New</option><option value="Contacted">Contacted</option><option value="Qualified">Qualified</option></select></div>
+            </form></div>
+            <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button><button type="button" class="btn btn-primary" onclick="addLead()">Add</button></div>
+        </div></div>
     </div>
 
-    <!-- Add Contact Modal -->
     <div class="modal fade" id="addContactModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Add Contact</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="addContactForm">
-                        <div class="mb-3"><label class="form-label">First Name *</label><input type="text" class="form-control" id="contactFirstName" required></div>
-                        <div class="mb-3"><label class="form-label">Last Name</label><input type="text" class="form-control" id="contactLastName"></div>
-                        <div class="mb-3"><label class="form-label">Email</label><input type="email" class="form-control" id="contactEmail"></div>
-                        <div class="mb-3"><label class="form-label">Phone</label><input type="text" class="form-control" id="contactPhone"></div>
-                        <div class="mb-3"><label class="form-label">Title</label><input type="text" class="form-control" id="contactTitle"></div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="addContact()">Add</button>
-                </div>
-            </div>
-        </div>
+        <div class="modal-dialog"><div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">Add Contact</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body"><form id="addContactForm">
+                <div class="mb-3"><label class="form-label">First Name *</label><input type="text" class="form-control" id="contactFirstName" required></div>
+                <div class="mb-3"><label class="form-label">Last Name</label><input type="text" class="form-control" id="contactLastName"></div>
+                <div class="mb-3"><label class="form-label">Email</label><input type="email" class="form-control" id="contactEmail"></div>
+                <div class="mb-3"><label class="form-label">Phone</label><input type="text" class="form-control" id="contactPhone"></div>
+                <div class="mb-3"><label class="form-label">Title</label><input type="text" class="form-control" id="contactTitle"></div>
+            </form></div>
+            <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button><button type="button" class="btn btn-primary" onclick="addContact()">Add</button></div>
+        </div></div>
     </div>
 
-    <!-- Add Product Modal -->
     <div class="modal fade" id="addProductModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Add Product</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="addProductForm">
-                        <div class="mb-3"><label class="form-label">Name</label><input type="text" class="form-control" id="productName" required></div>
-                        <div class="mb-3"><label class="form-label">Code</label><input type="text" class="form-control" id="productCode" required></div>
-                        <div class="mb-3"><label class="form-label">Price</label><input type="number" class="form-control" id="productPrice"></div>
-                        <div class="mb-3"><label class="form-label">Description</label><textarea class="form-control" id="productDescription"></textarea></div>
-                        <div class="mb-3">
-                            <label class="form-label">Is Active</label>
-                            <select class="form-select" id="productIsActive">
-                                <option value="true">Yes</option>
-                                <option value="false">No</option>
-                            </select>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="addProduct()">Add</button>
-                </div>
-            </div>
-        </div>
+        <div class="modal-dialog"><div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">Add Product</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body"><form id="addProductForm">
+                <div class="mb-3"><label class="form-label">Name *</label><input type="text" class="form-control" id="productName" required></div>
+                <div class="mb-3"><label class="form-label">Code *</label><input type="text" class="form-control" id="productCode" required></div>
+                <div class="mb-3"><label class="form-label">Price</label><input type="number" class="form-control" id="productPrice"></div>
+                <div class="mb-3"><label class="form-label">Description</label><textarea class="form-control" id="productDescription"></textarea></div>
+                <div class="mb-3"><label class="form-label">Is Active</label><select class="form-select" id="productIsActive"><option value="true">Yes</option><option value="false">No</option></select></div>
+            </form></div>
+            <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button><button type="button" class="btn btn-primary" onclick="addProduct()">Add</button></div>
+        </div></div>
     </div>
 
-    <!-- Add Case Modal -->
     <div class="modal fade" id="addCaseModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Add Case</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="addCaseForm">
-                        <div class="mb-3"><label class="form-label">Title</label><input type="text" class="form-control" id="caseTitle" required></div>
-                        <div class="mb-3"><label class="form-label">Description</label><textarea class="form-control" id="caseDescription"></textarea></div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="addCase()">Add</button>
-                </div>
-            </div>
-        </div>
+        <div class="modal-dialog"><div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">Add Case</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body"><form id="addCaseForm">
+                <div class="mb-3"><label class="form-label">Title *</label><input type="text" class="form-control" id="caseTitle" required></div>
+                <div class="mb-3"><label class="form-label">Description</label><textarea class="form-control" id="caseDescription"></textarea></div>
+            </form></div>
+            <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button><button type="button" class="btn btn-primary" onclick="addCase()">Add</button></div>
+        </div></div>
     </div>
 
-    <!-- Add Task Modal -->
     <div class="modal fade" id="addTaskModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Add Task</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="addTaskForm">
-                        <div class="mb-3"><label class="form-label">Title</label><input type="text" class="form-control" id="taskTitle" required></div>
-                        <div class="mb-3"><label class="form-label">Description</label><textarea class="form-control" id="taskDescription"></textarea></div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="addTask()">Add</button>
-                </div>
-            </div>
-        </div>
+        <div class="modal-dialog"><div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">Add Task</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body"><form id="addTaskForm">
+                <div class="mb-3"><label class="form-label">Title *</label><input type="text" class="form-control" id="taskTitle" required></div>
+                <div class="mb-3"><label class="form-label">Description</label><textarea class="form-control" id="taskDescription"></textarea></div>
+            </form></div>
+            <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button><button type="button" class="btn btn-primary" onclick="addTask()">Add</button></div>
+        </div></div>
     </div>
 
-    <!-- Add Deal Modal -->
     <div class="modal fade" id="addDealModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Add Deal</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <div class="modal-dialog"><div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">Add Deal</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body"><form id="addDealForm">
+                <div class="mb-3"><label class="form-label">Title *</label><input type="text" class="form-control" id="dealTitle" required></div>
+                <div class="mb-3"><label class="form-label">Amount</label><input type="number" class="form-control" id="dealAmount" value="0"></div>
+                <div class="mb-3"><label class="form-label">Stage</label>
+                    <select class="form-select" id="dealStage">
+                        <option value="Prospecting">Prospecting</option>
+                        <option value="Qualification">Qualification</option>
+                        <option value="Proposal">Proposal</option>
+                        <option value="Closed Won">Closed Won</option>
+                        <option value="Closed Lost">Closed Lost</option>
+                    </select>
                 </div>
-                <div class="modal-body">
-                    <form id="addDealForm">
-                        <div class="mb-3"><label class="form-label">Title *</label><input type="text" class="form-control" id="dealTitle" required></div>
-                        <div class="mb-3"><label class="form-label">Amount</label><input type="number" class="form-control" id="dealAmount" value="0"></div>
-                        <div class="mb-3">
-                            <label class="form-label">Stage</label>
-                            <select class="form-select" id="dealStage">
-                                <option value="Prospecting">Prospecting</option>
-                                <option value="Qualification">Qualification</option>
-                                <option value="Proposal">Proposal</option>
-                                <option value="Closed Won">Closed Won</option>
-                                <option value="Closed Lost">Closed Lost</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Account</label>
-                            <select class="form-select" id="dealAccount"></select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Contact</label>
-                            <select class="form-select" id="dealContact"></select>
-                        </div>
-                        <div class="mb-3"><label class="form-label">Close Date</label><input type="date" class="form-control" id="dealCloseDate"></div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="addDeal()">Add</button>
-                </div>
-            </div>
-        </div>
+                <div class="mb-3"><label class="form-label">Account</label><select class="form-select" id="dealAccount"></select></div>
+                <div class="mb-3"><label class="form-label">Contact</label><select class="form-select" id="dealContact"></select></div>
+                <div class="mb-3"><label class="form-label">Close Date</label><input type="date" class="form-control" id="dealCloseDate"></div>
+            </form></div>
+            <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button><button type="button" class="btn btn-primary" onclick="addDeal()">Add</button></div>
+        </div></div>
     </div>
 
-    <script src="js/app.js"></script>
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Set up tab switching
             const tabLinks = document.querySelectorAll('button[data-bs-toggle="tab"]');
             tabLinks.forEach(tab => {
                 tab.addEventListener('shown.bs.tab', event => {
@@ -459,15 +274,11 @@
                     }
                 });
             });
-
-            // Load initial active tab
             loadAccounts();
         });
 
-        // แสดงผลค่า null / undefined เป็นเครื่องหมาย -
         const fmt = (val) => (val === null || val === undefined || val === '') ? '-' : val;
 
-        // SweetAlert2 helpers (toast + confirm)
         const toast = Swal.mixin({
             toast: true,
             position: 'top-end',
@@ -499,8 +310,7 @@
                 const list = Array.isArray(data) ? data : (data.data || []);
                 populateDealAccountFilter(list);
                 populateDealAccountSelect(list);
-                const tbody = document.getElementById('accountsTable');
-                tbody.innerHTML = list.map(item => `
+                document.getElementById('accountsTable').innerHTML = list.map(item => `
                     <tr>
                         <td>${fmt(item.id)}</td>
                         <td>${fmt(item.name)}</td>
@@ -517,11 +327,9 @@
             try {
                 const res = await fetch('/api/contacts');
                 const result = await res.json();
-                const contacts = result.data || result;
-                console.log('loadContacts data:', contacts);
+                const contacts = Array.isArray(result) ? result : (result.data || []);
                 populateDealContactSelect(contacts);
-                const tbody = document.getElementById('contactsTable');
-                tbody.innerHTML = contacts.map(item => `
+                document.getElementById('contactsTable').innerHTML = contacts.map(item => `
                     <tr>
                         <td>${fmt(item.id)}</td>
                         <td>${fmt(item.first_name)}</td>
@@ -540,8 +348,7 @@
                 const res = await fetch('/api/products');
                 const data = await res.json();
                 const list = Array.isArray(data) ? data : (data.data || []);
-                const tbody = document.getElementById('productsTable');
-                tbody.innerHTML = list.map(item => `
+                document.getElementById('productsTable').innerHTML = list.map(item => `
                     <tr>
                         <td>${fmt(item.id)}</td>
                         <td>${fmt(item.name)}</td>
@@ -559,9 +366,8 @@
             try {
                 const res = await fetch('/api/deals');
                 const result = await res.json();
-                const deals = result.data || result;
-                console.log('loadDeals data:', deals);
-                dealsCache = Array.isArray(deals) ? deals : [];
+                const deals = Array.isArray(result) ? result : (result.data || []);
+                dealsCache = deals;
                 renderDeals();
             } catch (e) { console.error('loadDeals Error:', e); }
         }
@@ -570,10 +376,8 @@
             try {
                 const res = await fetch('/api/cases');
                 const result = await res.json();
-                const cases = result.data || result;
-                console.log('loadCases data:', cases);
-                const tbody = document.getElementById('casesTable');
-                tbody.innerHTML = cases.map(item => `
+                const cases = Array.isArray(result) ? result : (result.data || []);
+                document.getElementById('casesTable').innerHTML = cases.map(item => `
                     <tr>
                         <td>${fmt(item.id)}</td>
                         <td>${fmt(item.title)}</td>
@@ -589,8 +393,7 @@
                 const res = await fetch('/api/tasks');
                 const data = await res.json();
                 const list = Array.isArray(data) ? data : (data.data || []);
-                const tbody = document.getElementById('tasksTable');
-                tbody.innerHTML = list.map(item => `
+                document.getElementById('tasksTable').innerHTML = list.map(item => `
                     <tr>
                         <td>${fmt(item.id)}</td>
                         <td>${fmt(item.title)}</td>
@@ -601,6 +404,30 @@
             } catch (e) { console.error('loadTasks Error:', e); }
         }
 
+        async function loadLeads() {
+            try {
+                const res = await fetch('/api/leads');
+                const result = await res.json();
+                const leads = Array.isArray(result) ? result : (result.data || []);
+                document.getElementById('leadsTable').innerHTML = leads.map(item => `
+                    <tr>
+                        <td>${fmt(item.id)}</td>
+                        <td>${fmt(item.first_name)}</td>
+                        <td>${fmt(item.last_name)}</td>
+                        <td>${fmt(item.company)}</td>
+                        <td>${item.status === 'Converted' ? '<span class="badge bg-success">Converted</span>' : `<span class="badge bg-secondary">${fmt(item.status)}</span>`}</td>
+                        <td>${fmt(item.email)}</td>
+                        <td>${fmt(item.phone)}</td>
+                        <td>
+                            <button class="btn btn-success btn-sm" onclick="convertLead(${item.id})" ${item.status === 'Converted' ? 'disabled' : ''}>Convert</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteLead(${item.id})">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (e) { console.error('loadLeads Error:', e); }
+        }
+
+        // Add Functions
         async function addAccount() {
             const body = {
                 name: document.getElementById('accountName').value,
@@ -614,9 +441,7 @@
                 bootstrap.Modal.getInstance(document.getElementById('addAccountModal')).hide();
                 document.getElementById('addAccountForm').reset();
                 toastSuccess('เพิ่มข้อมูลเรียบร้อยแล้ว');
-            } else {
-                toastError('เพิ่มข้อมูลไม่สำเร็จ');
-            }
+            } else { toastError('เพิ่มข้อมูลไม่สำเร็จ'); }
         }
 
         async function addContact() {
@@ -633,9 +458,7 @@
                 bootstrap.Modal.getInstance(document.getElementById('addContactModal')).hide();
                 document.getElementById('addContactForm').reset();
                 toastSuccess('เพิ่มข้อมูลเรียบร้อยแล้ว');
-            } else {
-                toastError('เพิ่มข้อมูลไม่สำเร็จ');
-            }
+            } else { toastError('เพิ่มข้อมูลไม่สำเร็จ'); }
         }
 
         async function addProduct() {
@@ -652,9 +475,7 @@
                 bootstrap.Modal.getInstance(document.getElementById('addProductModal')).hide();
                 document.getElementById('addProductForm').reset();
                 toastSuccess('เพิ่มข้อมูลเรียบร้อยแล้ว');
-            } else {
-                toastError('เพิ่มข้อมูลไม่สำเร็จ');
-            }
+            } else { toastError('เพิ่มข้อมูลไม่สำเร็จ'); }
         }
 
         async function addCase() {
@@ -668,9 +489,7 @@
                 bootstrap.Modal.getInstance(document.getElementById('addCaseModal')).hide();
                 document.getElementById('addCaseForm').reset();
                 toastSuccess('เพิ่มข้อมูลเรียบร้อยแล้ว');
-            } else {
-                toastError('เพิ่มข้อมูลไม่สำเร็จ');
-            }
+            } else { toastError('เพิ่มข้อมูลไม่สำเร็จ'); }
         }
 
         async function addTask() {
@@ -684,132 +503,7 @@
                 bootstrap.Modal.getInstance(document.getElementById('addTaskModal')).hide();
                 document.getElementById('addTaskForm').reset();
                 toastSuccess('เพิ่มข้อมูลเรียบร้อยแล้ว');
-            } else {
-                toastError('เพิ่มข้อมูลไม่สำเร็จ');
-            }
-        }
-
-        async function deleteAccount(id) {
-            if (!(await confirmDelete())) return;
-            const res = await fetch(`/api/accounts/${id}`, { method: 'DELETE' });
-            if (res.ok) { toastSuccess('ลบข้อมูลสำเร็จ'); loadAccounts(); }
-            else { toastError('ลบข้อมูลไม่สำเร็จ'); }
-        }
-        async function deleteContact(id) {
-            if (!(await confirmDelete())) return;
-            const res = await fetch(`/api/contacts/${id}`, { method: 'DELETE' });
-            if (res.ok) { toastSuccess('ลบข้อมูลสำเร็จ'); loadContacts(); }
-            else { toastError('ลบข้อมูลไม่สำเร็จ'); }
-        }
-        async function deleteProduct(id) {
-            if (!(await confirmDelete())) return;
-            const res = await fetch(`/api/products/${id}`, { method: 'DELETE' });
-            if (res.ok) { toastSuccess('ลบข้อมูลสำเร็จ'); loadProducts(); }
-            else { toastError('ลบข้อมูลไม่สำเร็จ'); }
-        }
-        async function deleteCase(id) {
-            if (!(await confirmDelete())) return;
-            const res = await fetch(`/api/cases/${id}`, { method: 'DELETE' });
-            if (res.ok) { toastSuccess('ลบข้อมูลสำเร็จ'); loadCases(); }
-            else { toastError('ลบข้อมูลไม่สำเร็จ'); }
-        }
-        async function deleteTask(id) {
-            if (!(await confirmDelete())) return;
-            const res = await fetch(`/api/tasks/${id}`, { method: 'DELETE' });
-            if (res.ok) { toastSuccess('ลบข้อมูลสำเร็จ'); loadTasks(); }
-            else { toastError('ลบข้อมูลไม่สำเร็จ'); }
-        }
-
-        async function addDeal() {
-            const body = {
-                title: document.getElementById('dealTitle').value,
-                amount: document.getElementById('dealAmount').value,
-                stage: document.getElementById('dealStage').value,
-                account_id: document.getElementById('dealAccount').value,
-                contact_id: document.getElementById('dealContact').value,
-                close_date: document.getElementById('dealCloseDate').value
-            };
-            const res = await fetch('/api/deals', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-            if (res.ok) {
-                loadDeals();
-                bootstrap.Modal.getInstance(document.getElementById('addDealModal')).hide();
-                document.getElementById('addDealForm').reset();
-                toastSuccess('เพิ่มข้อมูลเรียบร้อยแล้ว');
-            } else {
-                toastError('เพิ่มข้อมูลไม่สำเร็จ');
-            }
-        }
-
-        async function deleteDeal(id) {
-            if (!(await confirmDelete())) return;
-            const res = await fetch(`/api/deals/${id}`, { method: 'DELETE' });
-            if (res.ok) { toastSuccess('ลบข้อมูลสำเร็จ'); loadDeals(); }
-            else { toastError('ลบข้อมูลไม่สำเร็จ'); }
-        }
-
-        function populateDealAccountSelect(accounts) {
-            const sel = document.getElementById('dealAccount');
-            if (!sel) return;
-            const opts = ['<option value="">-- เลือก Account --</option>'].concat(
-                (accounts || []).map(a => `<option value="${a.id}">${fmt(a.name)}</option>`)
-            );
-            sel.innerHTML = opts.join('');
-        }
-
-        function populateDealContactSelect(contacts) {
-            const sel = document.getElementById('dealContact');
-            if (!sel) return;
-            const opts = ['<option value="">-- เลือก Contact --</option>'].concat(
-                (contacts || []).map(c => `<option value="${c.id}">${fmt(c.first_name)} ${fmt(c.last_name)}</option>`)
-            );
-            sel.innerHTML = opts.join('');
-        }
-
-        async function loadLeads() {
-            try {
-                const res = await fetch('/api/leads');
-                const result = await res.json();
-                const leads = result.data || result;
-                console.log('loadLeads data:', leads);
-                const tbody = document.getElementById('leadsTable');
-                tbody.innerHTML = leads.map(item => `
-                    <tr>
-                        <td>${fmt(item.id)}</td>
-                        <td>${fmt(item.first_name)}</td>
-                        <td>${fmt(item.last_name)}</td>
-                        <td>${fmt(item.company)}</td>
-                        <td>${item.status === 'Converted' ? '<span class="badge bg-success">Converted</span>' : `<span class="badge bg-secondary">${fmt(item.status)}</span>`}</td>
-                        <td>${fmt(item.email)}</td>
-                        <td>${fmt(item.phone)}</td>
-                        <td>
-                            <button class="btn btn-success btn-sm" onclick="convertLead(${item.id})" ${item.status === 'Converted' ? 'disabled' : ''}>Convert to Opportunity</button>
-                            <button class="btn btn-danger btn-sm" onclick="deleteLead(${item.id})">Delete</button>
-                        </td>
-                    </tr>
-                `).join('');
-            } catch (e) { console.error('loadLeads Error:', e); }
-        }
-
-        async function convertLead(id) {
-            const { isConfirmed } = await Swal.fire({
-                title: 'แปลง Lead เป็น Opportunity',
-                text: 'ระบบจะสร้าง Account, Contact และ Deal จาก Lead นี้อัตโนมัติ',
-                icon: 'info',
-                showCancelButton: true,
-                confirmButtonText: 'ยืนยัน',
-                cancelButtonText: 'ยกเลิก',
-            });
-            if (!isConfirmed) return;
-            const res = await fetch(`/api/leads/${id}/convert`, { method: 'POST' });
-            if (res.ok) { toastSuccess('แปลงข้อมูลสำเร็จ'); loadLeads(); }
-            else { toastError('แปลงข้อมูลไม่สำเร็จ'); }
-        }
-
-        async function deleteLead(id) {
-            if (!(await confirmDelete())) return;
-            const res = await fetch(`/api/leads/${id}`, { method: 'DELETE' });
-            if (res.ok) { toastSuccess('ลบข้อมูลสำเร็จ'); loadLeads(); }
-            else { toastError('ลบข้อมูลไม่สำเร็จ'); }
+            } else { toastError('เพิ่มข้อมูลไม่สำเร็จ'); }
         }
 
         async function addLead() {
@@ -827,16 +521,68 @@
                 bootstrap.Modal.getInstance(document.getElementById('addLeadModal')).hide();
                 document.getElementById('addLeadForm').reset();
                 toastSuccess('เพิ่มข้อมูลเรียบร้อยแล้ว');
-            } else {
-                toastError('เพิ่มข้อมูลไม่สำเร็จ');
-            }
+            } else { toastError('เพิ่มข้อมูลไม่สำเร็จ'); }
         }
 
-        // ===== Deals Pipeline (Sales Analytics + Kanban Board) =====
+        async function addDeal() {
+            const body = {
+                title: document.getElementById('dealTitle').value,
+                amount: document.getElementById('dealAmount').value,
+                stage: document.getElementById('dealStage').value,
+                account_id: document.getElementById('dealAccount').value,
+                contact_id: document.getElementById('dealContact').value,
+                close_date: document.getElementById('dealCloseDate').value
+            };
+            const res = await fetch('/api/deals', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+            if (res.ok) {
+                loadDeals();
+                bootstrap.Modal.getInstance(document.getElementById('addDealModal')).hide();
+                document.getElementById('addDealForm').reset();
+                toastSuccess('เพิ่มข้อมูลเรียบร้อยแล้ว');
+            } else { toastError('เพิ่มข้อมูลไม่สำเร็จ'); }
+        }
+
+        // Delete Functions
+        async function deleteAccount(id) { if (!(await confirmDelete())) return; const res = await fetch(`/api/accounts/${id}`, { method: 'DELETE' }); if (res.ok) { toastSuccess('ลบข้อมูลสำเร็จ'); loadAccounts(); } else { toastError('ลบข้อมูลไม่สำเร็จ'); } }
+        async function deleteContact(id) { if (!(await confirmDelete())) return; const res = await fetch(`/api/contacts/${id}`, { method: 'DELETE' }); if (res.ok) { toastSuccess('ลบข้อมูลสำเร็จ'); loadContacts(); } else { toastError('ลบข้อมูลไม่สำเร็จ'); } }
+        async function deleteProduct(id) { if (!(await confirmDelete())) return; const res = await fetch(`/api/products/${id}`, { method: 'DELETE' }); if (res.ok) { toastSuccess('ลบข้อมูลสำเร็จ'); loadProducts(); } else { toastError('ลบข้อมูลไม่สำเร็จ'); } }
+        async function deleteCase(id) { if (!(await confirmDelete())) return; const res = await fetch(`/api/cases/${id}`, { method: 'DELETE' }); if (res.ok) { toastSuccess('ลบข้อมูลสำเร็จ'); loadCases(); } else { toastError('ลบข้อมูลไม่สำเร็จ'); } }
+        async function deleteTask(id) { if (!(await confirmDelete())) return; const res = await fetch(`/api/tasks/${id}`, { method: 'DELETE' }); if (res.ok) { toastSuccess('ลบข้อมูลสำเร็จ'); loadTasks(); } else { toastError('ลบข้อมูลไม่สำเร็จ'); } }
+        async function deleteLead(id) { if (!(await confirmDelete())) return; const res = await fetch(`/api/leads/${id}`, { method: 'DELETE' }); if (res.ok) { toastSuccess('ลบข้อมูลสำเร็จ'); loadLeads(); } else { toastError('ลบข้อมูลไม่สำเร็จ'); } }
+        async function deleteDeal(id) { if (!(await confirmDelete())) return; const res = await fetch(`/api/deals/${id}`, { method: 'DELETE' }); if (res.ok) { toastSuccess('ลบข้อมูลสำเร็จ'); loadDeals(); } else { toastError('ลบข้อมูลไม่สำเร็จ'); } }
+
+        async function convertLead(id) {
+            const { isConfirmed } = await Swal.fire({
+                title: 'แปลง Lead เป็น Opportunity',
+                text: 'ระบบจะสร้าง Account, Contact และ Deal จาก Lead นี้อัตโนมัติ',
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonText: 'ยืนยัน',
+                cancelButtonText: 'ยกเลิก',
+            });
+            if (!isConfirmed) return;
+            const res = await fetch(`/api/leads/${id}/convert`, { method: 'POST' });
+            if (res.ok) { toastSuccess('แปลงข้อมูลสำเร็จ'); loadLeads(); } else { toastError('แปลงข้อมูลไม่สำเร็จ'); }
+        }
+
+        function populateDealAccountSelect(accounts) {
+            const sel = document.getElementById('dealAccount');
+            if (!sel) return;
+            sel.innerHTML = ['<option value="">-- เลือก Account --</option>'].concat((accounts || []).map(a => `<option value="${a.id}">${fmt(a.name)}</option>`)).join('');
+        }
+
+        function populateDealContactSelect(contacts) {
+            const sel = document.getElementById('dealContact');
+            if (!sel) return;
+            sel.innerHTML = ['<option value="">-- เลือก Contact --</option>'].concat((contacts || []).map(c => `<option value="${c.id}">${fmt(c.first_name)} ${fmt(c.last_name)}</option>`)).join('');
+        }
+
+        // Pipeline & Kanban logic
         const DEAL_STAGES = ['Prospecting', 'Qualification', 'Proposal', 'Closed Won', 'Closed Lost'];
         let dealsView = 'table';
         let dealsCache = [];
         let draggedDealId = null;
+        let dealsFilter = { account: '', from: '', to: '' };
 
         function setDealsView(view) {
             dealsView = view;
@@ -888,65 +634,31 @@
             `;
         }
 
-        function onKanbanDragStart(e, id) {
-            draggedDealId = id;
-            e.currentTarget.classList.add('dragging');
-            e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('text/plain', String(id));
-        }
-        function onKanbanDragEnd(e) {
-            e.currentTarget.classList.remove('dragging');
-            document.querySelectorAll('.kanban-col.drag-over').forEach(el => el.classList.remove('drag-over'));
-        }
-        function onKanbanDragOver(e) {
-            e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
-            e.currentTarget.classList.add('drag-over');
-        }
-        function onKanbanDragLeave(e) {
-            e.currentTarget.classList.remove('drag-over');
-        }
+        function onKanbanDragStart(e, id) { draggedDealId = id; e.currentTarget.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', String(id)); }
+        function onKanbanDragEnd(e) { e.currentTarget.classList.remove('dragging'); document.querySelectorAll('.kanban-col.drag-over').forEach(el => el.classList.remove('drag-over')); }
+        function onKanbanDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; e.currentTarget.classList.add('drag-over'); }
+        function onKanbanDragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
         async function onKanbanDrop(e, stage) {
-            e.preventDefault();
-            e.currentTarget.classList.remove('drag-over');
-            let id = draggedDealId;
-            if (id === null || id === undefined) {
-                const raw = e.dataTransfer.getData('text/plain');
-                id = raw ? Number(raw) : NaN;
-            }
+            e.preventDefault(); e.currentTarget.classList.remove('drag-over');
+            let id = draggedDealId || Number(e.dataTransfer.getData('text/plain'));
             draggedDealId = null;
-            if (!id) return;
-            await changeDealStage(id, stage);
+            if (id) await changeDealStage(id, stage);
         }
 
         async function changeDealStage(id, stage) {
             if (!DEAL_STAGES.includes(stage)) return;
             try {
-                const res = await fetch(`/api/deals/${id}/stage`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ stage })
-                });
-                if (res.ok) { toastSuccess('อัปเดต Stage สำเร็จ'); }
-                else { toastError('อัปเดต Stage ไม่สำเร็จ'); }
-            } catch (e) {
-                console.error('changeDealStage Error:', e);
-                toastError('อัปเดต Stage ไม่สำเร็จ');
-            }
+                const res = await fetch(`/api/deals/${id}/stage`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ stage }) });
+                if (res.ok) { toastSuccess('อัปเดต Stage สำเร็จ'); } else { toastError('อัปเดต Stage ไม่สำเร็จ'); }
+            } catch (e) { toastError('อัปเดต Stage ไม่สำเร็จ'); }
             loadDeals();
         }
-
-        // ===== Deals Filters (Account / Close date range) + Export CSV =====
-        let dealsFilter = { account: '', from: '', to: '' };
 
         function populateDealAccountFilter(accounts) {
             const sel = document.getElementById('dealFilterAccount');
             if (!sel) return;
             const current = sel.value;
-            const opts = ['<option value="">ทั้งหมด</option>'].concat(
-                (accounts || []).map(a => `<option value="${a.id}">${fmt(a.name)} (#${a.id})</option>`)
-            );
-            sel.innerHTML = opts.join('');
+            sel.innerHTML = ['<option value="">ทั้งหมด</option>'].concat((accounts || []).map(a => `<option value="${a.id}">${fmt(a.name)} (#${a.id})</option>`)).join('');
             if (current) sel.value = current;
         }
 

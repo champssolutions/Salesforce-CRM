@@ -1,1 +1,5 @@
-.aider*
+node_modules/
+database.sqlite
+.env
+.openclaw/
+*.log
