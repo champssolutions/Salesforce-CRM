@@ -15,4 +15,21 @@ document.addEventListener('DOMContentLoaded', () => {
             redundantLinks.forEach(link => link.remove());
         }
     });
+
+    // ตั้งค่า event listener สำหรับแท็บเมนู
+    const tabLinks = document.querySelectorAll('button[data-bs-toggle="tab"]');
+    tabLinks.forEach(tab => {
+        tab.addEventListener('shown.bs.tab', event => {
+            const targetId = event.target.getAttribute('data-bs-target');
+            switch (targetId) {
+                case '#accounts': loadAccounts(); break;
+                case '#leads': loadLeads(); break;
+                case '#contacts': loadContacts(); break;
+                case '#cases': loadCases(); break;
+                case '#tasks': loadTasks(); break;
+                case '#products': loadProducts(); break;
+                case '#deals': loadDeals(); break;
+            }
+        });
+    });
 });

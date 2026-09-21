@@ -61,6 +61,7 @@ exports.createDeal = async (req, res) => {
     const validContactId = await normalizeFk('contacts', contact_id);
     const validAmount = amount ? Number(amount) : 0;
     const finalStage = VALID_STAGES.includes(stage) ? stage : 'Prospecting';
+    console.log('Deal stage:', finalStage); // For debugging
 
     const sql = `INSERT INTO deals (title, amount, stage, account_id, contact_id, close_date) VALUES (?, ?, ?, ?, ?, ?)`;
     const params = [title, validAmount, finalStage, validAccountId, validContactId, close_date || null];

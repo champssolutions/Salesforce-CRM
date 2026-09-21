@@ -22,25 +22,25 @@
     <div class="container mt-5">
         <ul class="nav nav-tabs" id="myTab" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="accounts-tab" data-bs-toggle="tab" data-bs-target="#accounts" type="button" role="tab" onclick="loadAccounts()">Accounts</button>
+                <button class="nav-link active" id="accounts-tab" data-bs-toggle="tab" data-bs-target="#accounts" type="button" role="tab">Accounts</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="leads-tab" data-bs-toggle="tab" data-bs-target="#leads" type="button" role="tab" onclick="loadLeads()">Leads</button>
+                <button class="nav-link" id="leads-tab" data-bs-toggle="tab" data-bs-target="#leads" type="button" role="tab">Leads</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="contacts-tab" data-bs-toggle="tab" data-bs-target="#contacts" type="button" role="tab" onclick="loadContacts()">Contacts</button>
+                <button class="nav-link" id="contacts-tab" data-bs-toggle="tab" data-bs-target="#contacts" type="button" role="tab">Contacts</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="cases-tab" data-bs-toggle="tab" data-bs-target="#cases" type="button" role="tab" onclick="loadCases()">Cases</button>
+                <button class="nav-link" id="cases-tab" data-bs-toggle="tab" data-bs-target="#cases" type="button" role="tab">Cases</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="tasks-tab" data-bs-toggle="tab" data-bs-target="#tasks" type="button" role="tab" onclick="loadTasks()">Tasks</button>
+                <button class="nav-link" id="tasks-tab" data-bs-toggle="tab" data-bs-target="#tasks" type="button" role="tab">Tasks</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="products-tab" data-bs-toggle="tab" data-bs-target="#products" type="button" role="tab" onclick="loadProducts()">Products</button>
+                <button class="nav-link" id="products-tab" data-bs-toggle="tab" data-bs-target="#products" type="button" role="tab">Products</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="deals-tab" data-bs-toggle="tab" data-bs-target="#deals" type="button" role="tab" onclick="loadDeals()">Deals</button>
+                <button class="nav-link" id="deals-tab" data-bs-toggle="tab" data-bs-target="#deals" type="button" role="tab">Deals</button>
             </li>
         </ul>
 
@@ -443,12 +443,25 @@
     <script src="js/app.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // Set up tab switching
+            const tabLinks = document.querySelectorAll('button[data-bs-toggle="tab"]');
+            tabLinks.forEach(tab => {
+                tab.addEventListener('shown.bs.tab', event => {
+                    const targetId = event.target.getAttribute('data-bs-target');
+                    switch (targetId) {
+                        case '#accounts': loadAccounts(); break;
+                        case '#leads': loadLeads(); break;
+                        case '#contacts': loadContacts(); break;
+                        case '#cases': loadCases(); break;
+                        case '#tasks': loadTasks(); break;
+                        case '#products': loadProducts(); break;
+                        case '#deals': loadDeals(); break;
+                    }
+                });
+            });
+
+            // Load initial active tab
             loadAccounts();
-            loadContacts();
-            loadProducts();
-            loadDeals();
-            loadCases();
-            loadTasks();
         });
 
         // แสดงผลค่า null / undefined เป็นเครื่องหมาย -
