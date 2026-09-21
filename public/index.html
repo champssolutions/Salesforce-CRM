@@ -214,8 +214,28 @@
         <div class="modal-dialog"><div class="modal-content">
             <div class="modal-header"><h5 class="modal-title">Add Case</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
             <div class="modal-body"><form id="addCaseForm">
-                <div class="mb-3"><label class="form-label">Title *</label><input type="text" class="form-control" id="caseTitle" required></div>
+                <div class="mb-3"><label class="form-label">Subject *</label><input type="text" class="form-control" id="caseSubject" required></div>
+                <div class="mb-3"><label class="form-label">Account</label><select class="form-select" id="caseAccount"></select></div>
+                <div class="mb-3"><label class="form-label">Contact</label><select class="form-select" id="caseContact"></select></div>
                 <div class="mb-3"><label class="form-label">Description</label><textarea class="form-control" id="caseDescription"></textarea></div>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <label class="form-label">Priority</label>
+                        <select class="form-select" id="casePriority">
+                            <option value="High">High</option>
+                            <option value="Medium" selected>Medium</option>
+                            <option value="Low">Low</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" id="caseStatus">
+                            <option value="New" selected>New</option>
+                            <option value="Working">Working</option>
+                            <option value="Closed">Closed</option>
+                        </select>
+                    </div>
+                </div>
             </form></div>
             <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button><button type="button" class="btn btn-primary" onclick="addCase()">Add</button></div>
         </div></div>
@@ -226,7 +246,27 @@
             <div class="modal-header"><h5 class="modal-title">Add Task</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
             <div class="modal-body"><form id="addTaskForm">
                 <div class="mb-3"><label class="form-label">Title *</label><input type="text" class="form-control" id="taskTitle" required></div>
-                <div class="mb-3"><label class="form-label">Description</label><textarea class="form-control" id="taskDescription"></textarea></div>
+                <div class="mb-3"><label class="form-label">Due Date</label><input type="date" class="form-control" id="taskDueDate"></div>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" id="taskStatus">
+                            <option value="Not Started" selected>Not Started</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Completed">Completed</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Priority</label>
+                        <select class="form-select" id="taskPriority">
+                            <option value="High">High</option>
+                            <option value="Medium" selected>Medium</option>
+                            <option value="Low">Low</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mb-3"><label class="form-label">Related Deal</label><select class="form-select" id="taskDeal"></select></div>
+                <div class="mb-3"><label class="form-label">Related Contact</label><select class="form-select" id="taskContact"></select></div>
             </form></div>
             <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button><button type="button" class="btn btn-primary" onclick="addTask()">Add</button></div>
         </div></div>
@@ -377,14 +417,20 @@
                 const res = await fetch('/api/cases');
                 const result = await res.json();
                 const cases = Array.isArray(result) ? result : (result.data || []);
-                document.getElementById('casesTable').innerHTML = cases.map(item => `
+                document.getElementById('casesTable').innerHTML = cases.map(item => {
+                    const priorityBadge = item.priority === 'High' ? 'danger' : (item.priority === 'Medium' ? 'warning' : 'secondary');
+                    const statusBadge = item.status === 'New' ? 'primary' : (item.status === 'Working' ? 'info' : 'success');
+                    return `
                     <tr>
                         <td>${fmt(item.id)}</td>
-                        <td>${fmt(item.title)}</td>
-                        <td>${fmt(item.description)}</td>
+                        <td>${fmt(item.subject)}</td>
+                        <td>${fmt(item.account_id)}</td>
+                        <td>${fmt(item.contact_id)}</td>
+                        <td><span class="badge bg-${priorityBadge}">${fmt(item.priority)}</span></td>
+                        <td><span class="badge bg-${statusBadge}">${fmt(item.status)}</span></td>
                         <td><button class="btn btn-danger btn-sm" onclick="deleteCase(${item.id})">Delete</button></td>
                     </tr>
-                `).join('');
+                `}).join('');
             } catch (e) { console.error('loadCases Error:', e); }
         }
 
@@ -393,15 +439,44 @@
                 const res = await fetch('/api/tasks');
                 const data = await res.json();
                 const list = Array.isArray(data) ? data : (data.data || []);
-                document.getElementById('tasksTable').innerHTML = list.map(item => `
+                document.getElementById('tasksTable').innerHTML = list.map(item => {
+                    const priorityBadge = item.priority === 'High' ? 'danger' : (item.priority === 'Medium' ? 'warning' : 'secondary');
+                    const statusBadge = item.status === 'Not Started' ? 'secondary' : (item.status === 'In Progress' ? 'info' : 'success');
+                    const relatedTo = [item.deal_id ? `Deal #${item.deal_id}` : '', item.contact_id ? `Contact #${item.contact_id}` : ''].filter(Boolean).join(' / ');
+                    return `
                     <tr>
                         <td>${fmt(item.id)}</td>
                         <td>${fmt(item.title)}</td>
-                        <td>${fmt(item.description)}</td>
-                        <td><button class="btn btn-danger btn-sm" onclick="deleteTask(${item.id})">Delete</button></td>
+                        <td>${fmt(item.due_date)}</td>
+                        <td><span class="badge bg-${statusBadge}">${fmt(item.status)}</span></td>
+                        <td><span class="badge bg-${priorityBadge}">${fmt(item.priority)}</span></td>
+                        <td>${fmt(relatedTo)}</td>
+                        <td>
+                            ${item.status !== 'Completed' ? `<button class="btn btn-success btn-sm" onclick="completeTask(${item.id})">Complete</button>` : ''}
+                            <button class="btn btn-danger btn-sm" onclick="deleteTask(${item.id})">Delete</button>
+                        </td>
                     </tr>
-                `).join('');
+                `}).join('');
             } catch (e) { console.error('loadTasks Error:', e); }
+        }
+
+        async function completeTask(id) {
+            try {
+                const res = await fetch(`/api/tasks/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: 'Completed' })
+                });
+                if (res.ok) {
+                    toastSuccess('Task completed successfully');
+                    loadTasks();
+                } else {
+                    toastError('Failed to complete task');
+                }
+            } catch (e) {
+                console.error('completeTask Error:', e);
+                toastError('Failed to complete task');
+            }
         }
 
         async function loadLeads() {
@@ -480,30 +555,38 @@
 
         async function addCase() {
             const body = {
-                title: document.getElementById('caseTitle').value,
-                description: document.getElementById('caseDescription').value
+                subject: document.getElementById('caseSubject').value,
+                account_id: document.getElementById('caseAccount').value,
+                contact_id: document.getElementById('caseContact').value,
+                description: document.getElementById('caseDescription').value,
+                priority: document.getElementById('casePriority').value,
+                status: document.getElementById('caseStatus').value
             };
             const res = await fetch('/api/cases', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
             if (res.ok) {
                 loadCases();
                 bootstrap.Modal.getInstance(document.getElementById('addCaseModal')).hide();
                 document.getElementById('addCaseForm').reset();
-                toastSuccess('เพิ่มข้อมูลเรียบร้อยแล้ว');
-            } else { toastError('เพิ่มข้อมูลไม่สำเร็จ'); }
+                toastSuccess('Case added successfully');
+            } else { toastError('Failed to add case'); }
         }
 
         async function addTask() {
             const body = {
                 title: document.getElementById('taskTitle').value,
-                description: document.getElementById('taskDescription').value
+                due_date: document.getElementById('taskDueDate').value,
+                status: document.getElementById('taskStatus').value,
+                priority: document.getElementById('taskPriority').value,
+                deal_id: document.getElementById('taskDeal').value,
+                contact_id: document.getElementById('taskContact').value
             };
             const res = await fetch('/api/tasks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
             if (res.ok) {
                 loadTasks();
                 bootstrap.Modal.getInstance(document.getElementById('addTaskModal')).hide();
                 document.getElementById('addTaskForm').reset();
-                toastSuccess('เพิ่มข้อมูลเรียบร้อยแล้ว');
-            } else { toastError('เพิ่มข้อมูลไม่สำเร็จ'); }
+                toastSuccess('Task added successfully');
+            } else { toastError('Failed to add task'); }
         }
 
         async function addLead() {

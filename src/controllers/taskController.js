@@ -49,16 +49,20 @@ exports.getTaskById = async (req, res) => {
 // POST /api/tasks
 exports.createTask = async (req, res) => {
   try {
-    const { title, description } = req.body;
+    const { title, due_date, status, priority, deal_id, contact_id } = req.body;
 
     if (!title) {
       return res.status(400).json({ error: 'title is required' });
     }
 
-    const { lastID } = await run(
-      'INSERT INTO tasks (title, description) VALUES (?, ?)',
-      [title, description || '']
-    );
+    const safeDealId = await normalizeFk('deals', deal_id);
+    const safeContactId = await normalizeFk('contacts', contact_id);
+
+    const sql = `INSERT INTO tasks (title, due_date, status, priority, deal_id, contact_id) 
+                 VALUES (?, ?, ?, ?, ?, ?)`;
+    const params = [title, due_date || null, status || 'Not Started', priority || 'Medium', safeDealId, safeContactId];
+    
+    const { lastID } = await run(sql, params);
 
     const newTask = await get('SELECT * FROM tasks WHERE id = ?', [lastID]);
     res.status(201).json(newTask);

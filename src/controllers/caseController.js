@@ -49,16 +49,20 @@ exports.getCaseById = async (req, res) => {
 // POST /api/cases
 exports.createCase = async (req, res) => {
   try {
-    const { title, description } = req.body;
+    const { account_id, contact_id, subject, description, priority, status } = req.body;
 
-    if (!title) {
-      return res.status(400).json({ error: 'title is required' });
+    if (!subject) {
+      return res.status(400).json({ error: 'subject is required' });
     }
 
-    const { lastID } = await run(
-      'INSERT INTO cases (title, description) VALUES (?, ?)',
-      [title, description || '']
-    );
+    const safeAccountId = await normalizeFk('accounts', account_id);
+    const safeContactId = await normalizeFk('contacts', contact_id);
+
+    const sql = `INSERT INTO cases (account_id, contact_id, subject, description, priority, status) 
+                 VALUES (?, ?, ?, ?, ?, ?)`;
+    const params = [safeAccountId, safeContactId, subject, description || null, priority || 'Medium', status || 'New'];
+    
+    const { lastID } = await run(sql, params);
 
     const newCase = await get('SELECT * FROM cases WHERE id = ?', [lastID]);
     res.status(201).json(newCase);
