@@ -3,3 +3,4 @@ database.sqlite
 .env
 .openclaw/
 *.log
+.aider*
