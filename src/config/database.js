@@ -111,9 +111,16 @@ db.serialize(() => {
   db.run(`
     CREATE TABLE IF NOT EXISTS cases (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      account_id INTEGER,
+      contact_id INTEGER,
+      subject TEXT,
       title TEXT NOT NULL,
       description TEXT NOT NULL,
-      created_at TEXT DEFAULT (datetime('now'))
+      priority TEXT DEFAULT 'Medium',
+      status TEXT DEFAULT 'New',
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE SET NULL,
+      FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE SET NULL
     );
   `);
 
@@ -125,6 +132,46 @@ db.serialize(() => {
       created_at TEXT DEFAULT (datetime('now'))
     );
   `);
+});
+
+/**
+ * เพิ่มคอลัมน์ที่ขาดหายให้ตารางที่มีอยู่แล้ว (idempotent)
+ * ตรวจ PRAGMA table_info ก่อน จึงรันซ้ำได้โดยไม่ error
+ * จำเป็นสำหรับฐานข้อมูลเดิมที่สร้างก่อนที่ schema จะเพิ่มคอลัมน์เหล่านี้
+ */
+function ensureColumns(table, columns) {
+  db.all(`PRAGMA table_info(${table})`, (err, rows) => {
+    if (err) {
+      console.error(`Migration: cannot inspect table ${table}:`, err.message);
+      return;
+    }
+    const existing = new Set(rows.map((row) => row.name));
+    const missing = columns.filter(([name]) => !existing.has(name));
+    if (missing.length === 0) return;
+
+    db.serialize(() => {
+      missing.forEach(([name, definition]) => {
+        db.run(`ALTER TABLE ${table} ADD COLUMN ${name} ${definition}`, (alterErr) => {
+          if (alterErr) {
+            console.error(`Migration: failed to add ${table}.${name}:`, alterErr.message);
+          } else {
+            console.log(`Migration: added column ${table}.${name}`);
+          }
+        });
+      });
+    });
+  });
+}
+
+// รันหลัง CREATE TABLE ทั้งหมด (คิวของ db.serialize ทำงานเรียงตามลำดับ)
+db.serialize(() => {
+  ensureColumns('cases', [
+    ['account_id', 'INTEGER REFERENCES accounts(id) ON DELETE SET NULL'],
+    ['contact_id', 'INTEGER REFERENCES contacts(id) ON DELETE SET NULL'],
+    ['subject', 'TEXT'],
+    ['priority', "TEXT DEFAULT 'Medium'"],
+    ['status', "TEXT DEFAULT 'New'"],
+  ]);
 });
 
 module.exports = db;

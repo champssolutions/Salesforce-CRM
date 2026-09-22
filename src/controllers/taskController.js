@@ -1,5 +1,13 @@
 const db = require('../config/database');
 
+function normalizeFk(val) {
+    if (val === null || val === undefined || val === '' || val === 'null' || val === 'undefined') {
+        return null;
+    }
+    const num = Number(val);
+    return isNaN(num) ? null : num;
+}
+
 const all = (sql, params = []) => new Promise((resolve, reject) => {
   db.all(sql, params, (err, rows) => {
     if (err) return reject(err);
