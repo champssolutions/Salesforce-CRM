@@ -31,6 +31,29 @@ db.serialize(() => {
   `);
 
   db.run(`
+    CREATE TABLE IF NOT EXISTS quotes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      deal_id INTEGER REFERENCES deals(id) ON DELETE SET NULL,
+      account_id INTEGER REFERENCES accounts(id) ON DELETE SET NULL,
+      total_amount REAL NOT NULL DEFAULT 0,
+      status TEXT DEFAULT 'Draft' CHECK (status IN ('Draft', 'Sent', 'Accepted', 'Rejected')),
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS quote_items (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      quote_id INTEGER NOT NULL REFERENCES quotes(id) ON DELETE CASCADE,
+      product_id INTEGER NOT NULL REFERENCES products(id),
+      quantity INTEGER NOT NULL DEFAULT 1 CHECK (quantity > 0),
+      unit_price REAL NOT NULL DEFAULT 0 CHECK (unit_price >= 0),
+      total_price REAL NOT NULL DEFAULT 0 CHECK (total_price >= 0),
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+  `);
+
+  db.run(`
     CREATE TABLE IF NOT EXISTS accounts (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
