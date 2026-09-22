@@ -46,7 +46,8 @@ const setupDatabase = async () => {
             console.error('Error creating accounts table:', err.message);
             return false;
           }
-      new Promise((resolve, reject) => {
+
+          db.run(`CREATE TABLE IF NOT EXISTS products (
         db.run(`CREATE TABLE IF NOT EXISTS products (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           name TEXT NOT NULL,
@@ -75,15 +76,15 @@ const setupDatabase = async () => {
 
             // Create remaining tables sequentially
             db.run(`CREATE TABLE IF NOT EXISTS leads (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        first_name TEXT NOT NULL,
-        last_name TEXT,
-        company TEXT,
-        status TEXT DEFAULT 'New',
-        email TEXT,
-        phone TEXT,
-        created_at TEXT DEFAULT (datetime('now'))
-      );`, (err) => {
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              first_name TEXT NOT NULL,
+              last_name TEXT,
+              company TEXT,
+              status TEXT DEFAULT 'New',
+              email TEXT,
+              phone TEXT,
+              created_at TEXT DEFAULT (datetime('now'))
+            );`, (err) => {
         if (err) {
           console.error('Error creating leads table:', err.message);
           return false;
@@ -123,39 +124,39 @@ const setupDatabase = async () => {
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           account_id INTEGER REFERENCES accounts(id) ON DELETE CASCADE,
           name TEXT NOT NULL,
-        amount REAL,
-        stage TEXT CHECK (stage IN ('Prospecting', 'Qualification', 'Proposal', 'Closed Won', 'Closed Lost')),
-        close_date TEXT,
-        created_at TEXT DEFAULT (datetime('now'))
-      );`, (err) => {
+          amount REAL,
+          stage TEXT CHECK (stage IN ('Prospecting', 'Qualification', 'Proposal', 'Closed Won', 'Closed Lost')),
+          close_date TEXT,
+          created_at TEXT DEFAULT (datetime('now'))
+        );`, (err) => {
         if (err) {
           console.error('Error creating opportunities table:', err.message);
           return false;
         }
 
         db.run(`CREATE TABLE IF NOT EXISTS quotes (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        quote_number TEXT UNIQUE NOT NULL,
-        deal_id INTEGER REFERENCES deals(id) ON DELETE SET NULL,
-        total_amount REAL NOT NULL DEFAULT 0,
-        status TEXT DEFAULT 'Draft' CHECK (status IN ('Draft', 'Sent', 'Accepted', 'Rejected')),
-        expiration_date TEXT,
-        created_at TEXT DEFAULT (datetime('now'))
-      );`, (err) => {
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          quote_number TEXT UNIQUE NOT NULL,
+          deal_id INTEGER REFERENCES deals(id) ON DELETE SET NULL,
+          total_amount REAL NOT NULL DEFAULT 0,
+          status TEXT DEFAULT 'Draft' CHECK (status IN ('Draft', 'Sent', 'Accepted', 'Rejected')),
+          expiration_date TEXT,
+          created_at TEXT DEFAULT (datetime('now'))
+        );`, (err) => {
         if (err) {
           console.error('Error creating quotes table:', err.message);
           return false;
         }
 
         db.run(`CREATE TABLE IF NOT EXISTS quote_items (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        quote_id INTEGER NOT NULL REFERENCES quotes(id) ON DELETE CASCADE,
-        product_id INTEGER NOT NULL REFERENCES products(id),
-        quantity INTEGER NOT NULL DEFAULT 1 CHECK (quantity > 0),
-        unit_price REAL NOT NULL DEFAULT 0 CHECK (unit_price >= 0),
-        total_price REAL NOT NULL DEFAULT 0 CHECK (total_price >= 0),
-        created_at TEXT DEFAULT (datetime('now'))
-      );`, (err) => {
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          quote_id INTEGER NOT NULL REFERENCES quotes(id) ON DELETE CASCADE,
+          product_id INTEGER NOT NULL REFERENCES products(id),
+          quantity INTEGER NOT NULL DEFAULT 1 CHECK (quantity > 0),
+          unit_price REAL NOT NULL DEFAULT 0 CHECK (unit_price >= 0),
+          total_price REAL NOT NULL DEFAULT 0 CHECK (total_price >= 0),
+          created_at TEXT DEFAULT (datetime('now'))
+        );`, (err) => {
         if (err) {
           console.error('Error creating quote_items table:', err.message);
           return false;
