@@ -1,7 +1,7 @@
 const { getQuery, runQuery } = require('../config/database');
 
 // GET /api/products?page=1&limit=10&search=xxx
-exports.getAllProducts = (req, res) => {
+exports.getAllProducts = async (req, res) => {
   const page = Math.max(1, parseInt(req.query.page) || 1);
   const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 10));
   const search = req.query.search || '';
