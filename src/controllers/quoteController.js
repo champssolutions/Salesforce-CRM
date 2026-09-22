@@ -49,7 +49,7 @@ exports.getAllQuotes = async (req, res) => {
             LEFT JOIN accounts a ON d.account_id = a.id
             ORDER BY q.created_at DESC
         `);
-        res.json(rows);
+        res.json(Array.isArray(rows) ? rows : []);
     } catch (err) {
         console.error('Error getting quotes:', err);
         res.status(500).json({ error: 'Failed to get quotes' });
