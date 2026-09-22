@@ -129,7 +129,14 @@ db.serialize(() => {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       title TEXT NOT NULL,
       description TEXT NOT NULL,
-      created_at TEXT DEFAULT (datetime('now'))
+      due_date TEXT,
+      status TEXT,
+      priority TEXT,
+      deal_id INTEGER,
+      contact_id INTEGER,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (deal_id) REFERENCES deals(id) ON DELETE SET NULL,
+      FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE SET NULL
     );
   `);
 });
@@ -171,6 +178,14 @@ db.serialize(() => {
     ['subject', 'TEXT'],
     ['priority', "TEXT DEFAULT 'Medium'"],
     ['status', "TEXT DEFAULT 'New'"],
+  ]);
+
+  ensureColumns('tasks', [
+    ['due_date', 'TEXT'],
+    ['status', "TEXT DEFAULT 'Not Started'"],
+    ['priority', "TEXT DEFAULT 'Medium'"],
+    ['deal_id', 'INTEGER REFERENCES deals(id) ON DELETE SET NULL'],
+    ['contact_id', 'INTEGER REFERENCES contacts(id) ON DELETE SET NULL']
   ]);
 });
 
