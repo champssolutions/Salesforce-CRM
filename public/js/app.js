@@ -515,10 +515,10 @@ window.createQuote = async function() {
         const items = [];
         document.querySelectorAll('.quote-item').forEach(item => {
             const productId = item.querySelector('.product-select').value;
-            const quantity = Number(item.querySelector('.quantity').value) || 0;
-            const unitPrice = Number(item.querySelector('.unit-price').value) || 0;
+            const quantity = Math.max(0, Number(item.querySelector('.quantity').value) || 0);
+            const unitPrice = Math.max(0, Number(item.querySelector('.unit-price').value) || 0);
             
-            if (productId && quantity > 0) {
+            if (productId) {
                 items.push({
                     product_id: productId,
                     quantity: quantity,
@@ -545,18 +545,19 @@ window.createQuote = async function() {
             body: JSON.stringify(payload)
         });
 
+        const result = await res.json();
         if (res.ok) {
-            toastSuccess('Quote created successfully');
+            toastSuccess('สร้างใบเสนอราคาสำเร็จ');
             loadQuotes();
             hideModalAndReset('addQuoteModal', 'addQuoteForm');
             document.getElementById('quoteItems').innerHTML = '';
             document.getElementById('quoteTotalAmount').textContent = '0.00';
         } else {
-            toastError('Failed to create quote');
+            toastError(result.error || 'Failed to create quote');
         }
     } catch (e) {
         console.error('Error creating quote:', e);
-        toastError('Failed to create quote');
+        toastError(e.message || 'Failed to create quote');
     }
 };
 

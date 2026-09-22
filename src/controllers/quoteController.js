@@ -56,7 +56,13 @@ exports.createQuote = async (req, res) => {
     } catch (err) {
         await run('ROLLBACK');
         console.error('Error creating quote:', err);
-        res.status(500).json({ error: 'Failed to create quote', details: err.message });
+        res.status(500).json({ 
+            error: err.message || 'Failed to create quote',
+            details: {
+                message: err.message,
+                stack: process.env.NODE_ENV !== 'production' ? err.stack : undefined
+            }
+        });
     }
 };
 
