@@ -48,6 +48,32 @@ app.use('/api/cases', caseRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/quotes', quoteRoutes);
 
+// Analytics endpoint
+app.get('/api/analytics/dashboard', async (req, res) => {
+    try {
+        const [dealsByStage, casesByStatus] = await Promise.all([
+            db.all(`
+                SELECT stage, COUNT(*) as count, SUM(amount) as total 
+                FROM deals 
+                GROUP BY stage
+            `),
+            db.all(`
+                SELECT status, COUNT(*) as count 
+                FROM cases 
+                GROUP BY status
+            `)
+        ]);
+        
+        res.json({
+            dealsByStage,
+            casesByStatus
+        });
+    } catch (error) {
+        console.error('Error fetching analytics:', error);
+        res.status(500).json({ error: 'Failed to fetch analytics data' });
+    }
+});
+
 // Swagger / API Docs
 const swaggerOptions = {
   definition: {
