@@ -1,6 +1,7 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
+const bcrypt = require('bcrypt');
 
 const dataDir = path.join(__dirname, '..', '..', 'data');
 if (!fs.existsSync(dataDir)) {
@@ -159,8 +160,9 @@ const setupDatabase = async () => {
     // สร้าง Admin เริ่มต้นถ้ายังไม่มี
     const userCount = await getQuery("SELECT COUNT(*) as count FROM users");
     if (userCount && userCount.count === 0) {
-      const bcrypt = require('bcrypt');
+      // เข้ารหัสผ่านก่อนบันทึก
       const hashedPassword = bcrypt.hashSync('password', 10);
+      
       await runQuery("INSERT INTO users (username, password, role) VALUES (?, ?, ?)", ['admin', hashedPassword, 'Admin']);
       console.log('Default admin user created');
     }
