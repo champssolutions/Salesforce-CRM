@@ -1,7 +1,53 @@
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('CRM App Initialized');
+// Auth functions
+function checkAuth() {
+    const token = localStorage.getItem('token');
+    const role = localStorage.getItem('role');
+    
+    if (token && role) {
+        document.getElementById('loginScreen').classList.add('d-none');
+        document.getElementById('crmApp').classList.remove('d-none');
+        document.getElementById('userRoleDisplay').textContent = role;
+        return true;
+    }
+    return false;
+}
 
-    // Load data for all tabs
+async function login() {
+    const username = document.getElementById('loginUsername').value;
+    const password = document.getElementById('loginPassword').value;
+
+    try {
+        const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+
+        if (!res.ok) {
+            const error = await res.json();
+            throw new Error(error.error || 'Login failed');
+        }
+
+        const data = await res.json();
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('role', data.role);
+        
+        checkAuth();
+        loadInitialData();
+        toastSuccess('Login successful');
+    } catch (err) {
+        toastError(err.message);
+    }
+}
+
+function logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+    location.reload();
+}
+
+function loadInitialData() {
+    console.log('CRM App Initialized');
     loadAccounts();
     loadLeads();
     loadContacts();
@@ -10,7 +56,20 @@ document.addEventListener('DOMContentLoaded', () => {
     loadProducts();
     loadDeals();
     loadQuotes();
-    renderDashboardCharts(); // Initialize charts
+    renderDashboardCharts();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Setup login form
+    document.getElementById('loginForm')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        login();
+    });
+
+    // Check auth status
+    if (checkAuth()) {
+        loadInitialData();
+    }
 
     // จัดการ Event สลับแท็บเมนู
     const tabButtons = document.querySelectorAll('#myTab button[data-bs-toggle="tab"]');

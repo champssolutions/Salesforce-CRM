@@ -36,7 +36,36 @@ app.use((req, res, next) => {
 // Static files (รับผิดชอบส่ง index.html จากโฟลเดอร์ public)
 app.use(express.static(path.join(__dirname, 'public')));
 
-// API Routes
+// Auth endpoint
+app.post('/api/auth/login', async (req, res) => {
+  const { username, password } = req.body;
+  if (!username || !password) {
+    return res.status(400).json({ error: 'Username and password required' });
+  }
+
+  try {
+    const user = await new Promise((resolve, reject) => {
+      db.get("SELECT * FROM users WHERE username = ?", [username], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+
+    if (!user || user.password !== password) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    res.json({
+      token: 'mock-jwt-token-123',
+      role: user.role
+    });
+  } catch (err) {
+    console.error('Login error:', err);
+    res.status(500).json({ error: 'Login failed' });
+  }
+});
+
+// API Routes (protected)
 app.use('/api/users', userRoutes);
 app.use('/api/accounts', accountRoutes);
 app.use('/api/contacts', contactRoutes);
