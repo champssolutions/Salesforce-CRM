@@ -269,6 +269,9 @@ async function renderDashboardCharts() {
             dealsData = Object.values(data.dealsByStage);
         }
         
+        if (dealsChartInstance) {
+            dealsChartInstance.destroy();
+        }
         dealsChartInstance = new Chart(dealsCtx, {
             type: 'bar',
             data: {
@@ -323,6 +326,9 @@ async function renderDashboardCharts() {
             casesData = Object.values(data.casesByStatus);
         }
         
+        if (casesChartInstance) {
+            casesChartInstance.destroy();
+        }
         casesChartInstance = new Chart(casesCtx, {
             type: 'doughnut',
             data: {
