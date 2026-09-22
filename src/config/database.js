@@ -73,13 +73,6 @@ const setupDatabase = async () => {
               return false;
             }
 
-    return true;
-  } catch (err) {
-    console.error('Error setting up database:', err);
-    return false;
-  }
-};
-
             // Create remaining tables sequentially
             db.run(`CREATE TABLE IF NOT EXISTS leads (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -191,24 +184,11 @@ const setupDatabase = async () => {
       });
     });
   });
-      db.get("SELECT COUNT(*) as count FROM users", (err, row) => {
-        if (err) return reject(err);
-        resolve(row.count);
-      });
-    });
-
-    if (userCount === 0) {
-      await new Promise((resolve, reject) => {
-        db.run("INSERT INTO users (username, password, role) VALUES (?, ?, ?)", 
-          ['admin', 'password', 'Admin'], (err) => {
-            if (err) return reject(err);
-            console.log('Default admin user created');
-            resolve();
-        });
-      });
-    }
-
-    return true;
+  return true;
+} catch (err) {
+  console.error('Error setting up database:', err);
+  return false;
+};
 
 /**
  * เพิ่มคอลัมน์ที่ขาดหายให้ตารางที่มีอยู่แล้ว (idempotent)
