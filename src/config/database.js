@@ -100,10 +100,10 @@ const setupDatabase = async () => {
           title TEXT,
           created_at TEXT DEFAULT (datetime('now'))
         );`, (err) => {
-        if (err) {
-          console.error('Error creating contacts table:', err.message);
-          return false;
-        }
+          if (err) {
+            console.error('Error creating contacts table:', err.message);
+            return false;
+          }
 
         db.run(`CREATE TABLE IF NOT EXISTS deals (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -115,10 +115,10 @@ const setupDatabase = async () => {
           close_date TEXT,
           created_at TEXT DEFAULT (datetime('now'))
         );`, (err) => {
-        if (err) {
-          console.error('Error creating deals table:', err.message);
-          return false;
-        }
+          if (err) {
+            console.error('Error creating deals table:', err.message);
+            return false;
+          }
 
         db.run(`CREATE TABLE IF NOT EXISTS opportunities (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -129,10 +129,10 @@ const setupDatabase = async () => {
           close_date TEXT,
           created_at TEXT DEFAULT (datetime('now'))
         );`, (err) => {
-        if (err) {
-          console.error('Error creating opportunities table:', err.message);
-          return false;
-        }
+          if (err) {
+            console.error('Error creating opportunities table:', err.message);
+            return false;
+          }
 
         db.run(`CREATE TABLE IF NOT EXISTS quotes (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -143,10 +143,10 @@ const setupDatabase = async () => {
           expiration_date TEXT,
           created_at TEXT DEFAULT (datetime('now'))
         );`, (err) => {
-        if (err) {
-          console.error('Error creating quotes table:', err.message);
-          return false;
-        }
+          if (err) {
+            console.error('Error creating quotes table:', err.message);
+            return false;
+          }
 
         db.run(`CREATE TABLE IF NOT EXISTS quote_items (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -157,10 +157,10 @@ const setupDatabase = async () => {
           total_price REAL NOT NULL DEFAULT 0 CHECK (total_price >= 0),
           created_at TEXT DEFAULT (datetime('now'))
         );`, (err) => {
-        if (err) {
-          console.error('Error creating quote_items table:', err.message);
-          return false;
-        }
+          if (err) {
+            console.error('Error creating quote_items table:', err.message);
+            return false;
+          }
 
         // Insert default admin user if users table is empty
         db.get("SELECT COUNT(*) as count FROM users", (err, row) => {
