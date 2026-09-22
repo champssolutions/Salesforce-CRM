@@ -77,6 +77,7 @@ async function loadAccounts() {
         populateSelect('dealAccount', items, 'id', 'name', '-- เลือก Account --');
         populateSelect('caseAccount', items, 'id', 'name', '-- เลือก Account --');
         populateSelect('dealFilterAccount', items, 'id', 'name', 'ทั้งหมด');
+        populateSelect('quoteAccount', items, 'id', 'name', '-- เลือก Account --');
 
         const tbody = document.getElementById('accountsTable');
         if (!tbody) return;
@@ -223,6 +224,7 @@ async function loadDeals() {
         const data = await res.json();
         dealsCache = Array.isArray(data) ? data : (data.data || []);
         populateSelect('taskDeal', dealsCache, 'id', 'title', '-- เลือก Deal --');
+        populateSelect('quoteDeal', dealsCache, 'id', 'title', '-- เลือก Deal --');
         renderDeals();
     } catch (e) { console.error('Error loadDeals:', e); }
 }
