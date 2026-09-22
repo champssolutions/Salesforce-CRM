@@ -6,6 +6,7 @@
     <title>CRM Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         .kanban-board { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; align-items: flex-start; }
@@ -41,8 +42,14 @@
                     <div class="col-md-8">
                         <div class="card mb-4">
                             <div class="card-body">
-                                <h5 class="card-title">Deals by Stage</h5>
-                                <canvas id="salesChart" width="400" height="150"></canvas>
+                                <h5 class="card-title">Deals Pipeline by Stage</h5>
+                                <canvas id="dealsChart" width="400" height="150"></canvas>
+                            </div>
+                        </div>
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title">Cases by Status</h5>
+                                <canvas id="casesChart" width="400" height="150"></canvas>
                             </div>
                         </div>
                     </div>

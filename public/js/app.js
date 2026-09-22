@@ -31,7 +31,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             switch (targetId) {
                 case '#dashboard': 
-                    loadDeals(); 
+                    loadDeals();
+                    renderDashboardCharts();
                     break;
                 case '#accounts': loadAccounts(); break;
                 case '#leads': loadLeads(); break;
@@ -221,7 +222,118 @@ async function loadProducts() {
     } catch (e) { console.error('Error loadProducts:', e); }
 }
 
-let salesChart = null;
+let dealsChart = null;
+let casesChart = null;
+
+async function renderDashboardCharts() {
+    try {
+        const res = await fetch('/api/analytics/dashboard');
+        const data = await res.json();
+        
+        // Destroy existing charts if they exist
+        if (dealsChart) dealsChart.destroy();
+        if (casesChart) casesChart.destroy();
+
+        // Render Deals Chart
+        const dealsCtx = document.getElementById('dealsChart').getContext('2d');
+        const dealsLabels = data.dealsByStage.map(d => d.stage);
+        const dealsData = data.dealsByStage.map(d => d.total);
+        
+        dealsChart = new Chart(dealsCtx, {
+            type: 'bar',
+            data: {
+                labels: dealsLabels,
+                datasets: [{
+                    label: 'Total Amount',
+                    data: dealsData,
+                    backgroundColor: [
+                        'rgba(54, 162, 235, 0.5)',
+                        'rgba(255, 206, 86, 0.5)',
+                        'rgba(75, 192, 192, 0.5)',
+                        'rgba(75, 192, 75, 0.5)',
+                        'rgba(255, 99, 132, 0.5)'
+                    ],
+                    borderColor: [
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(75, 192, 75, 1)',
+                        'rgba(255, 99, 132, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    datalabels: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Total Amount'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Deal Stage'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Render Cases Chart
+        const casesCtx = document.getElementById('casesChart').getContext('2d');
+        const casesLabels = data.casesByStatus.map(c => c.status);
+        const casesData = data.casesByStatus.map(c => c.count);
+        
+        casesChart = new Chart(casesCtx, {
+            type: 'doughnut',
+            data: {
+                labels: casesLabels,
+                datasets: [{
+                    label: 'Cases by Status',
+                    data: casesData,
+                    backgroundColor: [
+                        'rgba(54, 162, 235, 0.5)',
+                        'rgba(255, 206, 86, 0.5)',
+                        'rgba(75, 192, 192, 0.5)',
+                        'rgba(153, 102, 255, 0.5)',
+                        'rgba(255, 159, 64, 0.5)'
+                    ],
+                    borderColor: [
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    datalabels: {
+                        color: '#fff',
+                        formatter: (value) => value,
+                        font: {
+                            weight: 'bold'
+                        }
+                    }
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Error rendering dashboard charts:', error);
+    }
+}
 
 async function loadDeals() {
     try {
