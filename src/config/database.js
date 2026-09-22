@@ -53,32 +53,6 @@ db.serialize(() => {
     });
   `);
 
-  db.run(`
-    CREATE TABLE IF NOT EXISTS cases (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      subject TEXT NOT NULL,
-      account_id INTEGER REFERENCES accounts(id) ON DELETE SET NULL,
-      contact_id INTEGER REFERENCES contacts(id) ON DELETE SET NULL,
-      description TEXT DEFAULT '',
-      priority TEXT DEFAULT 'Medium',
-      status TEXT DEFAULT 'New',
-      created_at TEXT DEFAULT (datetime('now'))
-    );
-  `);
-
-  db.run(`
-    CREATE TABLE IF NOT EXISTS tasks (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      title TEXT NOT NULL,
-      description TEXT DEFAULT '',
-      due_date TEXT,
-      status TEXT DEFAULT 'Not Started',
-      priority TEXT DEFAULT 'Medium',
-      deal_id INTEGER REFERENCES deals(id) ON DELETE SET NULL,
-      contact_id INTEGER REFERENCES contacts(id) ON DELETE SET NULL,
-      created_at TEXT DEFAULT (datetime('now'))
-    );
-  `);
 
   db.run(`
     CREATE TABLE IF NOT EXISTS quotes (
@@ -182,37 +156,6 @@ db.serialize(() => {
     );
   `);
 
-  db.run(`
-    CREATE TABLE IF NOT EXISTS cases (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      account_id INTEGER,
-      contact_id INTEGER,
-      subject TEXT,
-      title TEXT NOT NULL,
-      description TEXT NOT NULL,
-      priority TEXT DEFAULT 'Medium',
-      status TEXT DEFAULT 'New',
-      created_at TEXT DEFAULT (datetime('now')),
-      FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE SET NULL,
-      FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE SET NULL
-    );
-  `);
-
-  db.run(`
-    CREATE TABLE IF NOT EXISTS tasks (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      title TEXT NOT NULL,
-      description TEXT NOT NULL,
-      due_date TEXT,
-      status TEXT,
-      priority TEXT,
-      deal_id INTEGER,
-      contact_id INTEGER,
-      created_at TEXT DEFAULT (datetime('now')),
-      FOREIGN KEY (deal_id) REFERENCES deals(id) ON DELETE SET NULL,
-      FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE SET NULL
-    );
-  `);
 });
 
 /**
