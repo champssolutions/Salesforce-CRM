@@ -90,19 +90,19 @@ const setupDatabase = async () => {
               }
 
               db.run(`CREATE TABLE IF NOT EXISTS contacts (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          account_id INTEGER REFERENCES accounts(id) ON DELETE SET NULL,
-          first_name TEXT NOT NULL,
-          last_name TEXT,
-          email TEXT,
-          phone TEXT,
-          title TEXT,
-          created_at TEXT DEFAULT (datetime('now'))
-        );`, (err) => {
-          if (err) {
-            console.error('Error creating contacts table:', err.message);
-            return false;
-          }
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                account_id INTEGER REFERENCES accounts(id) ON DELETE SET NULL,
+                first_name TEXT NOT NULL,
+                last_name TEXT,
+                email TEXT,
+                phone TEXT,
+                title TEXT,
+                created_at TEXT DEFAULT (datetime('now'))
+              );`, (err) => {
+                if (err) {
+                  console.error('Error creating contacts table:', err.message);
+                  return false;
+                }
 
                 db.run(`CREATE TABLE IF NOT EXISTS deals (
                   id INTEGER PRIMARY KEY AUTOINCREMENT,
