@@ -111,30 +111,28 @@ exports.updateAccount = async (req, res) => {
 };
 
 // PATCH /api/accounts/:id (Partial Update)
-exports.patchAccount = (req, res) => {
-  const { name, industry, phone, website } = req.body;
+exports.patchAccount = async (req, res) => {
+  try {
+    const { name, industry, phone, website } = req.body;
 
-  // Collect only the fields that were provided
-  const fields = {};
-  if (name !== undefined) fields.name = name;
-  if (industry !== undefined) fields.industry = industry;
-  if (phone !== undefined) fields.phone = phone;
-  if (website !== undefined) fields.website = website;
+    // Collect only the fields that were provided
+    const fields = {};
+    if (name !== undefined) fields.name = name;
+    if (industry !== undefined) fields.industry = industry;
+    if (phone !== undefined) fields.phone = phone;
+    if (website !== undefined) fields.website = website;
 
-  if (Object.keys(fields).length === 0) {
-    return res.status(400).json({ error: 'At least one field must be provided' });
-  }
-
-  // If name is provided, it must not be empty
-  if (fields.name !== undefined && !fields.name) {
-    return res.status(400).json({ error: 'name cannot be empty' });
-  }
-
-  // Check if account exists
-  db.get('SELECT * FROM accounts WHERE id = ?', [req.params.id], (err, account) => {
-    if (err) {
-      return res.status(500).json({ error: 'Database error' });
+    if (Object.keys(fields).length === 0) {
+      return res.status(400).json({ error: 'At least one field must be provided' });
     }
+
+    // If name is provided, it must not be empty
+    if (fields.name !== undefined && !fields.name) {
+      return res.status(400).json({ error: 'name cannot be empty' });
+    }
+
+    // Check if account exists
+    const account = await getQuery('SELECT * FROM accounts WHERE id = ?', [req.params.id]);
     if (!account) {
       return res.status(404).json({ error: 'Account not found' });
     }
@@ -150,22 +148,21 @@ exports.patchAccount = (req, res) => {
 
     const query = `UPDATE accounts SET ${setClauses.join(', ')} WHERE id = ?`;
 
-    db.run(query, values, function (err) {
-      if (err) {
-        return res.status(500).json({ error: 'Database error' });
-      }
+    await runQuery(query, values);
 
-      // Build response with merged values
-      const updated = {
-        id: Number(req.params.id),
-        name: fields.name !== undefined ? fields.name : account.name,
-        industry: fields.industry !== undefined ? (fields.industry || null) : account.industry,
-        phone: fields.phone !== undefined ? (fields.phone || null) : account.phone,
-        website: fields.website !== undefined ? (fields.website || null) : account.website,
-      };
-      res.json(updated);
-    });
-  });
+    // Build response with merged values
+    const updated = {
+      id: Number(req.params.id),
+      name: fields.name !== undefined ? fields.name : account.name,
+      industry: fields.industry !== undefined ? (fields.industry || null) : account.industry,
+      phone: fields.phone !== undefined ? (fields.phone || null) : account.phone,
+      website: fields.website !== undefined ? (fields.website || null) : account.website,
+    };
+    res.json(updated);
+  } catch (err) {
+    console.error('Error patching account:', err);
+    res.status(500).json({ error: 'Database error' });
+  }
 };
 
 // DELETE /api/accounts/:id
