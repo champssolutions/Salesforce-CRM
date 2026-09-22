@@ -46,8 +46,6 @@ app.use('/api/deals', dealRoutes);
 app.use('/api/leads', leadRoutes);
 app.use('/api/cases', caseRoutes);
 app.use('/api/tasks', taskRoutes);
-app.use('/api/cases', caseRoutes); // Register case routes
-app.use('/api/tasks', taskRoutes);
 app.use('/api/quotes', quoteRoutes);
 
 // Swagger / API Docs
