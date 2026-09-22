@@ -36,6 +36,20 @@ const setupDatabase = async () => {
     });
 
     // Create tables in proper dependency order
+    await Promise.all([
+      new Promise((resolve, reject) => {
+        db.run(`CREATE TABLE IF NOT EXISTS accounts (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          industry TEXT,
+          phone TEXT,
+          website TEXT,
+          created_at TEXT DEFAULT (datetime('now'))
+        );`, (err) => {
+          if (err) return reject(err);
+          resolve();
+        });
+      }),
   db.run(`
     CREATE TABLE IF NOT EXISTS accounts (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -47,7 +61,14 @@ const setupDatabase = async () => {
     );
   `, (err) => {
     if (err) console.error('Error creating accounts table:', err.message);
-  });
+    ]);
+
+    return true;
+  } catch (err) {
+    console.error('Error setting up database:', err);
+    return false;
+  }
+};
 
   db.run(`
     CREATE TABLE IF NOT EXISTS products (
@@ -224,8 +245,13 @@ async function ensureColumns(table, columns) {
   }
 }
 
-// Run after all tables are created
-setupDatabase().then(async () => {
+// Run database setup and migrations
+(async () => {
+  const setupSuccess = await setupDatabase();
+  if (!setupSuccess) {
+    console.error('Database setup failed');
+    process.exit(1);
+  }
   await ensureColumns('cases', [
     ['account_id', 'INTEGER REFERENCES accounts(id) ON DELETE SET NULL'],
     ['contact_id', 'INTEGER REFERENCES contacts(id) ON DELETE SET NULL'],
