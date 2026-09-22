@@ -48,7 +48,6 @@ const setupDatabase = async () => {
           }
 
           db.run(`CREATE TABLE IF NOT EXISTS products (
-        db.run(`CREATE TABLE IF NOT EXISTS products (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           name TEXT NOT NULL,
           code TEXT UNIQUE NOT NULL,
@@ -85,10 +84,10 @@ const setupDatabase = async () => {
               phone TEXT,
               created_at TEXT DEFAULT (datetime('now'))
             );`, (err) => {
-        if (err) {
-          console.error('Error creating leads table:', err.message);
-          return false;
-        }
+          if (err) {
+            console.error('Error creating leads table:', err.message);
+            return false;
+          }
 
         db.run(`CREATE TABLE IF NOT EXISTS contacts (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
