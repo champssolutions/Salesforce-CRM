@@ -46,7 +46,7 @@ exports.getCaseById = async (req, res) => {
 
 exports.createCase = async (req, res) => {
   try {
-    const { subject, title, account_id, contact_id, description, priority, status } = req.body;
+    const { subject, account_id, contact_id, description, priority, status } = req.body;
     
     if (!subject) {
       return res.status(400).json({ error: 'Subject is required' });
@@ -70,7 +70,7 @@ exports.createCase = async (req, res) => {
 
 exports.updateCase = async (req, res) => {
   try {
-    const { subject, title, account_id, contact_id, description, priority, status } = req.body;
+    const { subject, account_id, contact_id, description, priority, status } = req.body;
     
     if (!subject) {
       return res.status(400).json({ error: 'Subject is required' });
