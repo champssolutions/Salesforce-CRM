@@ -24,10 +24,19 @@ db.serialize(() => {
   db.run(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      email TEXT UNIQUE NOT NULL,
+      username TEXT UNIQUE NOT NULL,
+      password TEXT NOT NULL,
+      role TEXT NOT NULL DEFAULT 'User',
       created_at TEXT DEFAULT (datetime('now'))
     );
+
+    // Insert default admin user if table is empty
+    db.get("SELECT COUNT(*) as count FROM users", (err, row) => {
+      if (!err && row.count === 0) {
+        db.run("INSERT INTO users (username, password, role) VALUES (?, ?, ?)", 
+          ['admin', 'password', 'Admin']);
+      }
+    });
   `);
 
   db.run(`
