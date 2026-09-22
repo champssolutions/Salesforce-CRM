@@ -247,14 +247,25 @@ async function renderDashboardCharts() {
         const data = await res.json();
         console.log("Dashboard API Response:", data);
 
-        // Update Quick Stats
-        if (data.quickStats) {
-            document.getElementById('statTotalAmount').textContent = 
-                data.quickStats.totalPipelineValue?.toLocaleString() || '0';
-            document.getElementById('statDealCount').textContent = 
-                data.quickStats.openDeals || '0';
-            document.getElementById('statWinRate').textContent = 
-                data.quickStats.winRate ? `${data.quickStats.winRate}%` : '0%';
+        // Update Quick Stats with proper fallbacks
+        const stats = data.quickStats || {
+            totalPipelineValue: 0,
+            openDeals: 0,
+            winRate: 0
+        };
+
+        const totalEl = document.getElementById('statTotalAmount');
+        const openEl = document.getElementById('statOpenDeals');
+        const winEl = document.getElementById('statWinRate');
+
+        if (totalEl) {
+            totalEl.textContent = Number(stats.totalPipelineValue).toLocaleString();
+        }
+        if (openEl) {
+            openEl.textContent = stats.openDeals;
+        }
+        if (winEl) {
+            winEl.textContent = `${Number(stats.winRate).toFixed(1)}%`;
         }
 
         // Render Deals Chart

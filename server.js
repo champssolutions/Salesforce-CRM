@@ -118,7 +118,11 @@ app.get('/api/analytics/dashboard', async (req, res) => {
         res.status(200).json({
             dealsByStage: dealsByStageObj,
             casesByStatus: casesByStatusObj,
-            quickStats: quickStats || fallbackData.quickStats
+            quickStats: {
+                totalPipelineValue: quickStats?.totalPipelineValue || 0,
+                openDeals: quickStats?.openDeals || 0,
+                winRate: quickStats?.winRate || 0
+            }
         });
 
     } catch (err) {
