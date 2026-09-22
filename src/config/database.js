@@ -31,6 +31,33 @@ db.serialize(() => {
   `);
 
   db.run(`
+    CREATE TABLE IF NOT EXISTS cases (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      subject TEXT NOT NULL,
+      account_id INTEGER REFERENCES accounts(id) ON DELETE SET NULL,
+      contact_id INTEGER REFERENCES contacts(id) ON DELETE SET NULL,
+      description TEXT DEFAULT '',
+      priority TEXT DEFAULT 'Medium',
+      status TEXT DEFAULT 'New',
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS tasks (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      description TEXT DEFAULT '',
+      due_date TEXT,
+      status TEXT DEFAULT 'Not Started',
+      priority TEXT DEFAULT 'Medium',
+      deal_id INTEGER REFERENCES deals(id) ON DELETE SET NULL,
+      contact_id INTEGER REFERENCES contacts(id) ON DELETE SET NULL,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+  `);
+
+  db.run(`
     CREATE TABLE IF NOT EXISTS quotes (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       deal_id INTEGER REFERENCES deals(id) ON DELETE SET NULL,

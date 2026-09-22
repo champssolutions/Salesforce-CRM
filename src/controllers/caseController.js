@@ -125,3 +125,123 @@ exports.deleteCase = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+const db = require('../config/database');
+
+// Helper functions
+const all = (sql, params = []) => new Promise((resolve, reject) => {
+  db.all(sql, params, (err, rows) => {
+    if (err) return reject(err);
+    resolve(rows);
+  });
+});
+
+const get = (sql, params = []) => new Promise((resolve, reject) => {
+  db.get(sql, params, (err, row) => {
+    if (err) return reject(err);
+    resolve(row);
+  });
+});
+
+const run = (sql, params = []) => new Promise((resolve, reject) => {
+  db.run(sql, params, function(err) {
+    if (err) return reject(err);
+    resolve({ lastID: this.lastID, changes: this.changes });
+  });
+});
+
+exports.getAllCases = async (req, res) => {
+  try {
+    const cases = await all(`
+      SELECT c.*, a.name as account_name, ct.first_name as contact_first_name, ct.last_name as contact_last_name
+      FROM cases c
+      LEFT JOIN accounts a ON c.account_id = a.id
+      LEFT JOIN contacts ct ON c.contact_id = ct.id
+      ORDER BY c.created_at DESC
+    `);
+    res.json(cases);
+  } catch (err) {
+    console.error('Error getting cases:', err);
+    res.status(500).json({ error: 'Failed to get cases' });
+  }
+};
+
+exports.getCaseById = async (req, res) => {
+  try {
+    const caseItem = await get(`
+      SELECT c.*, a.name as account_name, ct.first_name as contact_first_name, ct.last_name as contact_last_name
+      FROM cases c
+      LEFT JOIN accounts a ON c.account_id = a.id
+      LEFT JOIN contacts ct ON c.contact_id = ct.id
+      WHERE c.id = ?
+    `, [req.params.id]);
+    
+    if (!caseItem) {
+      return res.status(404).json({ error: 'Case not found' });
+    }
+    res.json(caseItem);
+  } catch (err) {
+    console.error('Error getting case:', err);
+    res.status(500).json({ error: 'Failed to get case' });
+  }
+};
+
+exports.createCase = async (req, res) => {
+  try {
+    const { subject, account_id, contact_id, description, priority, status } = req.body;
+    
+    if (!subject) {
+      return res.status(400).json({ error: 'Subject is required' });
+    }
+
+    const { lastID } = await run(
+      'INSERT INTO cases (subject, account_id, contact_id, description, priority, status) VALUES (?, ?, ?, ?, ?, ?)',
+      [subject, account_id || null, contact_id || null, description || '', priority || 'Medium', status || 'New']
+    );
+
+    const newCase = await get('SELECT * FROM cases WHERE id = ?', [lastID]);
+    res.status(201).json(newCase);
+  } catch (err) {
+    console.error('Error creating case:', err);
+    res.status(500).json({ error: 'Failed to create case' });
+  }
+};
+
+exports.updateCase = async (req, res) => {
+  try {
+    const { subject, account_id, contact_id, description, priority, status } = req.body;
+    
+    if (!subject) {
+      return res.status(400).json({ error: 'Subject is required' });
+    }
+
+    const { changes } = await run(
+      'UPDATE cases SET subject = ?, account_id = ?, contact_id = ?, description = ?, priority = ?, status = ? WHERE id = ?',
+      [subject, account_id || null, contact_id || null, description || '', priority || 'Medium', status || 'New', req.params.id]
+    );
+
+    if (changes === 0) {
+      return res.status(404).json({ error: 'Case not found' });
+    }
+
+    const updatedCase = await get('SELECT * FROM cases WHERE id = ?', [req.params.id]);
+    res.json(updatedCase);
+  } catch (err) {
+    console.error('Error updating case:', err);
+    res.status(500).json({ error: 'Failed to update case' });
+  }
+};
+
+exports.deleteCase = async (req, res) => {
+  try {
+    const { changes } = await run('DELETE FROM cases WHERE id = ?', [req.params.id]);
+    
+    if (changes === 0) {
+      return res.status(404).json({ error: 'Case not found' });
+    }
+
+    res.json({ message: 'Case deleted successfully' });
+  } catch (err) {
+    console.error('Error deleting case:', err);
+    res.status(500).json({ error: 'Failed to delete case' });
+  }
+};
