@@ -236,4 +236,8 @@ const initializeDatabase = async () => {
 
 initializeDatabase();
 
-module.exports = db;
+module.exports = {
+  db,
+  getQuery,
+  runQuery
+};

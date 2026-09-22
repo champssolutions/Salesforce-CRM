@@ -1,6 +1,6 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const db = require('../config/database');
+const { getQuery } = require('../config/database');
 
 exports.login = async (req, res) => {
     try {
