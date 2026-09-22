@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const cors = require('cors');
 const db = require('./src/config/database');
+const authRoutes = require('./src/routes/authRoutes');
 const userRoutes = require('./src/routes/userRoutes');
 const accountRoutes = require('./src/routes/accountRoutes');
 const contactRoutes = require('./src/routes/contactRoutes');
@@ -36,33 +37,8 @@ app.use((req, res, next) => {
 // Static files (รับผิดชอบส่ง index.html จากโฟลเดอร์ public)
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Auth endpoint
-app.post('/api/auth/login', (req, res) => {
-  const { username, password } = req.body;
-  if (!username || !password) {
-    return res.status(400).json({ error: 'Username and password required' });
-  }
-
-  db.get("SELECT * FROM users WHERE username = ?", [username], (err, user) => {
-    if (err) {
-      console.error('Database error during login:', err.message);
-      return res.status(500).json({ error: 'Internal server error' });
-    }
-
-    if (!user) {
-      return res.status(401).json({ error: 'Invalid username' });
-    }
-
-    if (user.password !== password) {
-      return res.status(401).json({ error: 'Invalid password' });
-    }
-
-    res.json({
-      token: 'mock-jwt-token-123',
-      role: user.role
-    });
-  });
-});
+// Auth routes
+app.use('/api/auth', authRoutes);
 
 // API Routes (protected)
 app.use('/api/users', userRoutes);
