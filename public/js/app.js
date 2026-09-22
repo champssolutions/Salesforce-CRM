@@ -735,15 +735,19 @@ window.setDealsView = function(view) {
 
 function updateDealsAnalytics(deals) {
     const list = Array.isArray(deals) ? deals : [];
-    const total = list.reduce((s, d) => s + (Number(d.amount) || 0), 0);
-    const won = list.filter(d => d.stage === 'Closed Won').length;
-    const winRate = list.length ? (won / list.length) * 100 : 0;
-    const statTotal = document.getElementById('statTotalAmount');
-    const statWin = document.getElementById('statWinRate');
-    const statCount = document.getElementById('statDealCount');
-    if (statTotal) statTotal.textContent = total.toLocaleString(undefined, { maximumFractionDigits: 2 });
-    if (statWin) statWin.textContent = winRate.toFixed(1) + '%';
-    if (statCount) statCount.textContent = list.length;
+    const totalAmount = list.reduce((sum, d) => sum + (parseFloat(d.amount) || 0), 0);
+    const closedWonCount = list.filter(d => d.stage === 'Closed Won').length;
+    const winRate = list.length ? ((closedWonCount / list.length) * 100) : 0;
+    
+    console.log("Deals Stats Calculated:", { totalAmount, winRate });
+
+    const elTotal = document.getElementById('dealTabTotalAmount');
+    const elWinRate = document.getElementById('dealTabWinRate');
+    const elCount = document.getElementById('statDealCount');
+    
+    if (elTotal) elTotal.textContent = totalAmount.toLocaleString(undefined, { maximumFractionDigits: 2 });
+    if (elWinRate) elWinRate.textContent = winRate.toFixed(1) + '%';
+    if (elCount) elCount.textContent = list.length;
 }
 
 function filteredDeals() {
