@@ -245,6 +245,17 @@ async function renderDashboardCharts() {
         // Get chart data
         const res = await fetch('/api/analytics/dashboard');
         const data = await res.json();
+        console.log("Dashboard API Response:", data);
+
+        // Update Quick Stats
+        if (data.quickStats) {
+            document.getElementById('statTotalAmount').textContent = 
+                data.quickStats.totalPipelineValue?.toLocaleString() || '0';
+            document.getElementById('statDealCount').textContent = 
+                data.quickStats.openDeals || '0';
+            document.getElementById('statWinRate').textContent = 
+                data.quickStats.winRate ? `${data.quickStats.winRate}%` : '0%';
+        }
 
         // Render Deals Chart
         const dealsCanvas = document.getElementById('dealsChart');
@@ -258,16 +269,10 @@ async function renderDashboardCharts() {
             console.warn('Could not get 2D context for deals chart');
             return;
         }
-        let dealsLabels = [];
-        let dealsData = [];
-        
-        if (Array.isArray(data.dealsByStage)) {
-            dealsLabels = data.dealsByStage.map(d => d.stage);
-            dealsData = data.dealsByStage.map(d => d.total);
-        } else if (data.dealsByStage && typeof data.dealsByStage === 'object') {
-            dealsLabels = Object.keys(data.dealsByStage);
-            dealsData = Object.values(data.dealsByStage);
-        }
+        // Ensure we have data for all stages
+        const allDealStages = ['Prospecting', 'Qualification', 'Proposal', 'Closed Won', 'Closed Lost'];
+        const dealsLabels = allDealStages;
+        const dealsData = allDealStages.map(stage => data.dealsByStage[stage] || 0);
         
         if (dealsChartInstance) {
             dealsChartInstance.destroy();
@@ -315,16 +320,10 @@ async function renderDashboardCharts() {
         if (!casesCanvas) return;
         
         const casesCtx = casesCanvas.getContext('2d');
-        let casesLabels = [];
-        let casesData = [];
-        
-        if (Array.isArray(data.casesByStatus)) {
-            casesLabels = data.casesByStatus.map(c => c.status);
-            casesData = data.casesByStatus.map(c => c.count);
-        } else if (data.casesByStatus && typeof data.casesByStatus === 'object') {
-            casesLabels = Object.keys(data.casesByStatus);
-            casesData = Object.values(data.casesByStatus);
-        }
+        // Ensure we have data for all statuses
+        const allCaseStatuses = ['New', 'Working', 'Closed'];
+        const casesLabels = allCaseStatuses;
+        const casesData = allCaseStatuses.map(status => data.casesByStatus[status] || 0);
         
         if (casesChartInstance) {
             casesChartInstance.destroy();

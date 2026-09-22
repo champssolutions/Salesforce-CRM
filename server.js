@@ -51,7 +51,7 @@ app.use('/api/quotes', quoteRoutes);
 // Analytics endpoint
 app.get('/api/analytics/dashboard', async (req, res) => {
     try {
-        const [dealsByStage, casesByStatus] = await Promise.all([
+        const [dealsByStage, casesByStatus, quickStats] = await Promise.all([
             db.all(`
                 SELECT stage, COUNT(*) as count, SUM(amount) as total 
                 FROM deals 
@@ -61,12 +61,31 @@ app.get('/api/analytics/dashboard', async (req, res) => {
                 SELECT status, COUNT(*) as count 
                 FROM cases 
                 GROUP BY status
+            `),
+            db.get(`
+                SELECT
+                    SUM(amount) as totalPipelineValue,
+                    COUNT(CASE WHEN stage NOT IN ('Closed Won', 'Closed Lost') THEN 1 END) as openDeals,
+                    ROUND(100.0 * COUNT(CASE WHEN stage = 'Closed Won' THEN 1 END) / COUNT(*), 1) as winRate
+                FROM deals
             `)
         ]);
         
+        // Convert arrays to objects for easier charting
+        const dealsByStageObj = dealsByStage.reduce((acc, { stage, total }) => {
+            acc[stage] = total || 0;
+            return acc;
+        }, {});
+        
+        const casesByStatusObj = casesByStatus.reduce((acc, { status, count }) => {
+            acc[status] = count;
+            return acc;
+        }, {});
+
         res.json({
-            dealsByStage,
-            casesByStatus
+            dealsByStage: dealsByStageObj,
+            casesByStatus: casesByStatusObj,
+            quickStats
         });
     } catch (error) {
         console.error('Error fetching analytics:', error);
