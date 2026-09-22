@@ -42,10 +42,10 @@ const setupDatabase = async () => {
           website TEXT,
           created_at TEXT DEFAULT (datetime('now'))
         );`, (err) => {
-          if (err) return reject(err);
-          resolve();
-        });
-      }),
+          if (err) {
+            console.error('Error creating accounts table:', err.message);
+            return false;
+          }
       new Promise((resolve, reject) => {
         db.run(`CREATE TABLE IF NOT EXISTS products (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -90,39 +90,39 @@ const setupDatabase = async () => {
         }
 
         db.run(`CREATE TABLE IF NOT EXISTS contacts (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        account_id INTEGER REFERENCES accounts(id) ON DELETE SET NULL,
-        first_name TEXT NOT NULL,
-        last_name TEXT,
-        email TEXT,
-        phone TEXT,
-        title TEXT,
-        created_at TEXT DEFAULT (datetime('now'))
-      );`, (err) => {
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          account_id INTEGER REFERENCES accounts(id) ON DELETE SET NULL,
+          first_name TEXT NOT NULL,
+          last_name TEXT,
+          email TEXT,
+          phone TEXT,
+          title TEXT,
+          created_at TEXT DEFAULT (datetime('now'))
+        );`, (err) => {
         if (err) {
           console.error('Error creating contacts table:', err.message);
           return false;
         }
 
         db.run(`CREATE TABLE IF NOT EXISTS deals (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL,
-        amount REAL,
-        stage TEXT CHECK (stage IN ('Prospecting', 'Qualification', 'Proposal', 'Closed Won', 'Closed Lost')),
-        account_id INTEGER REFERENCES accounts(id) ON DELETE SET NULL,
-        contact_id INTEGER REFERENCES contacts(id) ON DELETE SET NULL,
-        close_date TEXT,
-        created_at TEXT DEFAULT (datetime('now'))
-      );`, (err) => {
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          title TEXT NOT NULL,
+          amount REAL,
+          stage TEXT CHECK (stage IN ('Prospecting', 'Qualification', 'Proposal', 'Closed Won', 'Closed Lost')),
+          account_id INTEGER REFERENCES accounts(id) ON DELETE SET NULL,
+          contact_id INTEGER REFERENCES contacts(id) ON DELETE SET NULL,
+          close_date TEXT,
+          created_at TEXT DEFAULT (datetime('now'))
+        );`, (err) => {
         if (err) {
           console.error('Error creating deals table:', err.message);
           return false;
         }
 
         db.run(`CREATE TABLE IF NOT EXISTS opportunities (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        account_id INTEGER REFERENCES accounts(id) ON DELETE CASCADE,
-        name TEXT NOT NULL,
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          account_id INTEGER REFERENCES accounts(id) ON DELETE CASCADE,
+          name TEXT NOT NULL,
         amount REAL,
         stage TEXT CHECK (stage IN ('Prospecting', 'Qualification', 'Proposal', 'Closed Won', 'Closed Lost')),
         close_date TEXT,
@@ -188,7 +188,7 @@ const setupDatabase = async () => {
 } catch (err) {
   console.error('Error setting up database:', err);
   return false;
-};
+}
 
 /**
  * เพิ่มคอลัมน์ที่ขาดหายให้ตารางที่มีอยู่แล้ว (idempotent)
