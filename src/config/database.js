@@ -187,10 +187,17 @@ const setupDatabase = async () => {
                 });
               });
               return true;
-            } catch (err) {
-              console.error('Error setting up database:', err);
-              return false;
             }
+          });
+        });
+      });
+    });
+  });
+  return true;
+} catch (err) {
+  console.error('Error setting up database:', err);
+  return false;
+}
 
 /**
  * เพิ่มคอลัมน์ที่ขาดหายให้ตารางที่มีอยู่แล้ว (idempotent)
