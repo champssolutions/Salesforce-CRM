@@ -12,6 +12,7 @@ const leadRoutes = require('./src/routes/leadRoutes');
 const caseRoutes = require('./src/routes/caseRoutes');
 const taskRoutes = require('./src/routes/taskRoutes');
 const quoteRoutes = require('./src/routes/quoteRoutes');
+const quoteRoutes = require('./src/routes/quoteRoutes');
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 
@@ -46,6 +47,7 @@ app.use('/api/deals', dealRoutes);
 app.use('/api/leads', leadRoutes);
 app.use('/api/cases', caseRoutes);
 app.use('/api/tasks', taskRoutes);
+app.use('/api/quotes', quoteRoutes);
 app.use('/api/quotes', quoteRoutes);
 
 // Swagger / API Docs

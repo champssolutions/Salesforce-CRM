@@ -60,10 +60,11 @@ db.serialize(() => {
   db.run(`
     CREATE TABLE IF NOT EXISTS quotes (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      quote_number TEXT UNIQUE NOT NULL,
       deal_id INTEGER REFERENCES deals(id) ON DELETE SET NULL,
-      account_id INTEGER REFERENCES accounts(id) ON DELETE SET NULL,
       total_amount REAL NOT NULL DEFAULT 0,
       status TEXT DEFAULT 'Draft' CHECK (status IN ('Draft', 'Sent', 'Accepted', 'Rejected')),
+      expiration_date TEXT,
       created_at TEXT DEFAULT (datetime('now'))
     );
   `);
