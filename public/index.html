@@ -167,11 +167,11 @@
                     <thead>
                         <tr>
                             <th>ID</th>
+                            <th>Quote Number</th>
                             <th>Deal</th>
-                            <th>Account</th>
                             <th>Total Amount</th>
                             <th>Status</th>
-                            <th>Created At</th>
+                            <th>Expiration Date</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -194,7 +194,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Add Quote Modal -->
     <div class="modal fade" id="addQuoteModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Create New Quote</h5>
@@ -202,48 +202,38 @@
                 </div>
                 <div class="modal-body">
                     <form id="addQuoteForm">
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Deal</label>
-                                <select class="form-select" id="quoteDeal"></select>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Account</label>
-                                <select class="form-select" id="quoteAccount"></select>
-                            </div>
-                        </div>
-                        
                         <div class="mb-3">
-                            <label class="form-label">Products</label>
-                            <div id="quoteItems">
-                                <div class="row g-3 mb-2 quote-item">
-                                    <div class="col-5">
-                                        <select class="form-select product-select">
-                                            <option value="">Select Product</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-2">
-                                        <input type="number" class="form-control quantity" min="1" value="1">
-                                    </div>
-                                    <div class="col-3">
-                                        <input type="number" class="form-control unit-price" readonly>
-                                    </div>
-                                    <div class="col-2">
-                                        <button type="button" class="btn btn-danger btn-sm" onclick="removeQuoteItem(this)">Remove</button>
-                                    </div>
-                                </div>
-                            </div>
-                            <button type="button" class="btn btn-secondary btn-sm" onclick="addQuoteItem()">Add Product</button>
+                            <label class="form-label">Quote Number *</label>
+                            <input type="text" class="form-control" id="quoteNumber" required>
                         </div>
-
-                        <div class="text-end fw-bold">
-                            Total Amount: <span id="quoteTotalAmount">0.00</span>
+                        <div class="mb-3">
+                            <label class="form-label">Deal *</label>
+                            <select class="form-select" id="quoteDeal" required>
+                                <option value="">-- Select Deal --</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Total Amount *</label>
+                            <input type="number" class="form-control" id="quoteAmount" min="0" step="0.01" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Status *</label>
+                            <select class="form-select" id="quoteStatus" required>
+                                <option value="Draft">Draft</option>
+                                <option value="Sent">Sent</option>
+                                <option value="Accepted">Accepted</option>
+                                <option value="Rejected">Rejected</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Expiration Date</label>
+                            <input type="date" class="form-control" id="quoteExpiration">
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="createQuote()">Create Quote</button>
+                    <button type="button" class="btn btn-primary" onclick="addQuote()">Create Quote</button>
                 </div>
             </div>
         </div>
