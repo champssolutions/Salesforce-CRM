@@ -10,14 +10,14 @@ function normalizeFk(val) {
 
 exports.getAllCases = async (req, res) => {
   try {
-    const cases = await getQuery(`
+    const rows = await getQuery(`
       SELECT c.*, a.name as account_name, ct.first_name as contact_first_name, ct.last_name as contact_last_name
       FROM cases c
       LEFT JOIN accounts a ON c.account_id = a.id
       LEFT JOIN contacts ct ON c.contact_id = ct.id
       ORDER BY c.created_at DESC
     `);
-    res.json(cases);
+    res.json(rows);
   } catch (err) {
     console.error('Error getting cases:', err);
     res.status(500).json({ error: 'Failed to get cases' });

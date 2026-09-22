@@ -23,10 +23,9 @@ exports.getAllProducts = async (req, res) => {
 
     const dataQuery = `SELECT * FROM products ${whereClause} ORDER BY id DESC LIMIT ? OFFSET ?`;
     const dataParams = [...params, limit, offset];
-    const products = await getQuery(dataQuery, dataParams);
-
+    const rows = await getQuery(dataQuery, dataParams);
     res.json({
-      data: products,
+      data: rows,
       pagination: { page, limit, total, totalPages }
     });
   } catch (err) {

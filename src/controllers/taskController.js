@@ -10,7 +10,7 @@ function normalizeFk(val) {
 
 exports.getAllTasks = async (req, res) => {
   try {
-    const tasks = await getQuery(`
+    const rows = await getQuery(`
       SELECT t.*, d.title as deal_title, 
              c.first_name as contact_first_name, c.last_name as contact_last_name
       FROM tasks t
@@ -18,7 +18,7 @@ exports.getAllTasks = async (req, res) => {
       LEFT JOIN contacts c ON t.contact_id = c.id
       ORDER BY t.due_date ASC, t.created_at DESC
     `);
-    res.json(tasks);
+    res.json(rows);
   } catch (err) {
     console.error('Error getting tasks:', err);
     res.status(500).json({ error: 'Failed to get tasks', details: err.message });

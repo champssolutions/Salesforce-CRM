@@ -12,8 +12,8 @@ const normalizeFk = async (table, value) => {
 // GET /api/contacts
 exports.getAllContacts = async (req, res) => {
   try {
-    const contacts = await getQuery('SELECT * FROM contacts ORDER BY id DESC');
-    res.json(contacts);
+    const rows = await getQuery('SELECT * FROM contacts ORDER BY id DESC');
+    res.json(rows);
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ error: err.message });

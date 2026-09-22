@@ -42,14 +42,14 @@ exports.createQuote = async (req, res) => {
 
 exports.getAllQuotes = async (req, res) => {
     try {
-        const quotes = await getQuery(`
+        const rows = await getQuery(`
             SELECT q.*, d.title as deal_title, a.name as account_name
             FROM quotes q
             LEFT JOIN deals d ON q.deal_id = d.id
             LEFT JOIN accounts a ON d.account_id = a.id
             ORDER BY q.created_at DESC
         `);
-        res.json(quotes);
+        res.json(rows);
     } catch (err) {
         console.error('Error getting quotes:', err);
         res.status(500).json({ error: 'Failed to get quotes' });

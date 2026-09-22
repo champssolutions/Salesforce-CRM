@@ -3,12 +3,12 @@ const { getQuery } = require('../config/database');
 exports.getDashboardStats = async (req, res) => {
   try {
     const [
-      {count: totalAccounts},
-      {count: totalContacts}, 
-      {count: totalDeals},
-      {count: totalTasks},
-      {count: totalCases},
-      {count: totalProducts}
+      accounts,
+      contacts,
+      deals,
+      tasks,
+      cases,
+      products
     ] = await Promise.all([
       getQuery('SELECT COUNT(*) as count FROM accounts'),
       getQuery('SELECT COUNT(*) as count FROM contacts'),
@@ -19,12 +19,12 @@ exports.getDashboardStats = async (req, res) => {
     ]);
 
     res.json({
-      totalAccounts,
-      totalContacts, 
-      totalDeals,
-      totalTasks,
-      totalCases,
-      totalProducts
+      totalAccounts: accounts.count,
+      totalContacts: contacts.count,
+      totalDeals: deals.count,
+      totalTasks: tasks.count,
+      totalCases: cases.count,
+      totalProducts: products.count
     });
   } catch (err) {
     console.error('Error getting dashboard stats:', err);

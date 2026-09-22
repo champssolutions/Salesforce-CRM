@@ -25,10 +25,9 @@ exports.getAllAccounts = async (req, res) => {
     // Get paginated data
     const dataQuery = `SELECT * FROM accounts ${whereClause} ORDER BY id DESC LIMIT ? OFFSET ?`;
     const dataParams = [...params, limit, offset];
-    const accounts = await getQuery(dataQuery, dataParams);
-
+    const rows = await getQuery(dataQuery, dataParams);
     res.json({
-      data: accounts,
+      data: rows,
       pagination: { page, limit, total, totalPages }
     });
   } catch (err) {

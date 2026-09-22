@@ -3,8 +3,8 @@ const { getQuery, runQuery } = require('../config/database');
 // GET /api/leads
 exports.getAllLeads = async (req, res) => {
   try {
-    const leads = await getQuery('SELECT * FROM leads ORDER BY id DESC');
-    res.json(leads);
+    const rows = await getQuery('SELECT * FROM leads ORDER BY id DESC');
+    res.json(rows);
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ error: err.message });
