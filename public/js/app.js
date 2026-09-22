@@ -51,6 +51,24 @@ document.addEventListener('DOMContentLoaded', () => {
 // Helper Function ป้องกันค่า null / undefined
 const fmt = (val) => (val === null || val === undefined || val === '') ? '-' : val;
 
+// Helper Function สำหรับสร้าง status badge
+function getStatusBadge(status) {
+    if (!status) return '<span class="badge bg-secondary">-</span>';
+    
+    const statusMap = {
+        'New': 'bg-primary',
+        'Contacted': 'bg-warning text-dark',
+        'Qualified': 'bg-success',
+        'Converted': 'bg-success',
+        'Lost': 'bg-danger',
+        'Junk': 'bg-danger',
+        'Rejected': 'bg-danger'
+    };
+    
+    const badgeClass = statusMap[status] || 'bg-secondary';
+    return `<span class="badge ${badgeClass}">${status}</span>`;
+}
+
 // Notification Helpers ( SweetAlert2 หรือ Fallback Alert )
 const toastSuccess = (msg) => typeof Swal !== 'undefined' ? Swal.fire({ icon: 'success', title: msg, toast: true, position: 'top-end', showConfirmButton: false, timer: 1500 }) : alert(msg);
 const toastError = (msg) => typeof Swal !== 'undefined' ? Swal.fire({ icon: 'error', title: msg, toast: true, position: 'top-end', showConfirmButton: false, timer: 1500 }) : alert(msg);
@@ -112,7 +130,7 @@ async function loadLeads() {
                 <td>${fmt(l.first_name)}</td>
                 <td>${fmt(l.last_name)}</td>
                 <td>${fmt(l.company)}</td>
-                <td>${l.status === 'Converted' ? '<span class="badge bg-success">Converted</span>' : `<span class="badge bg-secondary">${fmt(l.status)}</span>`}</td>
+                <td>${getStatusBadge(l.status)}</td>
                 <td>${fmt(l.email)}</td>
                 <td>${fmt(l.phone)}</td>
                 <td>
@@ -390,10 +408,22 @@ async function loadDeals() {
         const res = await fetch('/api/deals');
         const data = await res.json();
         dealsCache = Array.isArray(data) ? data : (data.data || []);
+        
+        // Calculate stats
+        const totalPipeline = dealsCache.reduce((sum, deal) => sum + (Number(deal.amount) || 0), 0);
+        const closedWonCount = dealsCache.filter(deal => deal.stage === 'Closed Won').length;
+        const winRate = dealsCache.length ? ((closedWonCount / dealsCache.length) * 100).toFixed(1) : 0;
+        
+        // Update DOM elements
+        const totalEl = document.getElementById('statTotalAmount');
+        const winRateEl = document.getElementById('statWinRate');
+        if (totalEl) totalEl.textContent = totalPipeline.toLocaleString();
+        if (winRateEl) winRateEl.textContent = `${winRate}%`;
+        
         populateSelect('taskDeal', dealsCache, 'id', 'title', '-- เลือก Deal --');
         populateSelect('quoteDeal', dealsCache, 'id', 'title', '-- เลือก Deal --');
         renderDeals();
-        renderDashboardCharts(); // Use the unified chart rendering function
+        renderDashboardCharts();
     } catch (e) { console.error('Error loadDeals:', e); }
 }
 
