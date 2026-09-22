@@ -1,5 +1,13 @@
 const db = require('../config/database');
 
+function normalizeFk(val) {
+    if (val === null || val === undefined || val === '' || val === 'null' || val === 'undefined') {
+        return null;
+    }
+    const num = Number(val);
+    return isNaN(num) ? null : num;
+}
+
 const all = (sql, params = []) => new Promise((resolve, reject) => {
   db.all(sql, params, (err, rows) => {
     if (err) return reject(err);
@@ -49,18 +57,23 @@ exports.getCaseById = async (req, res) => {
 // POST /api/cases
 exports.createCase = async (req, res) => {
   try {
-    const { account_id, contact_id, subject, description, priority, status } = req.body;
+    const { account_id, contact_id, subject, title, description, priority, status } = req.body;
 
-    if (!subject) {
+    // frontend ส่ง subject มา ส่วน client เดิมส่ง title — รองรับทั้งสองแบบ
+    const caseSubject = subject || title;
+
+    if (!caseSubject) {
       return res.status(400).json({ error: 'subject is required' });
     }
 
-    const safeAccountId = await normalizeFk('accounts', account_id);
-    const safeContactId = await normalizeFk('contacts', contact_id);
+    // normalizeFk(val) รับค่าเดียว — เดิมส่งชื่อตารางเป็น argument แรก ทำให้ได้ null เสมอ
+    const safeAccountId = normalizeFk(account_id);
+    const safeContactId = normalizeFk(contact_id);
 
-    const sql = `INSERT INTO cases (account_id, contact_id, subject, description, priority, status) 
-                 VALUES (?, ?, ?, ?, ?, ?)`;
-    const params = [safeAccountId, safeContactId, subject, description || null, priority || 'Medium', status || 'New'];
+    // title/description เป็น NOT NULL ในตาราง cases จึงต้องส่งค่าเสมอ
+    const sql = `INSERT INTO cases (account_id, contact_id, subject, title, description, priority, status) 
+                 VALUES (?, ?, ?, ?, ?, ?, ?)`;
+    const params = [safeAccountId, safeContactId, caseSubject, caseSubject, description || '', priority || 'Medium', status || 'New'];
     
     const { lastID } = await run(sql, params);
 

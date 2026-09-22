@@ -1869,3 +1869,193 @@
 +
 +3. ปัญหาบันทึก Contact แล้วไม่ขึ้นในตาราง:
 +   - ใน public/js/app.js ให้ตรวจสอบฟังก์ชันบันทึก Contact เมื่อ POST สำเร็จแล้วให้เรียกฟังก์ชัน loadContacts() เพื่อดึงรายการล่าสุดมาแสดงในตารางทันที
+
+# 2026-09-21 11:29:27.585832
++/add server.js src/config/database.js public/index.html
+
+# 2026-09-21 11:29:46.525862
++เริ่มพัฒนาต่อตาม Salesforce Roadmap Phase 4 (Service Cloud & Activity Management):
++
++1. อัปเดต Database Schema ใน src/config/database.js:
++   - เพิ่มตาราง cases (id, account_id, contact_id, subject, description, priority, status, created_at)
++   - เพิ่มตาราง tasks (id, title, due_date, status, priority, deal_id, contact_id, created_at)
++
++2. สร้าง Controllers และ Routes ใหม่ (ใช้ Promise Wrapper สำหรับ sqlite3):
++   - สร้าง src/controllers/caseController.js และ src/routes/caseRoutes.js (จัดการ CRUD ของ Cases/Support Tickets)
++   - สร้าง src/controllers/taskController.js และ src/routes/taskRoutes.js (จัดการ CRUD ของ Tasks/Activity Reminders)
++   - นำไป mount ใน server.js ที่ /api/cases และ /api/tasks
++
++3. อัปเดต UI ใน public/index.html:
++   - แท็บ Cases: แสดงตาราง รายการ Support Tickets พร้อม Badge สีตาม Priority (High/Medium/Low) และ Status (New/Working/Closed); มี Modal สำหรับเปิด Ticket ที่เลือก Account/Contact ได้
++   - แท็บ Tasks: แสดงรายการงานและนัดหมาย พร้อมปุ่มกด Mark as Completed
++   - เชื่อมต่อ SweetAlert2 แจ้งเตือนเมื่อ บันทึก/ลบ สำเร็จ
+
+# 2026-09-21 11:30:20.628678
++y
+
+# 2026-09-21 11:36:04.656556
++yy
+
+# 2026-09-21 11:36:09.734003
++y
+
+# 2026-09-21 11:36:33.065298
++/run npm install
+
+# 2026-09-21 11:36:33.065298
++/run npm install
+
+# 2026-09-21 11:36:36.126030
++/run node server.js
+
+# 2026-09-21 11:36:36.127031
++/run node server.js
+
+# 2026-09-21 11:48:47.529749
++n
+
+# 2026-09-21 11:52:08.378510
++/run Stop-Process -Id (Get-NetTCPConnection -LocalPort 4000).OwningProcess -Force
+
+# 2026-09-21 11:52:30.482114
++y
+
+# 2026-09-21 11:57:14.956555
++Complete Phase 4 Implementation (Service Cloud & Activity Management):
++
++[STRICT EDITING RULES]
++- Focus ONLY on `public/index.html` and `public/js/app.js`.
++- Use concise SEARCH/REPLACE diff blocks. Do NOT rewrite whole files.
++
++[TASKS]
++1. UI Integration (`public/index.html`):
++   - Ensure "Cases" and "Tasks" tabs are properly integrated into the main navigation layout and switch views seamlessly.
++   - Verify Case management UI: Table listing (Subject, Account, Priority, Status, Created At, Actions) and Create Case Modal/Form.
++   - Verify Task management UI: Table listing (Title, Due Date, Status, Deal, Account, Actions) and Create Task Modal/Form.
++
++2. Frontend Logic (`public/js/app.js` or inline JS):
++   - Implement full CRUD functions for Cases: fetchCases(), createCase(), updateCaseStatus(), deleteCase().
++   - Implement full CRUD functions for Tasks: fetchTasks(), createTask(), updateTaskStatus(), deleteTask().
++   - Connect API endpoints to `/api/cases` and `/api/tasks`.
++   - Add SweetAlert2 feedback for creation, status updates, and delete confirmations.
++
++3. Initial Data Load:
++   - Ensure `fetchCases()` and `fetchTasks()` are called when their respective tabs are activated.
+
+# 2026-09-21 12:00:11.731842
++y
+
+# 2026-09-21 12:00:11.736843
++/run npm install
+
+# 2026-09-21 12:00:11.736843
++/run npm install
+
+# 2026-09-21 12:00:20.199415
++/run node server.js
+
+# 2026-09-21 12:00:20.199415
++/run node server.js
+
+# 2026-09-21 12:00:47.954517
++y
+
+# 2026-09-21 12:02:17.662807
++Port 4000 is clear now. Please run 'node server.js
+
+# 2026-09-21 12:07:06.157274
++n
+
+# 2026-09-21 12:07:18.742840
++py -3.12 -m aider --model ollama_chat/qwen2.5-coder:7b --edit-format diff --no-show-model-warnings
+
+# 2026-09-21 12:08:01.396328
++node server.js
+
+# 2026-09-21 12:08:06.188316
++y
+
+# 2026-09-21 12:10:40.168903
++node_modules/
++.git/
++dist/
++build/
++*.log
+
+# 2026-09-21 12:11:43.519038
++/add public/index.html public/js/app.js server.js
+
+# 2026-09-21 12:11:49.167964
++ตรวจสอบและแก้ปัญหาปุ่มสลับ Tabs และปุ่ม Add ใน public/index.html ให้ทำงานได้ปกติ และเชื่อมต่อกับ API ใน server.js ให้ถูกต้อง
+
+# 2026-09-21 12:31:29.573716
++n
+
+# 2026-09-21 12:31:35.063410
++/clear
++/drop
+
+# 2026-09-21 12:31:43.618905
++/drop  
+
+# 2026-09-21 12:31:48.489823
++/add public/index.html
+
+# 2026-09-21 12:31:53.739159
++Update `public/index.html` to add navigation tabs for Cases and Tasks. Use precise SEARCH/REPLACE blocks for only the updated lines.
+
+# 2026-09-21 12:34:38.911501
++/clear
+
+# 2026-09-21 12:34:46.149102
++/drop
+
+# 2026-09-21 12:34:52.147122
++/add public/js/app.js src/controllers/caseController.js
+
+# 2026-09-21 12:34:57.062314
++Fix Cases UI and Dropdowns in public/js/app.js:
++1. Fix case table rendering: ensure property names (like subject, status, account_id/account_name) match the API response.
++2. Add fetch options for Account and Contact dropdowns when opening "Add Case" modal (`#caseAccount` and `#caseContact`).
++3. Make sure data is saved and reloaded properly after creation.
+
+# 2026-09-21 12:43:40.346414
++/clear
++/drop
+
+# 2026-09-21 12:43:45.517687
++/drop   
+
+# 2026-09-21 12:43:51.262299
++/add public/js/app.js
+
+# 2026-09-21 12:43:57.244359
++Fix `public/js/app.js` for Cases:
++1. Populate Account and Contact select dropdowns when opening the Add Case modal.
++2. Ensure `fetchCases` correctly maps response fields (subject, account_name/account_id, contact_name/contact_id, status) to table rows.
+
+# 2026-09-21 12:58:27.895755
++/undo
+
+# 2026-09-21 12:58:59.780629
++/clear
+
+# 2026-09-21 12:59:04.606001
++/add public/js/app.js
+
+# 2026-09-22 12:51:22.723472
++/add src/config/database.js src/controllers/taskController.js
+
+# 2026-09-22 12:51:38.242094
++ช่วยแก้ไข 2 ไฟล์นี้ให้หน่อยครับ:
++1. database.js: 
++   - ใน CREATE TABLE tasks ให้เพิ่มคอลัมน์ due_date TEXT, status TEXT, priority TEXT, deal_id INTEGER, contact_id INTEGER
++   - เพิ่มบล็อก ensureColumns('tasks', [...]) ต่อท้ายจากของ cases เพื่อทำ Migration ให้ตาราง tasks ด้วย
++
++2. taskController.js (ใน createTask):
++   - ให้ destructure ตัว description ออกมาจาก req.body ด้วย
++   - แก้ไขการเรียก normalizeFk ให้ส่งแค่ค่าเดียว เช่น normalizeFk(deal_id) (เอาชื่อตารางออก)
++   - ในคำสั่ง INSERT INTO tasks ให้เพิ่ม description และค่าที่รับมาลงไปให้ครบ (ถ้า description ไม่มีให้เป็น '')
+
+# 2026-09-22 12:52:13.340517
++/exit
