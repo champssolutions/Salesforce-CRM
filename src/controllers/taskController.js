@@ -1,26 +1,4 @@
-const db = require('../config/database');
-
-// Helper functions
-const all = (sql, params = []) => new Promise((resolve, reject) => {
-  db.all(sql, params, (err, rows) => {
-    if (err) return reject(err);
-    resolve(rows);
-  });
-});
-
-const get = (sql, params = []) => new Promise((resolve, reject) => {
-  db.get(sql, params, (err, row) => {
-    if (err) return reject(err);
-    resolve(row);
-  });
-});
-
-const run = (sql, params = []) => new Promise((resolve, reject) => {
-  db.run(sql, params, function(err) {
-    if (err) return reject(err);
-    resolve({ lastID: this.lastID, changes: this.changes });
-  });
-});
+const { getQuery, runQuery } = require('../config/database');
 
 function normalizeFk(val) {
     if (val === null || val === undefined || val === '' || val === 'null' || val === 'undefined') {
@@ -32,7 +10,7 @@ function normalizeFk(val) {
 
 exports.getAllTasks = async (req, res) => {
   try {
-    const tasks = await all(`
+    const tasks = await getQuery(`
       SELECT t.*, d.title as deal_title, 
              c.first_name as contact_first_name, c.last_name as contact_last_name
       FROM tasks t
@@ -49,7 +27,7 @@ exports.getAllTasks = async (req, res) => {
 
 exports.getTaskById = async (req, res) => {
   try {
-    const task = await get(`
+    const task = await getQuery(`
       SELECT t.*, d.title as deal_title, 
              c.first_name as contact_first_name, c.last_name as contact_last_name
       FROM tasks t
@@ -79,12 +57,12 @@ exports.createTask = async (req, res) => {
     const safeDealId = normalizeFk(deal_id);
     const safeContactId = normalizeFk(contact_id);
 
-    const { lastID } = await run(
+    const { lastID } = await runQuery(
       'INSERT INTO tasks (title, description, due_date, status, priority, deal_id, contact_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
       [title, description || '', due_date || null, status || 'Not Started', priority || 'Medium', safeDealId, safeContactId]
     );
 
-    const newTask = await get('SELECT * FROM tasks WHERE id = ?', [lastID]);
+    const newTask = await getQuery('SELECT * FROM tasks WHERE id = ?', [lastID]);
     res.status(201).json(newTask);
   } catch (err) {
     console.error('Error creating task:', err);
@@ -103,7 +81,7 @@ exports.updateTask = async (req, res) => {
     const safeDealId = normalizeFk(deal_id);
     const safeContactId = normalizeFk(contact_id);
 
-    const { changes } = await run(
+    const { changes } = await runQuery(
       'UPDATE tasks SET title = ?, description = ?, due_date = ?, status = ?, priority = ?, deal_id = ?, contact_id = ? WHERE id = ?',
       [title, description || '', due_date || null, status || 'Not Started', priority || 'Medium', safeDealId, safeContactId, req.params.id]
     );
@@ -112,7 +90,7 @@ exports.updateTask = async (req, res) => {
       return res.status(404).json({ error: 'Task not found' });
     }
 
-    const updatedTask = await get('SELECT * FROM tasks WHERE id = ?', [req.params.id]);
+    const updatedTask = await getQuery('SELECT * FROM tasks WHERE id = ?', [req.params.id]);
     res.json(updatedTask);
   } catch (err) {
     console.error('Error updating task:', err);
@@ -122,7 +100,7 @@ exports.updateTask = async (req, res) => {
 
 exports.deleteTask = async (req, res) => {
   try {
-    const { changes } = await run('DELETE FROM tasks WHERE id = ?', [req.params.id]);
+    const { changes } = await runQuery('DELETE FROM tasks WHERE id = ?', [req.params.id]);
     
     if (changes === 0) {
       return res.status(404).json({ error: 'Task not found' });

@@ -1,26 +1,4 @@
-const db = require('../config/database');
-
-// Helper functions
-const all = (sql, params = []) => new Promise((resolve, reject) => {
-  db.all(sql, params, (err, rows) => {
-    if (err) return reject(err);
-    resolve(rows);
-  });
-});
-
-const get = (sql, params = []) => new Promise((resolve, reject) => {
-  db.get(sql, params, (err, row) => {
-    if (err) return reject(err);
-    resolve(row);
-  });
-});
-
-const run = (sql, params = []) => new Promise((resolve, reject) => {
-  db.run(sql, params, function(err) {
-    if (err) return reject(err);
-    resolve({ lastID: this.lastID, changes: this.changes });
-  });
-});
+const { getQuery, runQuery } = require('../config/database');
 
 function normalizeFk(val) {
     if (val === null || val === undefined || val === '' || val === 'null' || val === 'undefined') {
@@ -32,7 +10,7 @@ function normalizeFk(val) {
 
 exports.getAllCases = async (req, res) => {
   try {
-    const cases = await all(`
+    const cases = await getQuery(`
       SELECT c.*, a.name as account_name, ct.first_name as contact_first_name, ct.last_name as contact_last_name
       FROM cases c
       LEFT JOIN accounts a ON c.account_id = a.id
@@ -48,7 +26,7 @@ exports.getAllCases = async (req, res) => {
 
 exports.getCaseById = async (req, res) => {
   try {
-    const caseItem = await get(`
+    const caseItem = await getQuery(`
       SELECT c.*, a.name as account_name, ct.first_name as contact_first_name, ct.last_name as contact_last_name
       FROM cases c
       LEFT JOIN accounts a ON c.account_id = a.id
@@ -78,12 +56,12 @@ exports.createCase = async (req, res) => {
     const safeAccountId = normalizeFk(account_id);
     const safeContactId = normalizeFk(contact_id);
 
-    const { lastID } = await run(
+    const { lastID } = await runQuery(
       'INSERT INTO cases (subject, title, account_id, contact_id, description, priority, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
       [caseSubject, caseSubject, safeAccountId, safeContactId, description || '', priority || 'Medium', status || 'New']
     );
 
-    const newCase = await get('SELECT * FROM cases WHERE id = ?', [lastID]);
+    const newCase = await getQuery('SELECT * FROM cases WHERE id = ?', [lastID]);
     res.status(201).json(newCase);
   } catch (err) {
     console.error('Error creating case:', err);
@@ -103,7 +81,7 @@ exports.updateCase = async (req, res) => {
     const safeAccountId = normalizeFk(account_id);
     const safeContactId = normalizeFk(contact_id);
 
-    const { changes } = await run(
+    const { changes } = await runQuery(
       'UPDATE cases SET subject = ?, title = ?, account_id = ?, contact_id = ?, description = ?, priority = ?, status = ? WHERE id = ?',
       [caseSubject, caseSubject, safeAccountId, safeContactId, description || '', priority || 'Medium', status || 'New', req.params.id]
     );
@@ -112,7 +90,7 @@ exports.updateCase = async (req, res) => {
       return res.status(404).json({ error: 'Case not found' });
     }
 
-    const updatedCase = await get('SELECT * FROM cases WHERE id = ?', [req.params.id]);
+    const updatedCase = await getQuery('SELECT * FROM cases WHERE id = ?', [req.params.id]);
     res.json(updatedCase);
   } catch (err) {
     console.error('Error updating case:', err);
@@ -122,7 +100,7 @@ exports.updateCase = async (req, res) => {
 
 exports.deleteCase = async (req, res) => {
   try {
-    const { changes } = await run('DELETE FROM cases WHERE id = ?', [req.params.id]);
+    const { changes } = await runQuery('DELETE FROM cases WHERE id = ?', [req.params.id]);
     
     if (changes === 0) {
       return res.status(404).json({ error: 'Case not found' });

@@ -1,32 +1,18 @@
-const db = require('../config/database');
-
-// Promise wrappers for the callback-based sqlite3 API
-const all = (sql, params = []) => new Promise((resolve, reject) => {
-  db.all(sql, params, (err, rows) => (err ? reject(err) : resolve(rows)));
-});
-const get = (sql, params = []) => new Promise((resolve, reject) => {
-  db.get(sql, params, (err, row) => (err ? reject(err) : resolve(row)));
-});
-const run = (sql, params = []) => new Promise((resolve, reject) => {
-  db.run(sql, params, function (err) {
-    if (err) return reject(err);
-    resolve({ lastID: this.lastID, changes: this.changes });
-  });
-});
+const { getQuery, runQuery } = require('../config/database');
 
 // Normalize a foreign key: empty/undefined/null/"null" or missing parent -> null
 const normalizeFk = async (table, value) => {
   if (value === undefined || value === null || value === '' || value === 'null') {
     return null;
   }
-  const row = await get(`SELECT id FROM ${table} WHERE id = ?`, [value]);
+  const row = await getQuery(`SELECT id FROM ${table} WHERE id = ?`, [value]);
   return row ? Number(value) : null;
 };
 
 // GET /api/contacts
 exports.getAllContacts = async (req, res) => {
   try {
-    const contacts = await all('SELECT * FROM contacts ORDER BY id DESC');
+    const contacts = await getQuery('SELECT * FROM contacts ORDER BY id DESC');
     res.json(contacts);
   } catch (err) {
     console.error(err.message);
@@ -37,7 +23,7 @@ exports.getAllContacts = async (req, res) => {
 // GET /api/contacts/:id
 exports.getContactById = async (req, res) => {
   try {
-    const contact = await get('SELECT * FROM contacts WHERE id = ?', [req.params.id]);
+    const contact = await getQuery('SELECT * FROM contacts WHERE id = ?', [req.params.id]);
     if (!contact) {
       return res.status(404).json({ error: 'Contact not found' });
     }
@@ -53,12 +39,12 @@ exports.getContactsByAccountId = async (req, res) => {
   try {
     const accountId = req.params.id;
 
-    const account = await get('SELECT id FROM accounts WHERE id = ?', [accountId]);
+    const account = await getQuery('SELECT id FROM accounts WHERE id = ?', [accountId]);
     if (!account) {
       return res.status(404).json({ error: 'Account not found' });
     }
 
-    const contacts = await all('SELECT * FROM contacts WHERE account_id = ? ORDER BY id DESC', [accountId]);
+    const contacts = await getQuery('SELECT * FROM contacts WHERE account_id = ? ORDER BY id DESC', [accountId]);
     res.json(contacts);
   } catch (err) {
     console.error(err.message);
@@ -77,7 +63,7 @@ exports.createContact = async (req, res) => {
 
     const safeAccountId = await normalizeFk('accounts', account_id);
 
-    const { lastID } = await run(
+    const { lastID } = await runQuery(
       'INSERT INTO contacts (account_id, first_name, last_name, email, phone, title) VALUES (?, ?, ?, ?, ?, ?)',
       [safeAccountId, first_name, last_name || null, email || null, phone || null, title || null]
     );
@@ -106,7 +92,7 @@ exports.updateContact = async (req, res) => {
       return res.status(400).json({ error: 'first_name is required' });
     }
 
-    const contact = await get('SELECT * FROM contacts WHERE id = ?', [req.params.id]);
+    const contact = await getQuery('SELECT * FROM contacts WHERE id = ?', [req.params.id]);
     if (!contact) {
       return res.status(404).json({ error: 'Contact not found' });
     }
@@ -115,7 +101,7 @@ exports.updateContact = async (req, res) => {
       ? contact.account_id
       : await normalizeFk('accounts', account_id);
 
-    await run(
+    await runQuery(
       'UPDATE contacts SET account_id = ?, first_name = ?, last_name = ?, email = ?, phone = ?, title = ? WHERE id = ?',
       [safeAccountId, first_name, last_name || null, email || null, phone || null, title || null, req.params.id]
     );
@@ -138,7 +124,7 @@ exports.updateContact = async (req, res) => {
 // DELETE /api/contacts/:id
 exports.deleteContact = async (req, res) => {
   try {
-    const { changes } = await run('DELETE FROM contacts WHERE id = ?', [req.params.id]);
+    const { changes } = await runQuery('DELETE FROM contacts WHERE id = ?', [req.params.id]);
     if (changes === 0) {
       return res.status(404).json({ error: 'Contact not found' });
     }

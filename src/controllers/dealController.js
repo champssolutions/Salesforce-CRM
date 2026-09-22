@@ -1,34 +1,20 @@
-const db = require('../config/database');
+const { getQuery, runQuery } = require('../config/database');
 
 // กำหนดรายการ Stage ที่อนุญาตตาม CHECK constraint ในฐานข้อมูล
 const VALID_STAGES = ['Prospecting', 'Qualification', 'Proposal', 'Closed Won', 'Closed Lost'];
-
-// Promise wrappers for the callback-based sqlite3 API
-const all = (sql, params = []) => new Promise((resolve, reject) => {
-  db.all(sql, params, (err, rows) => (err ? reject(err) : resolve(rows)));
-});
-const get = (sql, params = []) => new Promise((resolve, reject) => {
-  db.get(sql, params, (err, row) => (err ? reject(err) : resolve(row)));
-});
-const run = (sql, params = []) => new Promise((resolve, reject) => {
-  db.run(sql, params, function (err) {
-    if (err) return reject(err);
-    resolve({ lastID: this.lastID, changes: this.changes });
-  });
-});
 
 // Normalize a foreign key: empty/undefined/null/"null" or missing parent -> null
 const normalizeFk = async (table, value) => {
   if (value === undefined || value === null || value === '' || value === 'null') {
     return null;
   }
-  const row = await get(`SELECT id FROM ${table} WHERE id = ?`, [value]);
+  const row = await getQuery(`SELECT id FROM ${table} WHERE id = ?`, [value]);
   return row ? Number(value) : null;
 };
 
 exports.getAllDeals = async (req, res) => {
   try {
-    const deals = await all('SELECT * FROM deals ORDER BY id DESC');
+    const deals = await getQuery('SELECT * FROM deals ORDER BY id DESC');
     res.json(deals);
   } catch (err) {
     console.error('getAllDeals Error:', err.message);
@@ -38,7 +24,7 @@ exports.getAllDeals = async (req, res) => {
 
 exports.getDealById = async (req, res) => {
   try {
-    const deal = await get('SELECT * FROM deals WHERE id = ?', [req.params.id]);
+    const deal = await getQuery('SELECT * FROM deals WHERE id = ?', [req.params.id]);
     if (!deal) {
       return res.status(404).json({ error: 'Deal not found' });
     }
@@ -91,7 +77,7 @@ exports.updateDeal = async (req, res) => {
       return res.status(400).json({ error: 'title is required' });
     }
 
-    const deal = await get('SELECT * FROM deals WHERE id = ?', [req.params.id]);
+    const deal = await getQuery('SELECT * FROM deals WHERE id = ?', [req.params.id]);
     if (!deal) {
       return res.status(404).json({ error: 'Deal not found' });
     }
@@ -134,14 +120,14 @@ exports.patchDealStage = async (req, res) => {
       return res.status(400).json({ error: 'Invalid stage' });
     }
 
-    const deal = await get('SELECT * FROM deals WHERE id = ?', [req.params.id]);
+    const deal = await getQuery('SELECT * FROM deals WHERE id = ?', [req.params.id]);
     if (!deal) {
       return res.status(404).json({ error: 'Deal not found' });
     }
 
-    await run('UPDATE deals SET stage = ? WHERE id = ?', [stage, req.params.id]);
+    await runQuery('UPDATE deals SET stage = ? WHERE id = ?', [stage, req.params.id]);
 
-    const updated = await get('SELECT * FROM deals WHERE id = ?', [req.params.id]);
+    const updated = await getQuery('SELECT * FROM deals WHERE id = ?', [req.params.id]);
     res.json(updated);
   } catch (err) {
     console.error('patchDealStage Error:', err.message);
@@ -151,7 +137,7 @@ exports.patchDealStage = async (req, res) => {
 
 exports.deleteDeal = async (req, res) => {
   try {
-    const { changes } = await run('DELETE FROM deals WHERE id = ?', [req.params.id]);
+    const { changes } = await runQuery('DELETE FROM deals WHERE id = ?', [req.params.id]);
     if (changes === 0) {
       return res.status(404).json({ error: 'Deal not found' });
     }
