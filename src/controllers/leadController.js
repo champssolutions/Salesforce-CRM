@@ -113,7 +113,7 @@ exports.deleteLead = async (req, res) => {
 // POST /api/leads/:id/convert — แปลง Lead เป็น Account + Contact + Deal ใน transaction เดียว
 exports.convertLead = async (req, res) => {
   try {
-    const lead = await get('SELECT * FROM leads WHERE id = ?', [req.params.id]);
+    const lead = await getQuery('SELECT * FROM leads WHERE id = ?', [req.params.id]);
     if (!lead) {
       return res.status(404).json({ error: 'Lead not found' });
     }

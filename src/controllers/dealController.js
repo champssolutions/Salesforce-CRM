@@ -52,16 +52,13 @@ exports.createDeal = async (req, res) => {
     const sql = `INSERT INTO deals (title, amount, stage, account_id, contact_id, close_date) VALUES (?, ?, ?, ?, ?, ?)`;
     const params = [title, validAmount, finalStage, validAccountId, validContactId, close_date || null];
 
-    const { lastID } = await run(sql, params);
+    const { lastID } = await runQuery(sql, params);
+    
+    const newDeal = await getQuery('SELECT * FROM deals WHERE id = ?', [lastID]);
 
     res.status(201).json({
-      id: lastID,
-      title,
-      amount: validAmount,
-      stage: finalStage,
-      account_id: validAccountId,
-      contact_id: validContactId,
-      close_date: close_date || null
+      ...newDeal,
+      message: 'Deal created successfully'
     });
   } catch (err) {
     console.error('createDeal Error:', err.message);
@@ -94,16 +91,13 @@ exports.updateDeal = async (req, res) => {
     const sql = `UPDATE deals SET title = ?, amount = ?, stage = ?, account_id = ?, contact_id = ?, close_date = ? WHERE id = ?`;
     const params = [title, validAmount, finalStage, validAccountId, validContactId, close_date || null, req.params.id];
 
-    await run(sql, params);
+    await runQuery(sql, params);
+    
+    const updatedDeal = await getQuery('SELECT * FROM deals WHERE id = ?', [req.params.id]);
 
     res.json({
-      id: Number(req.params.id),
-      title,
-      amount: validAmount,
-      stage: finalStage,
-      account_id: validAccountId,
-      contact_id: validContactId,
-      close_date: close_date || null
+      ...updatedDeal,
+      message: 'Deal updated successfully'  
     });
   } catch (err) {
     console.error('updateDeal Error:', err.message);
