@@ -509,37 +509,40 @@ window.updateQuoteTotal = function() {
 
 window.createQuote = async function() {
     try {
-        const dealId = document.getElementById('quoteDeal')?.value;
-        const accountId = document.getElementById('quoteAccount')?.value;
+        const dealId = document.getElementById('quoteDeal')?.value || null;
+        const accountId = document.getElementById('quoteAccount')?.value || null;
         
         const items = [];
         document.querySelectorAll('.quote-item').forEach(item => {
             const productId = item.querySelector('.product-select').value;
-            const quantity = item.querySelector('.quantity').value;
-            const unitPrice = item.querySelector('.unit-price').value;
+            const quantity = Number(item.querySelector('.quantity').value) || 0;
+            const unitPrice = Number(item.querySelector('.unit-price').value) || 0;
             
-            if (productId && quantity && unitPrice) {
+            if (productId && quantity > 0) {
                 items.push({
                     product_id: productId,
-                    quantity: Number(quantity),
-                    unit_price: Number(unitPrice)
+                    quantity: quantity,
+                    unit_price: unitPrice,
+                    total_price: quantity * unitPrice
                 });
             }
         });
 
         if (!items.length) {
-            toastError('Please add at least one product');
+            toastError('กรุณาเพิ่มสินค้าอย่างน้อย 1 รายการ');
             return;
         }
+
+        const payload = {
+            deal_id: dealId,
+            account_id: accountId,
+            items: items
+        };
 
         const res = await fetch('/api/quotes', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                deal_id: dealId,
-                account_id: accountId,
-                items: items
-            })
+            body: JSON.stringify(payload)
         });
 
         if (res.ok) {
