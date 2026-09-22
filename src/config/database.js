@@ -219,7 +219,15 @@ function ensureColumns(table, columns) {
               }
             });
           })
-        )).then(results => resolve(results.every(Boolean)));
+        )).then(results => {
+          if (results.some(r => r === false)) {
+            console.error(`Migration: some columns failed to add to table ${table}`);
+          }
+          resolve(results.every(Boolean));
+        }).catch(err => {
+          console.error(`Migration: error adding columns to table ${table}:`, err.message);
+          resolve(false);
+        });
       });
     });
   });
