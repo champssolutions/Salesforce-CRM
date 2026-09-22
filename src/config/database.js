@@ -120,75 +120,77 @@ const setupDatabase = async () => {
                   }
 
                   db.run(`CREATE TABLE IF NOT EXISTS opportunities (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          account_id INTEGER REFERENCES accounts(id) ON DELETE CASCADE,
-          name TEXT NOT NULL,
-          amount REAL,
-          stage TEXT CHECK (stage IN ('Prospecting', 'Qualification', 'Proposal', 'Closed Won', 'Closed Lost')),
-          close_date TEXT,
-          created_at TEXT DEFAULT (datetime('now'))
-        );`, (err) => {
-          if (err) {
-            console.error('Error creating opportunities table:', err.message);
-            return false;
-          }
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    account_id INTEGER REFERENCES accounts(id) ON DELETE CASCADE,
+                    name TEXT NOT NULL,
+                    amount REAL,
+                    stage TEXT CHECK (stage IN ('Prospecting', 'Qualification', 'Proposal', 'Closed Won', 'Closed Lost')),
+                    close_date TEXT,
+                    created_at TEXT DEFAULT (datetime('now'))
+                  );`, (err) => {
+                    if (err) {
+                      console.error('Error creating opportunities table:', err.message);
+                      return false;
+                    }
 
-        db.run(`CREATE TABLE IF NOT EXISTS quotes (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          quote_number TEXT UNIQUE NOT NULL,
-          deal_id INTEGER REFERENCES deals(id) ON DELETE SET NULL,
-          total_amount REAL NOT NULL DEFAULT 0,
-          status TEXT DEFAULT 'Draft' CHECK (status IN ('Draft', 'Sent', 'Accepted', 'Rejected')),
-          expiration_date TEXT,
-          created_at TEXT DEFAULT (datetime('now'))
-        );`, (err) => {
-          if (err) {
-            console.error('Error creating quotes table:', err.message);
-            return false;
-          }
+                    db.run(`CREATE TABLE IF NOT EXISTS quotes (
+                      id INTEGER PRIMARY KEY AUTOINCREMENT,
+                      quote_number TEXT UNIQUE NOT NULL,
+                      deal_id INTEGER REFERENCES deals(id) ON DELETE SET NULL,
+                      total_amount REAL NOT NULL DEFAULT 0,
+                      status TEXT DEFAULT 'Draft' CHECK (status IN ('Draft', 'Sent', 'Accepted', 'Rejected')),
+                      expiration_date TEXT,
+                      created_at TEXT DEFAULT (datetime('now'))
+                    );`, (err) => {
+                      if (err) {
+                        console.error('Error creating quotes table:', err.message);
+                        return false;
+                      }
 
-        db.run(`CREATE TABLE IF NOT EXISTS quote_items (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          quote_id INTEGER NOT NULL REFERENCES quotes(id) ON DELETE CASCADE,
-          product_id INTEGER NOT NULL REFERENCES products(id),
-          quantity INTEGER NOT NULL DEFAULT 1 CHECK (quantity > 0),
-          unit_price REAL NOT NULL DEFAULT 0 CHECK (unit_price >= 0),
-          total_price REAL NOT NULL DEFAULT 0 CHECK (total_price >= 0),
-          created_at TEXT DEFAULT (datetime('now'))
-        );`, (err) => {
-          if (err) {
-            console.error('Error creating quote_items table:', err.message);
-            return false;
-          }
+                      db.run(`CREATE TABLE IF NOT EXISTS quote_items (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        quote_id INTEGER NOT NULL REFERENCES quotes(id) ON DELETE CASCADE,
+                        product_id INTEGER NOT NULL REFERENCES products(id),
+                        quantity INTEGER NOT NULL DEFAULT 1 CHECK (quantity > 0),
+                        unit_price REAL NOT NULL DEFAULT 0 CHECK (unit_price >= 0),
+                        total_price REAL NOT NULL DEFAULT 0 CHECK (total_price >= 0),
+                        created_at TEXT DEFAULT (datetime('now'))
+                      );`, (err) => {
+                        if (err) {
+                          console.error('Error creating quote_items table:', err.message);
+                          return false;
+                        }
 
-        // Insert default admin user if users table is empty
-        db.get("SELECT COUNT(*) as count FROM users", (err, row) => {
-          if (err) {
-            console.error('Error checking user count:', err.message);
-            return false;
-          }
+                        // Insert default admin user if users table is empty
+                        db.get("SELECT COUNT(*) as count FROM users", (err, row) => {
+                          if (err) {
+                            console.error('Error checking user count:', err.message);
+                            return false;
+                          }
 
-          if (row.count === 0) {
-            db.run("INSERT INTO users (username, password, role) VALUES (?, ?, ?)", 
-              ['admin', 'password', 'Admin'], (err) => {
-                if (err) {
-                  console.error('Error creating admin user:', err.message);
-                  return false;
-                }
-                console.log('Default admin user created');
-                return true;
-            });
-          }
-          return true;
-        });
-      });
-    });
-  });
-  return true;
-} catch (err) {
-  console.error('Error setting up database:', err);
-  return false;
-}
+                          if (row.count === 0) {
+                            db.run("INSERT INTO users (username, password, role) VALUES (?, ?, ?)", 
+                              ['admin', 'password', 'Admin'], (err) => {
+                                if (err) {
+                                  console.error('Error creating admin user:', err.message);
+                                  return false;
+                                }
+                                console.log('Default admin user created');
+                                return true;
+                            });
+                          }
+                          return true;
+                        });
+                      });
+                    });
+                  });
+                });
+              });
+              return true;
+            } catch (err) {
+              console.error('Error setting up database:', err);
+              return false;
+            }
 
 /**
  * เพิ่มคอลัมน์ที่ขาดหายให้ตารางที่มีอยู่แล้ว (idempotent)
