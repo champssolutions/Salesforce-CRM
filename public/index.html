@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CRM Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         .kanban-board { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; align-items: flex-start; }
@@ -21,7 +22,8 @@
 <body>
     <div class="container mt-5">
         <ul class="nav nav-tabs" id="myTab" role="tablist">
-            <li class="nav-item" role="presentation"><button class="nav-link active" id="accounts-tab" data-bs-toggle="tab" data-bs-target="#accounts" type="button" role="tab">Accounts</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link active" id="dashboard-tab" data-bs-toggle="tab" data-bs-target="#dashboard" type="button" role="tab">Dashboard</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link" id="accounts-tab" data-bs-toggle="tab" data-bs-target="#accounts" type="button" role="tab">Accounts</button></li>
             <li class="nav-item" role="presentation"><button class="nav-link" id="leads-tab" data-bs-toggle="tab" data-bs-target="#leads" type="button" role="tab">Leads</button></li>
             <li class="nav-item" role="presentation"><button class="nav-link" id="contacts-tab" data-bs-toggle="tab" data-bs-target="#contacts" type="button" role="tab">Contacts</button></li>
             <li class="nav-item" role="presentation"><button class="nav-link" id="cases-tab" data-bs-toggle="tab" data-bs-target="#cases" type="button" role="tab">Cases</button></li>
@@ -32,6 +34,40 @@
         </ul>
 
         <div class="tab-content" id="myTabContent">
+            <!-- Dashboard Tab -->
+            <div class="tab-pane fade show active" id="dashboard" role="tabpanel">
+                <h2 class="mt-3">Sales Pipeline Dashboard</h2>
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title">Deals by Stage</h5>
+                                <canvas id="salesChart" width="400" height="150"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title">Quick Stats</h5>
+                                <div class="mb-3">
+                                    <div class="text-muted small">Total Pipeline Value</div>
+                                    <div class="fs-4 fw-bold" id="dashboardTotalAmount">-</div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="text-muted small">Open Deals</div>
+                                    <div class="fs-4 fw-bold" id="dashboardOpenDeals">-</div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="text-muted small">Win Rate</div>
+                                    <div class="fs-4 fw-bold" id="dashboardWinRate">-</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Accounts Tab -->
             <div class="tab-pane fade show active" id="accounts" role="tabpanel">
                 <h2 class="mt-3">Accounts</h2>
