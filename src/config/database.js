@@ -159,7 +159,9 @@ const setupDatabase = async () => {
     // สร้าง Admin เริ่มต้นถ้ายังไม่มี
     const userCount = await getQuery("SELECT COUNT(*) as count FROM users");
     if (userCount && userCount.count === 0) {
-      await runQuery("INSERT INTO users (username, password, role) VALUES (?, ?, ?)", ['admin', 'password', 'Admin']);
+      const bcrypt = require('bcrypt');
+      const hashedPassword = bcrypt.hashSync('password', 10);
+      await runQuery("INSERT INTO users (username, password, role) VALUES (?, ?, ?)", ['admin', hashedPassword, 'Admin']);
       console.log('Default admin user created');
     }
 
