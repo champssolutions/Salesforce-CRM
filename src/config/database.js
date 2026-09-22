@@ -51,7 +51,9 @@ db.serialize(() => {
       is_active BOOLEAN DEFAULT 1,
       created_at TEXT DEFAULT (datetime('now'))
     );
-  `);
+  `, (err) => {
+    if (err) console.error('Error creating products table:', err.message);
+  });
 
   db.run(`
     CREATE TABLE IF NOT EXISTS users (
@@ -97,7 +99,9 @@ db.serialize(() => {
       phone TEXT,
       created_at TEXT DEFAULT (datetime('now'))
     );
-  `);
+  `, (err) => {
+    if (err) console.error('Error creating leads table:', err.message);
+  });
 
   // Create contacts after accounts
   db.run(`
@@ -111,7 +115,9 @@ db.serialize(() => {
       title TEXT,
       created_at TEXT DEFAULT (datetime('now'))
     );
-  `);
+  `, (err) => {
+    if (err) console.error('Error creating contacts table:', err.message);
+  });
 
   // Create deals after accounts and contacts
   db.run(`
@@ -125,7 +131,9 @@ db.serialize(() => {
       close_date TEXT,
       created_at TEXT DEFAULT (datetime('now'))
     );
-  `);
+  `, (err) => {
+    if (err) console.error('Error creating deals table:', err.message);
+  });
 
   // Create opportunities after accounts
   db.run(`
@@ -138,7 +146,9 @@ db.serialize(() => {
       close_date TEXT,
       created_at TEXT DEFAULT (datetime('now'))
     );
-  `);
+  `, (err) => {
+    if (err) console.error('Error creating opportunities table:', err.message);
+  });
 
   // Create quotes after deals
   db.run(`
@@ -151,7 +161,9 @@ db.serialize(() => {
       expiration_date TEXT,
       created_at TEXT DEFAULT (datetime('now'))
     );
-  `);
+  `, (err) => {
+    if (err) console.error('Error creating quotes table:', err.message);
+  });
 
   // Create quote_items after quotes and products
   db.run(`
@@ -164,7 +176,9 @@ db.serialize(() => {
       total_price REAL NOT NULL DEFAULT 0 CHECK (total_price >= 0),
       created_at TEXT DEFAULT (datetime('now'))
     );
-  `);
+  `, (err) => {
+    if (err) console.error('Error creating quote_items table:', err.message);
+  });
 });
 
 /**
