@@ -249,9 +249,16 @@ async function renderDashboardCharts() {
 
         // Render Deals Chart
         const dealsCanvas = document.getElementById('dealsChart');
-        if (!dealsCanvas) return;
+        if (!dealsCanvas) {
+            console.warn('Deals chart canvas not found');
+            return;
+        }
         
-        const dealsCtx = dealsCanvas.getContext('2d');
+        const dealsCtx = dealsCanvas?.getContext('2d');
+        if (!dealsCtx) {
+            console.warn('Could not get 2D context for deals chart');
+            return;
+        }
         let dealsLabels = [];
         let dealsData = [];
         
@@ -358,103 +365,10 @@ async function loadDeals() {
         populateSelect('taskDeal', dealsCache, 'id', 'title', '-- เลือก Deal --');
         populateSelect('quoteDeal', dealsCache, 'id', 'title', '-- เลือก Deal --');
         renderDeals();
-        renderDashboard();
+        renderDashboardCharts(); // Use the unified chart rendering function
     } catch (e) { console.error('Error loadDeals:', e); }
 }
 
-function renderDashboard() {
-    if (!dealsCache || !dealsCache.length) return;
-    
-    // Group deals by stage and calculate totals
-    const stages = ['Prospecting', 'Qualification', 'Proposal', 'Closed Won', 'Closed Lost'];
-    const stageData = {};
-    let totalAmount = 0;
-    let openDeals = 0;
-    let wonDeals = 0;
-    
-    stages.forEach(stage => {
-        const dealsInStage = dealsCache.filter(d => d.stage === stage);
-        const stageTotal = dealsInStage.reduce((sum, d) => sum + (Number(d.amount) || 0), 0);
-        stageData[stage] = stageTotal;
-        
-        totalAmount += stageTotal;
-        if (stage !== 'Closed Won' && stage !== 'Closed Lost') {
-            openDeals += dealsInStage.length;
-        }
-        if (stage === 'Closed Won') {
-            wonDeals = dealsInStage.length;
-        }
-    });
-
-    // Update quick stats
-    document.getElementById('dashboardTotalAmount').textContent = totalAmount.toLocaleString(undefined, {maximumFractionDigits: 2});
-    document.getElementById('dashboardOpenDeals').textContent = openDeals;
-    const winRate = (wonDeals / dealsCache.length * 100).toFixed(1);
-    document.getElementById('dashboardWinRate').textContent = `${winRate}%`;
-
-    // Prepare chart data
-    const ctx = document.getElementById('salesChart').getContext('2d');
-    const chartData = {
-        labels: stages,
-        datasets: [{
-            label: 'Amount by Stage',
-            data: stages.map(stage => stageData[stage]),
-            backgroundColor: [
-                'rgba(54, 162, 235, 0.5)',
-                'rgba(255, 206, 86, 0.5)',
-                'rgba(75, 192, 192, 0.5)',
-                'rgba(75, 192, 75, 0.5)',
-                'rgba(255, 99, 132, 0.5)'
-            ],
-            borderColor: [
-                'rgba(54, 162, 235, 1)',
-                'rgba(255, 206, 86, 1)',
-                'rgba(75, 192, 192, 1)',
-                'rgba(75, 192, 75, 1)',
-                'rgba(255, 99, 132, 1)'
-            ],
-            borderWidth: 1
-        }]
-    };
-
-    // Destroy previous chart if exists
-    if (salesChart) {
-        salesChart.destroy();
-    }
-
-    // Create new chart
-    salesChart = new Chart(ctx, {
-        type: 'bar',
-        data: chartData,
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: 'Amount'
-                    }
-                },
-                x: {
-                    title: {
-                        display: true,
-                        text: 'Deal Stage'
-                    }
-                }
-            },
-            plugins: {
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return `$${context.raw.toLocaleString()}`;
-                        }
-                    }
-                }
-            }
-        }
-    });
-}
 
 function populateSelect(elementId, items, valueKey, labelKey, defaultText) {
     const sel = document.getElementById(elementId);
