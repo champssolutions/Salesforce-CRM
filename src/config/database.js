@@ -17,9 +17,34 @@ const db = new sqlite3.Database(dbPath, (err) => {
   console.log('Connected to SQLite database');
 });
 
+// Create tables in proper dependency order
 db.serialize(() => {
   db.run('PRAGMA journal_mode = WAL');
   db.run('PRAGMA foreign_keys = ON');
+
+  // First create tables without foreign key dependencies
+  db.run(`
+    CREATE TABLE IF NOT EXISTS accounts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      industry TEXT,
+      phone TEXT,
+      website TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS products (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      code TEXT UNIQUE NOT NULL,
+      price REAL,
+      description TEXT,
+      is_active BOOLEAN DEFAULT 1,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+  `);
 
   db.run(`
     CREATE TABLE IF NOT EXISTS users (
@@ -163,25 +188,40 @@ db.serialize(() => {
  * ตรวจ PRAGMA table_info ก่อน จึงรันซ้ำได้โดยไม่ error
  * จำเป็นสำหรับฐานข้อมูลเดิมที่สร้างก่อนที่ schema จะเพิ่มคอลัมน์เหล่านี้
  */
+/**
+ * Safely adds columns to existing tables
+ * @param {string} table - Table name
+ * @param {Array<[string, string]>} columns - Array of [columnName, columnDefinition] pairs
+ */
 function ensureColumns(table, columns) {
-  db.all(`PRAGMA table_info(${table})`, (err, rows) => {
-    if (err) {
-      console.error(`Migration: cannot inspect table ${table}:`, err.message);
-      return;
-    }
-    const existing = new Set(rows.map((row) => row.name));
-    const missing = columns.filter(([name]) => !existing.has(name));
-    if (missing.length === 0) return;
+  return new Promise((resolve) => {
+    db.all(`PRAGMA table_info(${table})`, (err, rows) => {
+      if (err) {
+        console.error(`Migration: cannot inspect table ${table}:`, err.message);
+        return resolve(false);
+      }
 
-    db.serialize(() => {
-      missing.forEach(([name, definition]) => {
-        db.run(`ALTER TABLE ${table} ADD COLUMN ${name} ${definition}`, (alterErr) => {
-          if (alterErr) {
-            console.error(`Migration: failed to add ${table}.${name}:`, alterErr.message);
-          } else {
-            console.log(`Migration: added column ${table}.${name}`);
-          }
-        });
+      const existing = new Set(rows.map((row) => row.name));
+      const missing = columns.filter(([name]) => !existing.has(name));
+      
+      if (missing.length === 0) {
+        return resolve(true);
+      }
+
+      db.serialize(() => {
+        Promise.all(missing.map(([name, definition]) => 
+          new Promise((colResolve) => {
+            db.run(`ALTER TABLE ${table} ADD COLUMN ${name} ${definition}`, (alterErr) => {
+              if (alterErr) {
+                console.error(`Migration: failed to add ${table}.${name}:`, alterErr.message);
+                colResolve(false);
+              } else {
+                console.log(`Migration: added column ${table}.${name}`);
+                colResolve(true);
+              }
+            });
+          })
+        )).then(results => resolve(results.every(Boolean)));
       });
     });
   });
