@@ -2,6 +2,8 @@ const express = require('express');
 const path = require('path');
 const cors = require('cors');
 const db = require('./src/config/database');
+
+// Import Routes
 const authRoutes = require('./src/routes/authRoutes');
 const userRoutes = require('./src/routes/userRoutes');
 const accountRoutes = require('./src/routes/accountRoutes');
@@ -13,6 +15,8 @@ const leadRoutes = require('./src/routes/leadRoutes');
 const caseRoutes = require('./src/routes/caseRoutes');
 const taskRoutes = require('./src/routes/taskRoutes');
 const quoteRoutes = require('./src/routes/quoteRoutes');
+const analyticsRoutes = require('./src/routes/analyticsRoutes'); // เพิ่มบรรทัดนี้สำหรับ Dashboard
+
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 
@@ -37,10 +41,13 @@ app.use((req, res, next) => {
 // Static files (รับผิดชอบส่ง index.html จากโฟลเดอร์ public)
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Auth routes
-app.use('/api/auth', authRoutes);
+// Root Route
+app.get('/', (req, res) => {
+  res.json({ message: 'Hey, welcome to the API!' });
+});
 
-// API Routes (protected)
+// API Routes
+app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/accounts', accountRoutes);
 app.use('/api/contacts', contactRoutes);
@@ -51,89 +58,7 @@ app.use('/api/leads', leadRoutes);
 app.use('/api/cases', caseRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/quotes', quoteRoutes);
-
-// Analytics endpoint
-app.get('/api/analytics/dashboard', async (req, res) => {
-    const fallbackData = {
-        dealsByStage: {},
-        casesByStatus: {},
-        quickStats: {
-            totalPipelineValue: 0,
-            openDeals: 0,
-            winRate: 0
-        }
-    };
-
-    try {
-        // Verify tables exist using promises
-        const tablesExist = await Promise.all([
-            new Promise((resolve, reject) => {
-                db.get(`SELECT name FROM sqlite_master WHERE type='table' AND name='deals'`, 
-                    (err, row) => err ? reject(err) : resolve(row));
-            }),
-            new Promise((resolve, reject) => {
-                db.get(`SELECT name FROM sqlite_master WHERE type='table' AND name='cases'`, 
-                    (err, row) => err ? reject(err) : resolve(row));
-            })
-        ]);
-
-        if (!tablesExist[0] || !tablesExist[1]) {
-            return res.status(200).json(fallbackData);
-        }
-
-        // Fetch all data using promises
-        const [dealsByStage, casesByStatus, quickStats] = await Promise.all([
-            new Promise((resolve, reject) => {
-                db.all(`
-                    SELECT stage, SUM(amount) as total 
-                    FROM deals 
-                    GROUP BY stage
-                `, (err, rows) => err ? reject(err) : resolve(rows));
-            }),
-            new Promise((resolve, reject) => {
-                db.all(`
-                    SELECT status, COUNT(*) as count 
-                    FROM cases 
-                    GROUP BY status
-                `, (err, rows) => err ? reject(err) : resolve(rows));
-            }),
-            new Promise((resolve, reject) => {
-                db.get(`
-                    SELECT
-                        COALESCE(SUM(amount), 0) as totalPipelineValue,
-                        COALESCE(COUNT(CASE WHEN stage NOT IN ('Closed Won', 'Closed Lost') THEN 1 END), 0) as openDeals,
-                        COALESCE(ROUND(100.0 * COUNT(CASE WHEN stage = 'Closed Won' THEN 1 END) / COUNT(*), 1), 0) as winRate
-                    FROM deals
-                `, (err, row) => err ? reject(err) : resolve(row));
-            })
-        ]);
-
-        // Convert arrays to objects
-        const dealsByStageObj = (dealsByStage || []).reduce((acc, { stage, total }) => {
-            acc[stage] = total || 0;
-            return acc;
-        }, {});
-
-        const casesByStatusObj = (casesByStatus || []).reduce((acc, { status, count }) => {
-            acc[status] = count;
-            return acc;
-        }, {});
-
-        res.status(200).json({
-            dealsByStage: dealsByStageObj,
-            casesByStatus: casesByStatusObj,
-            quickStats: {
-                totalPipelineValue: quickStats?.totalPipelineValue || 0,
-                openDeals: quickStats?.openDeals || 0,
-                winRate: quickStats?.winRate || 0
-            }
-        });
-
-    } catch (err) {
-        console.error("Dashboard API Error:", err.message);
-        res.status(200).json(fallbackData);
-    }
-});
+app.use('/api/analytics', analyticsRoutes); // เพิ่มใช้งาน Analytics Route
 
 // Swagger / API Docs
 const swaggerOptions = {
@@ -155,201 +80,71 @@ const swaggerOptions = {
         Account: {
           type: 'object',
           properties: {
-            id: {
-              type: 'integer',
-              description: 'ID ของ Account',
-            },
-            name: {
-              type: 'string',
-              description: 'ชื่อของ Account',
-            },
-            industry: {
-              type: 'string',
-              description: 'อุตสาหกรรมของ Account',
-            },
-            phone: {
-              type: 'string',
-              description: 'เบอร์โทรศัพท์ของ Account',
-            },
-            website: {
-              type: 'string',
-              description: 'เว็บไซต์ของ Account',
-            },
-            created_at: {
-              type: 'string',
-              format: 'date-time',
-              description: 'วันที่สร้าง Account',
-            },
+            id: { type: 'integer', description: 'ID ของ Account' },
+            name: { type: 'string', description: 'ชื่อของ Account' },
+            industry: { type: 'string', description: 'อุตสาหกรรมของ Account' },
+            phone: { type: 'string', description: 'เบอร์โทรศัพท์ของ Account' },
+            website: { type: 'string', description: 'เว็บไซต์ของ Account' },
+            created_at: { type: 'string', format: 'date-time', description: 'วันที่สร้าง Account' },
           },
         },
         Contact: {
           type: 'object',
           properties: {
-            id: {
-              type: 'integer',
-              description: 'ID ของ Contact',
-            },
-            account_id: {
-              type: 'integer',
-              description: 'ID ของ Account ที่เกี่ยวข้อง',
-            },
-            first_name: {
-              type: 'string',
-              description: 'ชื่อของ Contact',
-            },
-            last_name: {
-              type: 'string',
-              description: 'นามสกุลของ Contact',
-            },
-            email: {
-              type: 'string',
-              description: 'อีเมลของ Contact',
-            },
-            phone: {
-              type: 'string',
-              description: 'เบอร์โทรศัพท์ของ Contact',
-            },
-            title: {
-              type: 'string',
-              description: 'ตำแหน่งของ Contact',
-            },
-            created_at: {
-              type: 'string',
-              format: 'date-time',
-              description: 'วันที่สร้าง Contact',
-            },
+            id: { type: 'integer', description: 'ID ของ Contact' },
+            account_id: { type: 'integer', description: 'ID ของ Account ที่เกี่ยวข้อง' },
+            first_name: { type: 'string', description: 'ชื่อของ Contact' },
+            last_name: { type: 'string', description: 'นามสกุลของ Contact' },
+            email: { type: 'string', description: 'อีเมลของ Contact' },
+            phone: { type: 'string', description: 'เบอร์โทรศัพท์ของ Contact' },
+            title: { type: 'string', description: 'ตำแหน่งของ Contact' },
+            created_at: { type: 'string', format: 'date-time', description: 'วันที่สร้าง Contact' },
           },
         },
         Product: {
           type: 'object',
           properties: {
-            id: {
-              type: 'integer',
-              description: 'ID ของ Product',
-            },
-            name: {
-              type: 'string',
-              description: 'ชื่อของ Product',
-            },
-            code: {
-              type: 'string',
-              description: 'รหัสสินค้า',
-            },
-            price: {
-              type: 'number',
-              description: 'ราคาของ Product',
-            },
-            description: {
-              type: 'string',
-              description: 'รายละเอียดของ Product',
-            },
-            is_active: {
-              type: 'boolean',
-              description: 'สถานะการใช้งานของ Product',
-            },
-            created_at: {
-              type: 'string',
-              format: 'date-time',
-              description: 'วันที่สร้าง Product',
-            },
+            id: { type: 'integer', description: 'ID ของ Product' },
+            name: { type: 'string', description: 'ชื่อของ Product' },
+            code: { type: 'string', description: 'รหัสสินค้า' },
+            price: { type: 'number', description: 'ราคาของ Product' },
+            description: { type: 'string', description: 'รายละเอียดของ Product' },
+            is_active: { type: 'boolean', description: 'สถานะการใช้งานของ Product' },
+            created_at: { type: 'string', format: 'date-time', description: 'วันที่สร้าง Product' },
           },
         },
         Deal: {
           type: 'object',
           properties: {
-            id: {
-              type: 'integer',
-              description: 'ID ของ Deal',
-            },
-            title: {
-              type: 'string',
-              description: 'ชื่อของ Deal',
-            },
-            amount: {
-              type: 'number',
-              description: 'จำนวนเงินของ Deal',
-            },
-            stage: {
-              type: 'string',
-              description: 'สถานะของ Deal',
-              enum: ['Prospecting', 'Qualification', 'Proposal', 'Closed Won', 'Closed Lost'],
-            },
-            account_id: {
-              type: 'integer',
-              description: 'ID ของ Account ที่เกี่ยวข้อง',
-            },
-            contact_id: {
-              type: 'integer',
-              description: 'ID ของ Contact ที่เกี่ยวข้อง',
-            },
-            close_date: {
-              type: 'string',
-              format: 'date-time',
-              description: 'วันที่คาดว่าจะปิด',
-            },
-            created_at: {
-              type: 'string',
-              format: 'date-time',
-              description: 'วันที่สร้าง Deal',
-            },
+            id: { type: 'integer', description: 'ID ของ Deal' },
+            title: { type: 'string', description: 'ชื่อของ Deal' },
+            amount: { type: 'number', description: 'จำนวนเงินของ Deal' },
+            stage: { type: 'string', description: 'สถานะของ Deal', enum: ['Prospecting', 'Qualification', 'Proposal', 'Closed Won', 'Closed Lost'] },
+            account_id: { type: 'integer', description: 'ID ของ Account ที่เกี่ยวข้อง' },
+            contact_id: { type: 'integer', description: 'ID ของ Contact ที่เกี่ยวข้อง' },
+            close_date: { type: 'string', format: 'date-time', description: 'วันที่คาดว่าจะปิด' },
+            created_at: { type: 'string', format: 'date-time', description: 'วันที่สร้าง Deal' },
           },
         },
         Opportunity: {
           type: 'object',
           properties: {
-            id: {
-              type: 'integer',
-              description: 'ID ของ Opportunity',
-            },
-            account_id: {
-              type: 'integer',
-              description: 'ID ของ Account ที่เกี่ยวข้อง',
-            },
-            name: {
-              type: 'string',
-              description: 'ชื่อของ Opportunity',
-            },
-            amount: {
-              type: 'number',
-              description: 'จำนวนเงินของ Opportunity',
-            },
-            stage: {
-              type: 'string',
-              description: 'สถานะของ Opportunity',
-              enum: ['Prospecting', 'Qualification', 'Proposal', 'Closed Won', 'Closed Lost'],
-            },
-            close_date: {
-              type: 'string',
-              format: 'date-time',
-              description: 'วันที่คาดว่าจะปิด',
-            },
-            created_at: {
-              type: 'string',
-              format: 'date-time',
-              description: 'วันที่สร้าง Opportunity',
-            },
+            id: { type: 'integer', description: 'ID ของ Opportunity' },
+            account_id: { type: 'integer', description: 'ID ของ Account ที่เกี่ยวข้อง' },
+            name: { type: 'string', description: 'ชื่อของ Opportunity' },
+            amount: { type: 'number', description: 'จำนวนเงินของ Opportunity' },
+            stage: { type: 'string', description: 'สถานะของ Opportunity', enum: ['Prospecting', 'Qualification', 'Proposal', 'Closed Won', 'Closed Lost'] },
+            close_date: { type: 'string', format: 'date-time', description: 'วันที่คาดว่าจะปิด' },
+            created_at: { type: 'string', format: 'date-time', description: 'วันที่สร้าง Opportunity' },
           },
         },
         User: {
           type: 'object',
           properties: {
-            id: {
-              type: 'integer',
-              description: 'ID ของ User',
-            },
-            name: {
-              type: 'string',
-              description: 'ชื่อของ User',
-            },
-            email: {
-              type: 'string',
-              description: 'อีเมลของ User',
-            },
-            created_at: {
-              type: 'string',
-              format: 'date-time',
-              description: 'วันที่สร้าง User',
-            },
+            id: { type: 'integer', description: 'ID ของ User' },
+            name: { type: 'string', description: 'ชื่อของ User' },
+            email: { type: 'string', description: 'อีเมลของ User' },
+            created_at: { type: 'string', format: 'date-time', description: 'วันที่สร้าง User' },
           },
         },
       },
@@ -360,38 +155,6 @@ const swaggerOptions = {
 
 const swaggerDocs = swaggerJsdoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
-
-// Routes
-app.get('/', (req, res) => {
-  res.json({ message: 'Hey, welcome to the API!' });
-});
-
-// Users routes
-app.use('/api/users', userRoutes);
-
-// Accounts routes
-app.use('/api/accounts', accountRoutes);
-
-// Contacts routes
-app.use('/api/contacts', contactRoutes);
-
-// Products routes
-app.use('/api/products', productRoutes);
-
-// Opportunities routes
-app.use('/api/opportunities', opportunityRoutes);
-
-// Deals routes
-app.use('/api/deals', dealRoutes);
-
-// Leads routes
-app.use('/api/leads', leadRoutes);
-
-// Cases routes
-app.use('/api/cases', caseRoutes); // Register case routes
-
-// Tasks routes
-app.use('/api/tasks', taskRoutes); // Register task routes
 
 // 404 handler
 app.use((req, res) => {

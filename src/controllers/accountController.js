@@ -1,179 +1,64 @@
-const { getQuery, runQuery } = require('../config/database');
+const sqlite3 = require('sqlite3').verbose();
+const path = require('path');
+const dbPath = path.join(__dirname, '../../data/app.db');
 
-// GET /api/accounts?page=1&limit=10&search=xxx
+const execute = (sql, params = []) => new Promise((resolve, reject) => {
+    const db = new sqlite3.Database(dbPath);
+    if (sql.trim().toUpperCase().startsWith('SELECT')) {
+        db.all(sql, params, (err, rows) => { db.close(); err ? reject(err) : resolve(rows); });
+    } else {
+        db.run(sql, params, function(err) { db.close(); err ? reject(err) : resolve(this); });
+    }
+});
+
+const tableName = 'accounts';
+
 exports.getAllAccounts = async (req, res) => {
-  try {
-    const page = Math.max(1, parseInt(req.query.page) || 1);
-    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 10));
-    const search = req.query.search || '';
-    const offset = (page - 1) * limit;
-
-    let whereClause = '';
-    const params = [];
-
-    if (search) {
-      whereClause = 'WHERE name LIKE ?';
-      params.push(`%${search}%`);
-    }
-
-    // Get total count
-    const countQuery = `SELECT COUNT(*) as total FROM accounts ${whereClause}`;
-    const countResult = await getQuery(countQuery, params);
-    const total = countResult.total;
-    const totalPages = Math.ceil(total / limit);
-
-    // Get paginated data
-    const dataQuery = `SELECT * FROM accounts ${whereClause} ORDER BY id DESC LIMIT ? OFFSET ?`;
-    const dataParams = [...params, limit, offset];
-    const rows = await getQuery(dataQuery, dataParams);
-    res.json({
-      data: Array.isArray(rows) ? rows : [],
-      pagination: { page, limit, total, totalPages }
-    });
-  } catch (err) {
-    console.error('Error getting accounts:', err);
-    res.status(500).json({ error: 'Database error' });
-  }
+    try {
+        const data = await execute(`SELECT * FROM ${tableName}`);
+        res.json(data || []);
+    } catch (err) { res.status(500).json({ error: err.message }); }
 };
 
-// GET /api/accounts/:id
 exports.getAccountById = async (req, res) => {
-  try {
-    const account = await getQuery('SELECT * FROM accounts WHERE id = ?', [req.params.id]);
-    if (!account) {
-      return res.status(404).json({ error: 'Account not found' });
-    }
-    res.json(account);
-  } catch (err) {
-    console.error('Error getting account:', err);
-    res.status(500).json({ error: 'Database error' });
-  }
+    try {
+        const data = await execute(`SELECT * FROM ${tableName} WHERE id = ?`, [req.params.id]);
+        res.json(data[0] || null);
+    } catch (err) { res.status(500).json({ error: err.message }); }
 };
 
-// POST /api/accounts
 exports.createAccount = async (req, res) => {
-  try {
-    const { name, industry, phone, website } = req.body;
-
-    if (!name) {
-      return res.status(400).json({ error: 'name is required' });
-    }
-
-    const { lastID } = await runQuery(
-      'INSERT INTO accounts (name, industry, phone, website) VALUES (?, ?, ?, ?)',
-      [name, industry || null, phone || null, website || null]
-    );
-
-    res.status(201).json({
-      id: lastID,
-      name,
-      industry: industry || null,
-      phone: phone || null,
-      website: website || null,
-    });
-  } catch (err) {
-    console.error('Error creating account:', err);
-    res.status(500).json({ error: 'Database error' });
-  }
+    try {
+        const keys = Object.keys(req.body).filter(k => k !== 'id');
+        const values = keys.map(k => req.body[k]);
+        const placeholders = keys.map(() => '?').join(', ');
+        const sql = `INSERT INTO ${tableName} (${keys.join(', ')}) VALUES (${placeholders})`;
+        const result = await execute(sql, values);
+        res.json({ id: result.lastID, message: 'Success' });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 };
 
-// PUT /api/accounts/:id (Full Replace)
 exports.updateAccount = async (req, res) => {
-  try {
-    const { name, industry, phone, website } = req.body;
-
-    if (!name) {
-      return res.status(400).json({ error: 'name is required' });
-    }
-
-    const account = await getQuery('SELECT id FROM accounts WHERE id = ?', [req.params.id]);
-    if (!account) {
-      return res.status(404).json({ error: 'Account not found' });
-    }
-
-    await runQuery(
-      'UPDATE accounts SET name = ?, industry = ?, phone = ?, website = ? WHERE id = ?',
-      [name, industry || null, phone || null, website || null, req.params.id]
-    );
-
-    res.json({
-      id: Number(req.params.id),
-      name,
-      industry: industry || null,
-      phone: phone || null,
-      website: website || null,
-    });
-  } catch (err) {
-    console.error('Error updating account:', err);
-    res.status(500).json({ error: 'Database error' });
-  }
+    try {
+        const keys = Object.keys(req.body).filter(k => k !== 'id');
+        const values = keys.map(k => req.body[k]);
+        const updates = keys.map(k => `${k}=?`).join(', ');
+        const sql = `UPDATE ${tableName} SET ${updates} WHERE id=?`;
+        await execute(sql, [...values, req.params.id]);
+        res.json({ message: 'Success' });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 };
 
-// PATCH /api/accounts/:id (Partial Update)
-exports.patchAccount = async (req, res) => {
-  try {
-    const { name, industry, phone, website } = req.body;
-
-    // Collect only the fields that were provided
-    const fields = {};
-    if (name !== undefined) fields.name = name;
-    if (industry !== undefined) fields.industry = industry;
-    if (phone !== undefined) fields.phone = phone;
-    if (website !== undefined) fields.website = website;
-
-    if (Object.keys(fields).length === 0) {
-      return res.status(400).json({ error: 'At least one field must be provided' });
-    }
-
-    // If name is provided, it must not be empty
-    if (fields.name !== undefined && !fields.name) {
-      return res.status(400).json({ error: 'name cannot be empty' });
-    }
-
-    // Check if account exists
-    const account = await getQuery('SELECT * FROM accounts WHERE id = ?', [req.params.id]);
-    if (!account) {
-      return res.status(404).json({ error: 'Account not found' });
-    }
-
-    // Build dynamic SET clause
-    const setClauses = [];
-    const values = [];
-    for (const [key, value] of Object.entries(fields)) {
-      setClauses.push(`${key} = ?`);
-      values.push(value || null);
-    }
-    values.push(req.params.id);
-
-    const query = `UPDATE accounts SET ${setClauses.join(', ')} WHERE id = ?`;
-
-    await runQuery(query, values);
-
-    // Build response with merged values
-    const updated = {
-      id: Number(req.params.id),
-      name: fields.name !== undefined ? fields.name : account.name,
-      industry: fields.industry !== undefined ? (fields.industry || null) : account.industry,
-      phone: fields.phone !== undefined ? (fields.phone || null) : account.phone,
-      website: fields.website !== undefined ? (fields.website || null) : account.website,
-    };
-    res.json(updated);
-  } catch (err) {
-    console.error('Error patching account:', err);
-    res.status(500).json({ error: 'Database error' });
-  }
-};
-
-// DELETE /api/accounts/:id
 exports.deleteAccount = async (req, res) => {
-  try {
-    const { changes } = await runQuery('DELETE FROM accounts WHERE id = ?', [req.params.id]);
-    if (changes === 0) {
-      return res.status(404).json({ error: 'Account not found' });
-    }
-    res.json({ message: 'Account deleted' });
-  } catch (err) {
-    console.error('Error deleting account:', err);
-    res.status(500).json({ error: 'Database error' });
-  }
+    try {
+        await execute(`DELETE FROM ${tableName} WHERE id=?`, [req.params.id]);
+        res.json({ message: 'Success' });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 };
+
+// Fallback aliases สำหรับให้ Router เรียกใช้ได้ทุกท่า
+exports.getAll = exports.getAllAccounts;
+exports.getById = exports.getAccountById;
+exports.create = exports.createAccount;
+exports.update = exports.updateAccount;
+exports.delete = exports.deleteAccount;

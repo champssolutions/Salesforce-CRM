@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const dealController = require('../controllers/dealController');
+const controller = require('../controllers/dealController');
 
-router.get('/', dealController.getAllDeals);
-router.get('/:id', dealController.getDealById);
-router.post('/', dealController.createDeal);
-router.put('/:id', dealController.updateDeal);
-router.patch('/:id/stage', dealController.patchDealStage);
-router.delete('/:id', dealController.deleteDeal);
+// จับคู่ Route เข้ากับฟังก์ชันมาตรฐานใหม่ (getAll, getById, create, update, delete)
+router.get('/', controller.getAll);
+router.get('/:id', controller.getById);
+router.post('/', controller.create);
+router.put('/:id', controller.update);
+router.delete('/:id', controller.delete);
 
 module.exports = router;

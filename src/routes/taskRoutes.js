@@ -1,20 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const taskController = require('../controllers/taskController');
+const controller = require('../controllers/taskController');
 
-// GET /api/tasks - Get all tasks
-router.get('/', taskController.getAllTasks);
-
-// GET /api/tasks/:id - Get single task by ID
-router.get('/:id', taskController.getTaskById);
-
-// POST /api/tasks - Create new task
-router.post('/', taskController.createTask);
-
-// PUT /api/tasks/:id - Update task
-router.put('/:id', taskController.updateTask);
-
-// DELETE /api/tasks/:id - Delete task
-router.delete('/:id', taskController.deleteTask);
+// จับคู่ Route เข้ากับฟังก์ชันมาตรฐานใหม่ (getAll, getById, create, update, delete)
+router.get('/', controller.getAll);
+router.get('/:id', controller.getById);
+router.post('/', controller.create);
+router.put('/:id', controller.update);
+router.delete('/:id', controller.delete);
 
 module.exports = router;

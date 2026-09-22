@@ -1,20 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const quoteController = require('../controllers/quoteController');
+const controller = require('../controllers/quoteController');
 
-// Create a new quote
-router.post('/', quoteController.createQuote);
-
-// Get all quotes
-router.get('/', quoteController.getAllQuotes);
-
-// Get single quote by ID
-router.get('/:id', quoteController.getQuoteById);
-
-// Update quote status
-router.patch('/:id/status', quoteController.updateQuoteStatus);
-
-// Delete a quote
-router.delete('/:id', quoteController.deleteQuote);
+// จับคู่ Route เข้ากับฟังก์ชันมาตรฐานใหม่ (getAll, getById, create, update, delete)
+router.get('/', controller.getAll);
+router.get('/:id', controller.getById);
+router.post('/', controller.create);
+router.put('/:id', controller.update);
+router.delete('/:id', controller.delete);
 
 module.exports = router;

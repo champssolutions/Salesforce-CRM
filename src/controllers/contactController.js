@@ -1,136 +1,64 @@
-const { getQuery, runQuery } = require('../config/database');
+const sqlite3 = require('sqlite3').verbose();
+const path = require('path');
+const dbPath = path.join(__dirname, '../../data/app.db');
 
-// Normalize a foreign key: empty/undefined/null/"null" or missing parent -> null
-const normalizeFk = async (table, value) => {
-  if (value === undefined || value === null || value === '' || value === 'null') {
-    return null;
-  }
-  const row = await getQuery(`SELECT id FROM ${table} WHERE id = ?`, [value]);
-  return row ? Number(value) : null;
-};
+const execute = (sql, params = []) => new Promise((resolve, reject) => {
+    const db = new sqlite3.Database(dbPath);
+    if (sql.trim().toUpperCase().startsWith('SELECT')) {
+        db.all(sql, params, (err, rows) => { db.close(); err ? reject(err) : resolve(rows); });
+    } else {
+        db.run(sql, params, function(err) { db.close(); err ? reject(err) : resolve(this); });
+    }
+});
 
-// GET /api/contacts
+const tableName = 'contacts';
+
 exports.getAllContacts = async (req, res) => {
-  try {
-    const rows = await getQuery('SELECT * FROM contacts ORDER BY id DESC');
-    res.json(Array.isArray(rows) ? rows : []);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).json({ error: err.message });
-  }
+    try {
+        const data = await execute(`SELECT * FROM ${tableName}`);
+        res.json(data || []);
+    } catch (err) { res.status(500).json({ error: err.message }); }
 };
 
-// GET /api/contacts/:id
 exports.getContactById = async (req, res) => {
-  try {
-    const contact = await getQuery('SELECT * FROM contacts WHERE id = ?', [req.params.id]);
-    if (!contact) {
-      return res.status(404).json({ error: 'Contact not found' });
-    }
-    res.json(contact);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).json({ error: err.message });
-  }
+    try {
+        const data = await execute(`SELECT * FROM ${tableName} WHERE id = ?`, [req.params.id]);
+        res.json(data[0] || null);
+    } catch (err) { res.status(500).json({ error: err.message }); }
 };
 
-// GET /api/accounts/:id/contacts
-exports.getContactsByAccountId = async (req, res) => {
-  try {
-    const accountId = req.params.id;
-
-    const account = await getQuery('SELECT id FROM accounts WHERE id = ?', [accountId]);
-    if (!account) {
-      return res.status(404).json({ error: 'Account not found' });
-    }
-
-    const contacts = await getQuery('SELECT * FROM contacts WHERE account_id = ? ORDER BY id DESC', [accountId]);
-    res.json(contacts);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).json({ error: err.message });
-  }
-};
-
-// POST /api/contacts
 exports.createContact = async (req, res) => {
-  try {
-    const { account_id, first_name, last_name, email, phone, title } = req.body;
-
-    if (!first_name) {
-      return res.status(400).json({ error: 'first_name is required' });
-    }
-
-    const safeAccountId = await normalizeFk('accounts', account_id);
-
-    const { lastID } = await runQuery(
-      'INSERT INTO contacts (account_id, first_name, last_name, email, phone, title) VALUES (?, ?, ?, ?, ?, ?)',
-      [safeAccountId, first_name, last_name || null, email || null, phone || null, title || null]
-    );
-
-    res.status(201).json({
-      id: lastID,
-      account_id: safeAccountId,
-      first_name,
-      last_name: last_name || null,
-      email: email || null,
-      phone: phone || null,
-      title: title || null,
-    });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).json({ error: err.message });
-  }
+    try {
+        const keys = Object.keys(req.body).filter(k => k !== 'id');
+        const values = keys.map(k => req.body[k]);
+        const placeholders = keys.map(() => '?').join(', ');
+        const sql = `INSERT INTO ${tableName} (${keys.join(', ')}) VALUES (${placeholders})`;
+        const result = await execute(sql, values);
+        res.json({ id: result.lastID, message: 'Success' });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 };
 
-// PUT /api/contacts/:id
 exports.updateContact = async (req, res) => {
-  try {
-    const { account_id, first_name, last_name, email, phone, title } = req.body;
-
-    if (!first_name) {
-      return res.status(400).json({ error: 'first_name is required' });
-    }
-
-    const contact = await getQuery('SELECT * FROM contacts WHERE id = ?', [req.params.id]);
-    if (!contact) {
-      return res.status(404).json({ error: 'Contact not found' });
-    }
-
-    const safeAccountId = (account_id === undefined)
-      ? contact.account_id
-      : await normalizeFk('accounts', account_id);
-
-    await runQuery(
-      'UPDATE contacts SET account_id = ?, first_name = ?, last_name = ?, email = ?, phone = ?, title = ? WHERE id = ?',
-      [safeAccountId, first_name, last_name || null, email || null, phone || null, title || null, req.params.id]
-    );
-
-    res.json({
-      id: Number(req.params.id),
-      account_id: safeAccountId,
-      first_name,
-      last_name: last_name || null,
-      email: email || null,
-      phone: phone || null,
-      title: title || null,
-    });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).json({ error: err.message });
-  }
+    try {
+        const keys = Object.keys(req.body).filter(k => k !== 'id');
+        const values = keys.map(k => req.body[k]);
+        const updates = keys.map(k => `${k}=?`).join(', ');
+        const sql = `UPDATE ${tableName} SET ${updates} WHERE id=?`;
+        await execute(sql, [...values, req.params.id]);
+        res.json({ message: 'Success' });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 };
 
-// DELETE /api/contacts/:id
 exports.deleteContact = async (req, res) => {
-  try {
-    const { changes } = await runQuery('DELETE FROM contacts WHERE id = ?', [req.params.id]);
-    if (changes === 0) {
-      return res.status(404).json({ error: 'Contact not found' });
-    }
-    res.json({ message: 'Contact deleted' });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).json({ error: err.message });
-  }
+    try {
+        await execute(`DELETE FROM ${tableName} WHERE id=?`, [req.params.id]);
+        res.json({ message: 'Success' });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 };
+
+// Fallback aliases สำหรับให้ Router เรียกใช้ได้ทุกท่า
+exports.getAll = exports.getAllContacts;
+exports.getById = exports.getContactById;
+exports.create = exports.createContact;
+exports.update = exports.updateContact;
+exports.delete = exports.deleteContact;

@@ -1,119 +1,64 @@
-const { getQuery, runQuery } = require('../config/database');
+const sqlite3 = require('sqlite3').verbose();
+const path = require('path');
+const dbPath = path.join(__dirname, '../../data/app.db');
 
-exports.createQuote = async (req, res) => {
-    try {
-        const { deal_id, account_id, items = [], status = 'Draft' } = req.body;
-
-        // คำนวณราคารวม (จะได้ 0 ถ้าไม่มี items)
-        const totalAmount = items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0);
-
-        // เริ่ม Transaction
-        await runQuery('BEGIN TRANSACTION');
-        
-        // Insert quote
-        const { lastID: quoteId } = await runQuery(
-            'INSERT INTO quotes (deal_id, account_id, total_amount, status) VALUES (?, ?, ?, ?)',
-            [deal_id, account_id, totalAmount, status]
-        );
-
-        // Insert items
-        for (const item of items) {
-            await runQuery(
-                'INSERT INTO quote_items (quote_id, product_id, quantity, unit_price, total_price) VALUES (?, ?, ?, ?, ?)',
-                [quoteId, item.product_id, item.quantity, item.unit_price, item.total_price]
-            );
-        }
-
-        await runQuery('COMMIT');
-        
-        res.status(201).json({ id: quoteId });
-    } catch (err) {
-        await runQuery('ROLLBACK');
-        console.error('Error creating quote:', err);
-        res.status(500).json({ 
-            error: err.message || 'Failed to create quote',
-            details: {
-                message: err.message,
-                stack: process.env.NODE_ENV !== 'production' ? err.stack : undefined
-            }
-        });
+const execute = (sql, params = []) => new Promise((resolve, reject) => {
+    const db = new sqlite3.Database(dbPath);
+    if (sql.trim().toUpperCase().startsWith('SELECT')) {
+        db.all(sql, params, (err, rows) => { db.close(); err ? reject(err) : resolve(rows); });
+    } else {
+        db.run(sql, params, function(err) { db.close(); err ? reject(err) : resolve(this); });
     }
-};
+});
+
+const tableName = 'quotes';
 
 exports.getAllQuotes = async (req, res) => {
     try {
-        const rows = await getQuery(`
-            SELECT q.*, d.title as deal_title, a.name as account_name
-            FROM quotes q
-            LEFT JOIN deals d ON q.deal_id = d.id
-            LEFT JOIN accounts a ON d.account_id = a.id
-            ORDER BY q.created_at DESC
-        `);
-        res.json(Array.isArray(rows) ? rows : []);
-    } catch (err) {
-        console.error('Error getting quotes:', err);
-        res.status(500).json({ error: 'Failed to get quotes' });
-    }
+        const data = await execute(`SELECT * FROM ${tableName}`);
+        res.json(data || []);
+    } catch (err) { res.status(500).json({ error: err.message }); }
 };
 
 exports.getQuoteById = async (req, res) => {
     try {
-        const quote = await getQuery(`
-            SELECT q.*, a.name as account_name, d.title as deal_title 
-            FROM quotes q
-            LEFT JOIN accounts a ON q.account_id = a.id
-            LEFT JOIN deals d ON q.deal_id = d.id
-            WHERE q.id = ?
-        `, [req.params.id]);
-
-        if (!quote) {
-            return res.status(404).json({ error: 'Quote not found' });
-        }
-
-        const items = await getQuery(`
-            SELECT qi.*, p.name as product_name, p.code as product_code 
-            FROM quote_items qi
-            JOIN products p ON qi.product_id = p.id
-            WHERE qi.quote_id = ?
-        `, [req.params.id]);
-
-        res.json({ ...quote, items });
-    } catch (err) {
-        console.error('Error getting quote:', err);
-        res.status(500).json({ error: 'Failed to get quote' });
-    }
+        const data = await execute(`SELECT * FROM ${tableName} WHERE id = ?`, [req.params.id]);
+        res.json(data[0] || null);
+    } catch (err) { res.status(500).json({ error: err.message }); }
 };
 
-exports.updateQuoteStatus = async (req, res) => {
+exports.createQuote = async (req, res) => {
     try {
-        const { status = 'Draft' } = req.body;
-        const { changes } = await runQuery(
-            'UPDATE quotes SET status = ? WHERE id = ?',
-            [status, req.params.id]
-        );
+        const keys = Object.keys(req.body).filter(k => k !== 'id');
+        const values = keys.map(k => req.body[k]);
+        const placeholders = keys.map(() => '?').join(', ');
+        const sql = `INSERT INTO ${tableName} (${keys.join(', ')}) VALUES (${placeholders})`;
+        const result = await execute(sql, values);
+        res.json({ id: result.lastID, message: 'Success' });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+};
 
-        if (changes === 0) {
-            return res.status(404).json({ error: 'Quote not found' });
-        }
-
-        res.json({ message: 'Quote status updated' });
-    } catch (err) {
-        console.error('Error updating quote:', err);
-        res.status(500).json({ error: 'Failed to update quote' });
-    }
+exports.updateQuote = async (req, res) => {
+    try {
+        const keys = Object.keys(req.body).filter(k => k !== 'id');
+        const values = keys.map(k => req.body[k]);
+        const updates = keys.map(k => `${k}=?`).join(', ');
+        const sql = `UPDATE ${tableName} SET ${updates} WHERE id=?`;
+        await execute(sql, [...values, req.params.id]);
+        res.json({ message: 'Success' });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 };
 
 exports.deleteQuote = async (req, res) => {
     try {
-        const { changes } = await runQuery('DELETE FROM quotes WHERE id = ?', [req.params.id]);
-        
-        if (changes === 0) {
-            return res.status(404).json({ error: 'Quote not found' });
-        }
-
-        res.json({ message: 'Quote deleted' });
-    } catch (err) {
-        console.error('Error deleting quote:', err);
-        res.status(500).json({ error: 'Failed to delete quote' });
-    }
+        await execute(`DELETE FROM ${tableName} WHERE id=?`, [req.params.id]);
+        res.json({ message: 'Success' });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 };
+
+// Fallback aliases สำหรับให้ Router เรียกใช้ได้ทุกท่า
+exports.getAll = exports.getAllQuotes;
+exports.getById = exports.getQuoteById;
+exports.create = exports.createQuote;
+exports.update = exports.updateQuote;
+exports.delete = exports.deleteQuote;
