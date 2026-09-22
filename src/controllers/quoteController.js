@@ -24,13 +24,9 @@ const run = (sql, params = []) => new Promise((resolve, reject) => {
 
 exports.createQuote = async (req, res) => {
     try {
-        const { deal_id, account_id, items } = req.body;
-        
-        if (!items || !items.length) {
-            return res.status(400).json({ error: 'กรุณาเพิ่มสินค้าอย่างน้อย 1 รายการ' });
-        }
+        const { deal_id, account_id, items = [] } = req.body;
 
-        // คำนวณราคารวม
+        // คำนวณราคารวม (จะได้ 0 ถ้าไม่มี items)
         const totalAmount = items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0);
 
         // เริ่ม Transaction
