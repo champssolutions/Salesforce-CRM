@@ -10,7 +10,7 @@ exports.login = async (req, res) => {
             return res.status(400).json({ error: 'ต้องระบุชื่อผู้ใช้และรหัสผ่าน' });
         }
 
-        const user = await db.getQuery('SELECT * FROM users WHERE username = ?', [username]);
+        const user = await getQuery('SELECT * FROM users WHERE username = ?', [username]);
         if (!user || !user.password) {
             return res.status(401).json({ error: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง' });
         }

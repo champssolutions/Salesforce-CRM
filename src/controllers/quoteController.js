@@ -1,26 +1,4 @@
-const db = require('../config/database');
-
-// Helper functions
-const all = (sql, params = []) => new Promise((resolve, reject) => {
-    db.all(sql, params, (err, rows) => {
-        if (err) return reject(err);
-        resolve(rows);
-    });
-});
-
-const get = (sql, params = []) => new Promise((resolve, reject) => {
-    db.get(sql, params, (err, row) => {
-        if (err) return reject(err);
-        resolve(row);
-    });
-});
-
-const run = (sql, params = []) => new Promise((resolve, reject) => {
-    db.run(sql, params, function(err) {
-        if (err) return reject(err);
-        resolve({ lastID: this.lastID, changes: this.changes });
-    });
-});
+const { getQuery, runQuery } = require('../config/database');
 
 exports.createQuote = async (req, res) => {
     try {
@@ -30,27 +8,27 @@ exports.createQuote = async (req, res) => {
         const totalAmount = items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0);
 
         // เริ่ม Transaction
-        await run('BEGIN TRANSACTION');
+        await runQuery('BEGIN TRANSACTION');
         
         // Insert quote
-        const { lastID: quoteId } = await run(
+        const { lastID: quoteId } = await runQuery(
             'INSERT INTO quotes (deal_id, account_id, total_amount, status) VALUES (?, ?, ?, ?)',
             [deal_id, account_id, totalAmount, status]
         );
 
         // Insert items
         for (const item of items) {
-            await run(
+            await runQuery(
                 'INSERT INTO quote_items (quote_id, product_id, quantity, unit_price, total_price) VALUES (?, ?, ?, ?, ?)',
                 [quoteId, item.product_id, item.quantity, item.unit_price, item.total_price]
             );
         }
 
-        await run('COMMIT');
+        await runQuery('COMMIT');
         
         res.status(201).json({ id: quoteId });
     } catch (err) {
-        await run('ROLLBACK');
+        await runQuery('ROLLBACK');
         console.error('Error creating quote:', err);
         res.status(500).json({ 
             error: err.message || 'Failed to create quote',
@@ -64,7 +42,7 @@ exports.createQuote = async (req, res) => {
 
 exports.getAllQuotes = async (req, res) => {
     try {
-        const quotes = await all(`
+        const quotes = await getQuery(`
             SELECT q.*, d.title as deal_title, a.name as account_name
             FROM quotes q
             LEFT JOIN deals d ON q.deal_id = d.id
@@ -80,7 +58,7 @@ exports.getAllQuotes = async (req, res) => {
 
 exports.getQuoteById = async (req, res) => {
     try {
-        const quote = await get(`
+        const quote = await getQuery(`
             SELECT q.*, a.name as account_name, d.title as deal_title 
             FROM quotes q
             LEFT JOIN accounts a ON q.account_id = a.id
@@ -92,7 +70,7 @@ exports.getQuoteById = async (req, res) => {
             return res.status(404).json({ error: 'Quote not found' });
         }
 
-        const items = await all(`
+        const items = await getQuery(`
             SELECT qi.*, p.name as product_name, p.code as product_code 
             FROM quote_items qi
             JOIN products p ON qi.product_id = p.id
@@ -109,7 +87,7 @@ exports.getQuoteById = async (req, res) => {
 exports.updateQuoteStatus = async (req, res) => {
     try {
         const { status = 'Draft' } = req.body;
-        const { changes } = await run(
+        const { changes } = await runQuery(
             'UPDATE quotes SET status = ? WHERE id = ?',
             [status, req.params.id]
         );
@@ -127,7 +105,7 @@ exports.updateQuoteStatus = async (req, res) => {
 
 exports.deleteQuote = async (req, res) => {
     try {
-        const { changes } = await run('DELETE FROM quotes WHERE id = ?', [req.params.id]);
+        const { changes } = await runQuery('DELETE FROM quotes WHERE id = ?', [req.params.id]);
         
         if (changes === 0) {
             return res.status(404).json({ error: 'Quote not found' });
