@@ -24,7 +24,7 @@ const run = (sql, params = []) => new Promise((resolve, reject) => {
 
 exports.createQuote = async (req, res) => {
     try {
-        const { deal_id, account_id, items = [] } = req.body;
+        const { deal_id, account_id, items = [], status = 'Draft' } = req.body;
 
         // คำนวณราคารวม (จะได้ 0 ถ้าไม่มี items)
         const totalAmount = items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0);
@@ -34,8 +34,8 @@ exports.createQuote = async (req, res) => {
         
         // Insert quote
         const { lastID: quoteId } = await run(
-            'INSERT INTO quotes (deal_id, account_id, total_amount) VALUES (?, ?, ?)',
-            [deal_id, account_id, totalAmount]
+            'INSERT INTO quotes (deal_id, account_id, total_amount, status) VALUES (?, ?, ?, ?)',
+            [deal_id, account_id, totalAmount, status]
         );
 
         // Insert items
@@ -108,7 +108,7 @@ exports.getQuoteById = async (req, res) => {
 
 exports.updateQuoteStatus = async (req, res) => {
     try {
-        const { status } = req.body;
+        const { status = 'Draft' } = req.body;
         const { changes } = await run(
             'UPDATE quotes SET status = ? WHERE id = ?',
             [status, req.params.id]

@@ -515,14 +515,15 @@ async function loadQuotes() {
         tbody.innerHTML = items.map(q => {
             const statusClass = q.status === 'Draft' ? 'secondary' : 
                               q.status === 'Sent' ? 'info' : 
-                              q.status === 'Accepted' ? 'success' : 'danger';
+                              q.status === 'Accepted' ? 'success' : 
+                              q.status === 'Rejected' ? 'danger' : 'secondary';
             return `
             <tr>
                 <td>${fmt(q.id)}</td>
                 <td>${fmt(q.quote_number)}</td>
                 <td>${fmt(q.deal_title)}</td>
                 <td>${fmt(q.total_amount)}</td>
-                <td><span class="badge bg-${statusClass}">${fmt(q.status)}</span></td>
+                <td><span class="badge bg-${statusClass}">${fmt(q.status || 'Draft')}</span></td>
                 <td>${fmt(q.expiration_date)}</td>
                 <td>
                     <button class="btn btn-danger btn-sm" onclick="deleteQuote(${q.id})">Delete</button>
@@ -553,7 +554,7 @@ window.addQuote = async function() {
             quote_number: quoteNumber,
             deal_id: dealId,
             total_amount: totalAmount,
-            status: status,
+            status: status || 'Draft',  // Default to Draft if no status provided
             expiration_date: expirationDate || null
         };
 
