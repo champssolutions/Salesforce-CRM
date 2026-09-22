@@ -78,38 +78,16 @@ db.serialize(() => {
     });
   `);
 
-
+  // Create leads (no foreign keys)
   db.run(`
-    CREATE TABLE IF NOT EXISTS quotes (
+    CREATE TABLE IF NOT EXISTS leads (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      quote_number TEXT UNIQUE NOT NULL,
-      deal_id INTEGER REFERENCES deals(id) ON DELETE SET NULL,
-      total_amount REAL NOT NULL DEFAULT 0,
-      status TEXT DEFAULT 'Draft' CHECK (status IN ('Draft', 'Sent', 'Accepted', 'Rejected')),
-      expiration_date TEXT,
-      created_at TEXT DEFAULT (datetime('now'))
-    );
-  `);
-
-  db.run(`
-    CREATE TABLE IF NOT EXISTS quote_items (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      quote_id INTEGER NOT NULL REFERENCES quotes(id) ON DELETE CASCADE,
-      product_id INTEGER NOT NULL REFERENCES products(id),
-      quantity INTEGER NOT NULL DEFAULT 1 CHECK (quantity > 0),
-      unit_price REAL NOT NULL DEFAULT 0 CHECK (unit_price >= 0),
-      total_price REAL NOT NULL DEFAULT 0 CHECK (total_price >= 0),
-      created_at TEXT DEFAULT (datetime('now'))
-    );
-  `);
-
-  db.run(`
-    CREATE TABLE IF NOT EXISTS accounts (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      industry TEXT,
+      first_name TEXT NOT NULL,
+      last_name TEXT,
+      company TEXT,
+      status TEXT DEFAULT 'New',
+      email TEXT,
       phone TEXT,
-      website TEXT,
       created_at TEXT DEFAULT (datetime('now'))
     );
   `);
@@ -155,20 +133,6 @@ db.serialize(() => {
     );
   `);
 
-  // Create leads (no foreign keys)
-  db.run(`
-    CREATE TABLE IF NOT EXISTS leads (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      first_name TEXT NOT NULL,
-      last_name TEXT,
-      company TEXT,
-      status TEXT DEFAULT 'New',
-      email TEXT,
-      phone TEXT,
-      created_at TEXT DEFAULT (datetime('now'))
-    );
-  `);
-
   // Create quotes after deals
   db.run(`
     CREATE TABLE IF NOT EXISTS quotes (
@@ -194,14 +158,6 @@ db.serialize(() => {
       created_at TEXT DEFAULT (datetime('now'))
     );
   `);
-      company TEXT,
-      status TEXT DEFAULT 'New',
-      email TEXT,
-      phone TEXT,
-      created_at TEXT DEFAULT (datetime('now'))
-    );
-  `);
-
 });
 
 /**
