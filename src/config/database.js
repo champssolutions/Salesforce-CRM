@@ -28,13 +28,27 @@ db.serialize(() => {
       password TEXT NOT NULL,
       role TEXT NOT NULL DEFAULT 'User',
       created_at TEXT DEFAULT (datetime('now'))
-    );
-
-    // Insert default admin user if table is empty
-    db.get("SELECT COUNT(*) as count FROM users", (err, row) => {
-      if (!err && row.count === 0) {
-        db.run("INSERT INTO users (username, password, role) VALUES (?, ?, ?)", 
-          ['admin', 'password', 'Admin']);
+    )`, (err) => {
+      if (err) {
+        console.error('Error creating users table:', err.message);
+      } else {
+        // Insert default admin user if table is empty
+        db.get("SELECT COUNT(*) as count FROM users", (err, row) => {
+          if (err) {
+            console.error('Error checking users table:', err.message);
+            return;
+          }
+          if (row.count === 0) {
+            db.run("INSERT INTO users (username, password, role) VALUES (?, ?, ?)", 
+              ['admin', 'password', 'Admin'], (err) => {
+                if (err) {
+                  console.error('Error inserting default admin user:', err.message);
+                } else {
+                  console.log('Default admin user created');
+                }
+            });
+          }
+        });
       }
     });
   `);
