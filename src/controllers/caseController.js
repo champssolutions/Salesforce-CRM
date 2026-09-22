@@ -48,8 +48,7 @@ exports.createCase = async (req, res) => {
   try {
     const { subject, title, account_id, contact_id, description, priority, status } = req.body;
     
-    const caseSubject = subject || title;
-    if (!caseSubject) {
+    if (!subject) {
       return res.status(400).json({ error: 'Subject is required' });
     }
 
@@ -57,8 +56,8 @@ exports.createCase = async (req, res) => {
     const safeContactId = normalizeFk(contact_id);
 
     const { lastID } = await runQuery(
-      'INSERT INTO cases (subject, title, account_id, contact_id, description, priority, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [caseSubject, caseSubject, safeAccountId, safeContactId, description || '', priority || 'Medium', status || 'New']
+      'INSERT INTO cases (subject, account_id, contact_id, description, priority, status) VALUES (?, ?, ?, ?, ?, ?)',
+      [subject, safeAccountId, safeContactId, description || '', priority || 'Medium', status || 'New']
     );
 
     const newCase = await getQuery('SELECT * FROM cases WHERE id = ?', [lastID]);
@@ -73,8 +72,7 @@ exports.updateCase = async (req, res) => {
   try {
     const { subject, title, account_id, contact_id, description, priority, status } = req.body;
     
-    const caseSubject = subject || title;
-    if (!caseSubject) {
+    if (!subject) {
       return res.status(400).json({ error: 'Subject is required' });
     }
 
@@ -82,8 +80,8 @@ exports.updateCase = async (req, res) => {
     const safeContactId = normalizeFk(contact_id);
 
     const { changes } = await runQuery(
-      'UPDATE cases SET subject = ?, title = ?, account_id = ?, contact_id = ?, description = ?, priority = ?, status = ? WHERE id = ?',
-      [caseSubject, caseSubject, safeAccountId, safeContactId, description || '', priority || 'Medium', status || 'New', req.params.id]
+      'UPDATE cases SET subject = ?, account_id = ?, contact_id = ?, description = ?, priority = ?, status = ? WHERE id = ?',
+      [subject, safeAccountId, safeContactId, description || '', priority || 'Medium', status || 'New', req.params.id]
     );
 
     if (changes === 0) {
