@@ -223,9 +223,8 @@ async function loadProducts() {
     } catch (e) { console.error('Error loadProducts:', e); }
 }
 
-let dealsChart = null;
-let casesChart = null;
-let salesChart = null; // Added for dashboard chart
+let dealsChartInstance = null;
+let casesChartInstance = null;
 
 async function renderDashboardCharts() {
     try {
@@ -234,13 +233,13 @@ async function renderDashboardCharts() {
         if (!dashboardTab || !dashboardTab.classList.contains('active')) return;
 
         // Destroy existing charts if they exist
-        if (dealsChart) {
-            dealsChart.destroy();
-            dealsChart = null;
+        if (dealsChartInstance) {
+            dealsChartInstance.destroy();
+            dealsChartInstance = null;
         }
-        if (casesChart) {
-            casesChart.destroy();
-            casesChart = null;
+        if (casesChartInstance) {
+            casesChartInstance.destroy();
+            casesChartInstance = null;
         }
 
         // Get chart data
@@ -270,7 +269,7 @@ async function renderDashboardCharts() {
             dealsData = Object.values(data.dealsByStage);
         }
         
-        dealsChart = new Chart(dealsCtx, {
+        dealsChartInstance = new Chart(dealsCtx, {
             type: 'bar',
             data: {
                 labels: dealsLabels,
@@ -324,7 +323,7 @@ async function renderDashboardCharts() {
             casesData = Object.values(data.casesByStatus);
         }
         
-        casesChart = new Chart(casesCtx, {
+        casesChartInstance = new Chart(casesCtx, {
             type: 'doughnut',
             data: {
                 labels: casesLabels,
