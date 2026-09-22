@@ -114,65 +114,86 @@ db.serialize(() => {
     );
   `);
 
+  // Create contacts after accounts
   db.run(`
     CREATE TABLE IF NOT EXISTS contacts (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      account_id INTEGER,
+      account_id INTEGER REFERENCES accounts(id) ON DELETE SET NULL,
       first_name TEXT NOT NULL,
       last_name TEXT,
       email TEXT,
       phone TEXT,
       title TEXT,
-      created_at TEXT DEFAULT (datetime('now')),
-      FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE SET NULL
-    );
-  `);
-
-  db.run(`
-    CREATE TABLE IF NOT EXISTS opportunities (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      account_id INTEGER,
-      name TEXT NOT NULL,
-      amount REAL,
-      stage TEXT CHECK (stage IN ('Prospecting', 'Qualification', 'Proposal', 'Closed Won', 'Closed Lost')),
-      close_date TEXT,
-      created_at TEXT DEFAULT (datetime('now')),
-      FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
-    );
-  `);
-
-  db.run(`
-    CREATE TABLE IF NOT EXISTS products (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      code TEXT UNIQUE NOT NULL,
-      price REAL,
-      description TEXT,
-      is_active BOOLEAN DEFAULT 1,
       created_at TEXT DEFAULT (datetime('now'))
     );
   `);
 
+  // Create deals after accounts and contacts
   db.run(`
     CREATE TABLE IF NOT EXISTS deals (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       title TEXT NOT NULL,
       amount REAL,
       stage TEXT CHECK (stage IN ('Prospecting', 'Qualification', 'Proposal', 'Closed Won', 'Closed Lost')),
-      account_id INTEGER,
-      contact_id INTEGER,
+      account_id INTEGER REFERENCES accounts(id) ON DELETE SET NULL,
+      contact_id INTEGER REFERENCES contacts(id) ON DELETE SET NULL,
       close_date TEXT,
-      created_at TEXT DEFAULT (datetime('now')),
-      FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE SET NULL,
-      FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE SET NULL
+      created_at TEXT DEFAULT (datetime('now'))
     );
   `);
 
+  // Create opportunities after accounts
+  db.run(`
+    CREATE TABLE IF NOT EXISTS opportunities (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      account_id INTEGER REFERENCES accounts(id) ON DELETE CASCADE,
+      name TEXT NOT NULL,
+      amount REAL,
+      stage TEXT CHECK (stage IN ('Prospecting', 'Qualification', 'Proposal', 'Closed Won', 'Closed Lost')),
+      close_date TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+  `);
+
+  // Create leads (no foreign keys)
   db.run(`
     CREATE TABLE IF NOT EXISTS leads (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       first_name TEXT NOT NULL,
       last_name TEXT,
+      company TEXT,
+      status TEXT DEFAULT 'New',
+      email TEXT,
+      phone TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+  `);
+
+  // Create quotes after deals
+  db.run(`
+    CREATE TABLE IF NOT EXISTS quotes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      quote_number TEXT UNIQUE NOT NULL,
+      deal_id INTEGER REFERENCES deals(id) ON DELETE SET NULL,
+      total_amount REAL NOT NULL DEFAULT 0,
+      status TEXT DEFAULT 'Draft' CHECK (status IN ('Draft', 'Sent', 'Accepted', 'Rejected')),
+      expiration_date TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+  `);
+
+  // Create quote_items after quotes and products
+  db.run(`
+    CREATE TABLE IF NOT EXISTS quote_items (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      quote_id INTEGER NOT NULL REFERENCES quotes(id) ON DELETE CASCADE,
+      product_id INTEGER NOT NULL REFERENCES products(id),
+      quantity INTEGER NOT NULL DEFAULT 1 CHECK (quantity > 0),
+      unit_price REAL NOT NULL DEFAULT 0 CHECK (unit_price >= 0),
+      total_price REAL NOT NULL DEFAULT 0 CHECK (total_price >= 0),
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+  `);
       company TEXT,
       status TEXT DEFAULT 'New',
       email TEXT,
