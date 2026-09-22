@@ -50,17 +50,32 @@ const setupDatabase = async () => {
           resolve();
         });
       }),
-  db.run(`
-    CREATE TABLE IF NOT EXISTS accounts (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      industry TEXT,
-      phone TEXT,
-      website TEXT,
-      created_at TEXT DEFAULT (datetime('now'))
-    );
-  `, (err) => {
-    if (err) console.error('Error creating accounts table:', err.message);
+      new Promise((resolve, reject) => {
+        db.run(`CREATE TABLE IF NOT EXISTS products (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          code TEXT UNIQUE NOT NULL,
+          price REAL,
+          description TEXT,
+          is_active BOOLEAN DEFAULT 1,
+          created_at TEXT DEFAULT (datetime('now'))
+        );`, (err) => {
+          if (err) return reject(err);
+          resolve();
+        });
+      }),
+      new Promise((resolve, reject) => {
+        db.run(`CREATE TABLE IF NOT EXISTS users (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          username TEXT UNIQUE NOT NULL,
+          password TEXT NOT NULL,
+          role TEXT NOT NULL DEFAULT 'User',
+          created_at TEXT DEFAULT (datetime('now'))
+        );`, (err) => {
+          if (err) return reject(err);
+          resolve();
+        });
+      })
     ]);
 
     return true;
@@ -70,133 +85,120 @@ const setupDatabase = async () => {
   }
 };
 
-  db.run(`
-    CREATE TABLE IF NOT EXISTS products (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      code TEXT UNIQUE NOT NULL,
-      price REAL,
-      description TEXT,
-      is_active BOOLEAN DEFAULT 1,
-      created_at TEXT DEFAULT (datetime('now'))
-    );
-  `, (err) => {
-    if (err) console.error('Error creating products table:', err.message);
-  });
-
-  db.run(`
-    CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      username TEXT UNIQUE NOT NULL,
-      password TEXT NOT NULL,
-      role TEXT NOT NULL DEFAULT 'User',
-      created_at TEXT DEFAULT (datetime('now'))
-    )`, (err) => {
-      if (err) {
-        console.error('Error creating users table:', err.message);
-      } else {
-        // Insert default admin user if table is empty
-        db.get("SELECT COUNT(*) as count FROM users", (err, row) => {
-          if (err) {
-            console.error('Error checking users table:', err.message);
-            return;
-          }
-          if (row.count === 0) {
-            db.run("INSERT INTO users (username, password, role) VALUES (?, ?, ?)", 
-              ['admin', 'password', 'Admin'], (err) => {
-                if (err) {
-                  console.error('Error inserting default admin user:', err.message);
-                } else {
-                  console.log('Default admin user created');
-                }
-            });
-          }
-        });
-      }
+    // Create remaining tables sequentially
+    await new Promise((resolve, reject) => {
+      db.run(`CREATE TABLE IF NOT EXISTS leads (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        first_name TEXT NOT NULL,
+        last_name TEXT,
+        company TEXT,
+        status TEXT DEFAULT 'New',
+        email TEXT,
+        phone TEXT,
+        created_at TEXT DEFAULT (datetime('now'))
+      );`, (err) => {
+        if (err) return reject(err);
+        resolve();
+      });
     });
-  `);
 
-  // Create leads (no foreign keys)
-  db.run(`CREATE TABLE IF NOT EXISTS leads (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    first_name TEXT NOT NULL,
-    last_name TEXT,
-    company TEXT,
-    status TEXT DEFAULT 'New',
-    email TEXT,
-    phone TEXT,
-    created_at TEXT DEFAULT (datetime('now'))
-  );`, (err) => {
-    if (err) console.error('Error creating leads table:', err.message);
-  });
+    await new Promise((resolve, reject) => {
+      db.run(`CREATE TABLE IF NOT EXISTS contacts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        account_id INTEGER REFERENCES accounts(id) ON DELETE SET NULL,
+        first_name TEXT NOT NULL,
+        last_name TEXT,
+        email TEXT,
+        phone TEXT,
+        title TEXT,
+        created_at TEXT DEFAULT (datetime('now'))
+      );`, (err) => {
+        if (err) return reject(err);
+        resolve();
+      });
+    });
 
-  // Create contacts after accounts
-  db.run(`CREATE TABLE IF NOT EXISTS contacts (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    account_id INTEGER REFERENCES accounts(id) ON DELETE SET NULL,
-    first_name TEXT NOT NULL,
-    last_name TEXT,
-    email TEXT,
-    phone TEXT,
-    title TEXT,
-    created_at TEXT DEFAULT (datetime('now'))
-  );`, (err) => {
-    if (err) console.error('Error creating contacts table:', err.message);
-  });
+    await new Promise((resolve, reject) => {
+      db.run(`CREATE TABLE IF NOT EXISTS deals (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        amount REAL,
+        stage TEXT CHECK (stage IN ('Prospecting', 'Qualification', 'Proposal', 'Closed Won', 'Closed Lost')),
+        account_id INTEGER REFERENCES accounts(id) ON DELETE SET NULL,
+        contact_id INTEGER REFERENCES contacts(id) ON DELETE SET NULL,
+        close_date TEXT,
+        created_at TEXT DEFAULT (datetime('now'))
+      );`, (err) => {
+        if (err) return reject(err);
+        resolve();
+      });
+    });
 
-  // Create deals after accounts and contacts
-  db.run(`CREATE TABLE IF NOT EXISTS deals (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT NOT NULL,
-    amount REAL,
-    stage TEXT CHECK (stage IN ('Prospecting', 'Qualification', 'Proposal', 'Closed Won', 'Closed Lost')),
-    account_id INTEGER REFERENCES accounts(id) ON DELETE SET NULL,
-    contact_id INTEGER REFERENCES contacts(id) ON DELETE SET NULL,
-    close_date TEXT,
-    created_at TEXT DEFAULT (datetime('now'))
-  );`, (err) => {
-    if (err) console.error('Error creating deals table:', err.message);
-  });
+    await new Promise((resolve, reject) => {
+      db.run(`CREATE TABLE IF NOT EXISTS opportunities (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        account_id INTEGER REFERENCES accounts(id) ON DELETE CASCADE,
+        name TEXT NOT NULL,
+        amount REAL,
+        stage TEXT CHECK (stage IN ('Prospecting', 'Qualification', 'Proposal', 'Closed Won', 'Closed Lost')),
+        close_date TEXT,
+        created_at TEXT DEFAULT (datetime('now'))
+      );`, (err) => {
+        if (err) return reject(err);
+        resolve();
+      });
+    });
 
-  // Create opportunities after accounts
-  db.run(`CREATE TABLE IF NOT EXISTS opportunities (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    account_id INTEGER REFERENCES accounts(id) ON DELETE CASCADE,
-    name TEXT NOT NULL,
-    amount REAL,
-    stage TEXT CHECK (stage IN ('Prospecting', 'Qualification', 'Proposal', 'Closed Won', 'Closed Lost')),
-    close_date TEXT,
-    created_at TEXT DEFAULT (datetime('now'))
-  );`, (err) => {
-    if (err) console.error('Error creating opportunities table:', err.message);
-  });
+    await new Promise((resolve, reject) => {
+      db.run(`CREATE TABLE IF NOT EXISTS quotes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        quote_number TEXT UNIQUE NOT NULL,
+        deal_id INTEGER REFERENCES deals(id) ON DELETE SET NULL,
+        total_amount REAL NOT NULL DEFAULT 0,
+        status TEXT DEFAULT 'Draft' CHECK (status IN ('Draft', 'Sent', 'Accepted', 'Rejected')),
+        expiration_date TEXT,
+        created_at TEXT DEFAULT (datetime('now'))
+      );`, (err) => {
+        if (err) return reject(err);
+        resolve();
+      });
+    });
 
-  // Create quotes after deals
-  db.run(`CREATE TABLE IF NOT EXISTS quotes (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    quote_number TEXT UNIQUE NOT NULL,
-    deal_id INTEGER REFERENCES deals(id) ON DELETE SET NULL,
-    total_amount REAL NOT NULL DEFAULT 0,
-    status TEXT DEFAULT 'Draft' CHECK (status IN ('Draft', 'Sent', 'Accepted', 'Rejected')),
-    expiration_date TEXT,
-    created_at TEXT DEFAULT (datetime('now'))
-  );`, (err) => {
-    if (err) console.error('Error creating quotes table:', err.message);
-  });
+    await new Promise((resolve, reject) => {
+      db.run(`CREATE TABLE IF NOT EXISTS quote_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        quote_id INTEGER NOT NULL REFERENCES quotes(id) ON DELETE CASCADE,
+        product_id INTEGER NOT NULL REFERENCES products(id),
+        quantity INTEGER NOT NULL DEFAULT 1 CHECK (quantity > 0),
+        unit_price REAL NOT NULL DEFAULT 0 CHECK (unit_price >= 0),
+        total_price REAL NOT NULL DEFAULT 0 CHECK (total_price >= 0),
+        created_at TEXT DEFAULT (datetime('now'))
+      );`, (err) => {
+        if (err) return reject(err);
+        resolve();
+      });
+    });
 
-  // Create quote_items after quotes and products
-  db.run(`CREATE TABLE IF NOT EXISTS quote_items (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    quote_id INTEGER NOT NULL REFERENCES quotes(id) ON DELETE CASCADE,
-    product_id INTEGER NOT NULL REFERENCES products(id),
-    quantity INTEGER NOT NULL DEFAULT 1 CHECK (quantity > 0),
-    unit_price REAL NOT NULL DEFAULT 0 CHECK (unit_price >= 0),
-    total_price REAL NOT NULL DEFAULT 0 CHECK (total_price >= 0),
-    created_at TEXT DEFAULT (datetime('now'))
-  );`, (err) => {
-    if (err) console.error('Error creating quote_items table:', err.message);
-  });
-});
+    // Insert default admin user if users table is empty
+    const userCount = await new Promise((resolve, reject) => {
+      db.get("SELECT COUNT(*) as count FROM users", (err, row) => {
+        if (err) return reject(err);
+        resolve(row.count);
+      });
+    });
+
+    if (userCount === 0) {
+      await new Promise((resolve, reject) => {
+        db.run("INSERT INTO users (username, password, role) VALUES (?, ?, ?)", 
+          ['admin', 'password', 'Admin'], (err) => {
+            if (err) return reject(err);
+            console.log('Default admin user created');
+            resolve();
+        });
+      });
+    }
+
+    return true;
 
 /**
  * เพิ่มคอลัมน์ที่ขาดหายให้ตารางที่มีอยู่แล้ว (idempotent)
@@ -246,30 +248,36 @@ async function ensureColumns(table, columns) {
 }
 
 // Run database setup and migrations
-(async () => {
-  const setupSuccess = await setupDatabase();
-  if (!setupSuccess) {
-    console.error('Database setup failed');
+const initializeDatabase = async () => {
+  try {
+    const setupSuccess = await setupDatabase();
+    if (!setupSuccess) {
+      throw new Error('Database setup failed');
+    }
+
+    await ensureColumns('cases', [
+      ['account_id', 'INTEGER REFERENCES accounts(id) ON DELETE SET NULL'],
+      ['contact_id', 'INTEGER REFERENCES contacts(id) ON DELETE SET NULL'],
+      ['subject', 'TEXT'],
+      ['priority', "TEXT DEFAULT 'Medium'"],
+      ['status', "TEXT DEFAULT 'New'"],
+    ]);
+
+    await ensureColumns('tasks', [
+      ['due_date', 'TEXT'],
+      ['status', "TEXT DEFAULT 'Not Started'"],
+      ['priority', "TEXT DEFAULT 'Medium'"],
+      ['deal_id', 'INTEGER REFERENCES deals(id) ON DELETE SET NULL'],
+      ['contact_id', 'INTEGER REFERENCES contacts(id) ON DELETE SET NULL']
+    ]);
+
+    console.log('Database setup completed successfully');
+  } catch (err) {
+    console.error('Database setup failed:', err);
     process.exit(1);
   }
-  await ensureColumns('cases', [
-    ['account_id', 'INTEGER REFERENCES accounts(id) ON DELETE SET NULL'],
-    ['contact_id', 'INTEGER REFERENCES contacts(id) ON DELETE SET NULL'],
-    ['subject', 'TEXT'],
-    ['priority', "TEXT DEFAULT 'Medium'"],
-    ['status', "TEXT DEFAULT 'New'"],
-  ]);
+};
 
-  await ensureColumns('tasks', [
-    ['due_date', 'TEXT'],
-    ['status', "TEXT DEFAULT 'Not Started'"],
-    ['priority', "TEXT DEFAULT 'Medium'"],
-    ['deal_id', 'INTEGER REFERENCES deals(id) ON DELETE SET NULL'],
-    ['contact_id', 'INTEGER REFERENCES contacts(id) ON DELETE SET NULL']
-  ]);
-}).catch(err => {
-  console.error('Database setup failed:', err);
-  process.exit(1);
-});
+initializeDatabase();
 
 module.exports = db;
