@@ -229,6 +229,10 @@ let salesChart = null; // Added for dashboard chart
 
 async function renderDashboardCharts() {
     try {
+        // Only render if on dashboard tab
+        const dashboardTab = document.getElementById('dashboard');
+        if (!dashboardTab || !dashboardTab.classList.contains('active')) return;
+
         // Destroy existing charts if they exist
         if (dealsChart) {
             dealsChart.destroy();
@@ -244,9 +248,20 @@ async function renderDashboardCharts() {
         const data = await res.json();
 
         // Render Deals Chart
-        const dealsCtx = document.getElementById('dealsChart').getContext('2d');
-        const dealsLabels = data.dealsByStage?.map(d => d.stage) || [];
-        const dealsData = data.dealsByStage?.map(d => d.total) || [];
+        const dealsCanvas = document.getElementById('dealsChart');
+        if (!dealsCanvas) return;
+        
+        const dealsCtx = dealsCanvas.getContext('2d');
+        let dealsLabels = [];
+        let dealsData = [];
+        
+        if (Array.isArray(data.dealsByStage)) {
+            dealsLabels = data.dealsByStage.map(d => d.stage);
+            dealsData = data.dealsByStage.map(d => d.total);
+        } else if (data.dealsByStage && typeof data.dealsByStage === 'object') {
+            dealsLabels = Object.keys(data.dealsByStage);
+            dealsData = Object.values(data.dealsByStage);
+        }
         
         dealsChart = new Chart(dealsCtx, {
             type: 'bar',
@@ -287,9 +302,20 @@ async function renderDashboardCharts() {
         });
 
         // Render Cases Chart
-        const casesCtx = document.getElementById('casesChart').getContext('2d');
-        const casesLabels = data.casesByStatus?.map(c => c.status) || [];
-        const casesData = data.casesByStatus?.map(c => c.count) || [];
+        const casesCanvas = document.getElementById('casesChart');
+        if (!casesCanvas) return;
+        
+        const casesCtx = casesCanvas.getContext('2d');
+        let casesLabels = [];
+        let casesData = [];
+        
+        if (Array.isArray(data.casesByStatus)) {
+            casesLabels = data.casesByStatus.map(c => c.status);
+            casesData = data.casesByStatus.map(c => c.count);
+        } else if (data.casesByStatus && typeof data.casesByStatus === 'object') {
+            casesLabels = Object.keys(data.casesByStatus);
+            casesData = Object.values(data.casesByStatus);
+        }
         
         casesChart = new Chart(casesCtx, {
             type: 'doughnut',
