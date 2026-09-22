@@ -269,10 +269,21 @@ async function renderDashboardCharts() {
             console.warn('Could not get 2D context for deals chart');
             return;
         }
+        // Safely get data with fallbacks
+        const dealsByStage = data.dealsByStage || {};
+        const casesByStatus = data.casesByStatus || {};
+        const quickStats = data.quickStats || {
+            totalPipelineValue: 0,
+            openDeals: 0,
+            winRate: 0
+        };
+
         // Ensure we have data for all stages
         const allDealStages = ['Prospecting', 'Qualification', 'Proposal', 'Closed Won', 'Closed Lost'];
         const dealsLabels = allDealStages;
-        const dealsData = allDealStages.map(stage => data.dealsByStage[stage] || 0);
+        const dealsData = allDealStages.map(stage => {
+            return dealsByStage[stage] || 0;
+        });
         
         if (dealsChartInstance) {
             dealsChartInstance.destroy();
@@ -320,10 +331,12 @@ async function renderDashboardCharts() {
         if (!casesCanvas) return;
         
         const casesCtx = casesCanvas.getContext('2d');
-        // Ensure we have data for all statuses
+        // Ensure we have data for all statuses with fallbacks
         const allCaseStatuses = ['New', 'Working', 'Closed'];
         const casesLabels = allCaseStatuses;
-        const casesData = allCaseStatuses.map(status => data.casesByStatus[status] || 0);
+        const casesData = allCaseStatuses.map(status => {
+            return casesByStatus[status] || 0;
+        });
         
         if (casesChartInstance) {
             casesChartInstance.destroy();

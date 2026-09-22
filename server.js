@@ -51,24 +51,46 @@ app.use('/api/quotes', quoteRoutes);
 // Analytics endpoint
 app.get('/api/analytics/dashboard', async (req, res) => {
     try {
+        // First verify the tables exist
+        const tablesExist = await Promise.all([
+            db.get(`SELECT name FROM sqlite_master WHERE type='table' AND name='deals'`),
+            db.get(`SELECT name FROM sqlite_master WHERE type='table' AND name='cases'`)
+        ]);
+
+        if (!tablesExist[0] || !tablesExist[1]) {
+            return res.json({
+                dealsByStage: {},
+                casesByStatus: {},
+                quickStats: {
+                    totalPipelineValue: 0,
+                    openDeals: 0,
+                    winRate: 0
+                }
+            });
+        }
+
         const [dealsByStage, casesByStatus, quickStats] = await Promise.all([
             db.all(`
                 SELECT stage, COUNT(*) as count, SUM(amount) as total 
                 FROM deals 
                 GROUP BY stage
-            `),
+            `).catch(() => []),
             db.all(`
                 SELECT status, COUNT(*) as count 
                 FROM cases 
                 GROUP BY status
-            `),
+            `).catch(() => []),
             db.get(`
                 SELECT
-                    SUM(amount) as totalPipelineValue,
-                    COUNT(CASE WHEN stage NOT IN ('Closed Won', 'Closed Lost') THEN 1 END) as openDeals,
-                    ROUND(100.0 * COUNT(CASE WHEN stage = 'Closed Won' THEN 1 END) / COUNT(*), 1) as winRate
+                    COALESCE(SUM(amount), 0) as totalPipelineValue,
+                    COALESCE(COUNT(CASE WHEN stage NOT IN ('Closed Won', 'Closed Lost') THEN 1 END), 0) as openDeals,
+                    COALESCE(ROUND(100.0 * COUNT(CASE WHEN stage = 'Closed Won' THEN 1 END) / COUNT(*), 1), 0) as winRate
                 FROM deals
-            `)
+            `).catch(() => ({
+                totalPipelineValue: 0,
+                openDeals: 0,
+                winRate: 0
+            }))
         ]);
         
         // Convert arrays to objects for easier charting
