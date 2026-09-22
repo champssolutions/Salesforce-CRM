@@ -88,95 +88,83 @@ db.serialize(() => {
   `);
 
   // Create leads (no foreign keys)
-  db.run(`
-    CREATE TABLE IF NOT EXISTS leads (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      first_name TEXT NOT NULL,
-      last_name TEXT,
-      company TEXT,
-      status TEXT DEFAULT 'New',
-      email TEXT,
-      phone TEXT,
-      created_at TEXT DEFAULT (datetime('now'))
-    );
-  `, (err) => {
+  db.run(`CREATE TABLE IF NOT EXISTS leads (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    first_name TEXT NOT NULL,
+    last_name TEXT,
+    company TEXT,
+    status TEXT DEFAULT 'New',
+    email TEXT,
+    phone TEXT,
+    created_at TEXT DEFAULT (datetime('now'))
+  );`, (err) => {
     if (err) console.error('Error creating leads table:', err.message);
   });
 
   // Create contacts after accounts
-  db.run(`
-    CREATE TABLE IF NOT EXISTS contacts (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      account_id INTEGER REFERENCES accounts(id) ON DELETE SET NULL,
-      first_name TEXT NOT NULL,
-      last_name TEXT,
-      email TEXT,
-      phone TEXT,
-      title TEXT,
-      created_at TEXT DEFAULT (datetime('now'))
-    );
-  `, (err) => {
+  db.run(`CREATE TABLE IF NOT EXISTS contacts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    account_id INTEGER REFERENCES accounts(id) ON DELETE SET NULL,
+    first_name TEXT NOT NULL,
+    last_name TEXT,
+    email TEXT,
+    phone TEXT,
+    title TEXT,
+    created_at TEXT DEFAULT (datetime('now'))
+  );`, (err) => {
     if (err) console.error('Error creating contacts table:', err.message);
   });
 
   // Create deals after accounts and contacts
-  db.run(`
-    CREATE TABLE IF NOT EXISTS deals (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      title TEXT NOT NULL,
-      amount REAL,
-      stage TEXT CHECK (stage IN ('Prospecting', 'Qualification', 'Proposal', 'Closed Won', 'Closed Lost')),
-      account_id INTEGER REFERENCES accounts(id) ON DELETE SET NULL,
-      contact_id INTEGER REFERENCES contacts(id) ON DELETE SET NULL,
-      close_date TEXT,
-      created_at TEXT DEFAULT (datetime('now'))
-    );
-  `, (err) => {
+  db.run(`CREATE TABLE IF NOT EXISTS deals (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    amount REAL,
+    stage TEXT CHECK (stage IN ('Prospecting', 'Qualification', 'Proposal', 'Closed Won', 'Closed Lost')),
+    account_id INTEGER REFERENCES accounts(id) ON DELETE SET NULL,
+    contact_id INTEGER REFERENCES contacts(id) ON DELETE SET NULL,
+    close_date TEXT,
+    created_at TEXT DEFAULT (datetime('now'))
+  );`, (err) => {
     if (err) console.error('Error creating deals table:', err.message);
   });
 
   // Create opportunities after accounts
-  db.run(`
-    CREATE TABLE IF NOT EXISTS opportunities (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      account_id INTEGER REFERENCES accounts(id) ON DELETE CASCADE,
-      name TEXT NOT NULL,
-      amount REAL,
-      stage TEXT CHECK (stage IN ('Prospecting', 'Qualification', 'Proposal', 'Closed Won', 'Closed Lost')),
-      close_date TEXT,
-      created_at TEXT DEFAULT (datetime('now'))
-    );
-  `, (err) => {
+  db.run(`CREATE TABLE IF NOT EXISTS opportunities (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    account_id INTEGER REFERENCES accounts(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    amount REAL,
+    stage TEXT CHECK (stage IN ('Prospecting', 'Qualification', 'Proposal', 'Closed Won', 'Closed Lost')),
+    close_date TEXT,
+    created_at TEXT DEFAULT (datetime('now'))
+  );`, (err) => {
     if (err) console.error('Error creating opportunities table:', err.message);
   });
 
   // Create quotes after deals
-  db.run(`
-    CREATE TABLE IF NOT EXISTS quotes (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      quote_number TEXT UNIQUE NOT NULL,
-      deal_id INTEGER REFERENCES deals(id) ON DELETE SET NULL,
-      total_amount REAL NOT NULL DEFAULT 0,
-      status TEXT DEFAULT 'Draft' CHECK (status IN ('Draft', 'Sent', 'Accepted', 'Rejected')),
-      expiration_date TEXT,
-      created_at TEXT DEFAULT (datetime('now'))
-    );
-  `, (err) => {
+  db.run(`CREATE TABLE IF NOT EXISTS quotes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    quote_number TEXT UNIQUE NOT NULL,
+    deal_id INTEGER REFERENCES deals(id) ON DELETE SET NULL,
+    total_amount REAL NOT NULL DEFAULT 0,
+    status TEXT DEFAULT 'Draft' CHECK (status IN ('Draft', 'Sent', 'Accepted', 'Rejected')),
+    expiration_date TEXT,
+    created_at TEXT DEFAULT (datetime('now'))
+  );`, (err) => {
     if (err) console.error('Error creating quotes table:', err.message);
   });
 
   // Create quote_items after quotes and products
-  db.run(`
-    CREATE TABLE IF NOT EXISTS quote_items (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      quote_id INTEGER NOT NULL REFERENCES quotes(id) ON DELETE CASCADE,
-      product_id INTEGER NOT NULL REFERENCES products(id),
-      quantity INTEGER NOT NULL DEFAULT 1 CHECK (quantity > 0),
-      unit_price REAL NOT NULL DEFAULT 0 CHECK (unit_price >= 0),
-      total_price REAL NOT NULL DEFAULT 0 CHECK (total_price >= 0),
-      created_at TEXT DEFAULT (datetime('now'))
-    );
-  `, (err) => {
+  db.run(`CREATE TABLE IF NOT EXISTS quote_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    quote_id INTEGER NOT NULL REFERENCES quotes(id) ON DELETE CASCADE,
+    product_id INTEGER NOT NULL REFERENCES products(id),
+    quantity INTEGER NOT NULL DEFAULT 1 CHECK (quantity > 0),
+    unit_price REAL NOT NULL DEFAULT 0 CHECK (unit_price >= 0),
+    total_price REAL NOT NULL DEFAULT 0 CHECK (total_price >= 0),
+    created_at TEXT DEFAULT (datetime('now'))
+  );`, (err) => {
     if (err) console.error('Error creating quote_items table:', err.message);
   });
 });
