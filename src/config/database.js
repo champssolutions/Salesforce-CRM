@@ -19,8 +19,13 @@ const db = new sqlite3.Database(dbPath, (err) => {
 
 // Create tables in proper dependency order
 db.serialize(() => {
-  db.run('PRAGMA journal_mode = WAL');
-  db.run('PRAGMA foreign_keys = ON');
+  db.run('PRAGMA journal_mode = WAL', (err) => {
+    if (err) console.error('Error setting journal mode:', err.message);
+  });
+  
+  db.run('PRAGMA foreign_keys = ON', (err) => {
+    if (err) console.error('Error enabling foreign keys:', err.message);
+  });
 
   // First create tables without foreign key dependencies
   db.run(`
@@ -32,7 +37,9 @@ db.serialize(() => {
       website TEXT,
       created_at TEXT DEFAULT (datetime('now'))
     );
-  `);
+  `, (err) => {
+    if (err) console.error('Error creating accounts table:', err.message);
+  });
 
   db.run(`
     CREATE TABLE IF NOT EXISTS products (
