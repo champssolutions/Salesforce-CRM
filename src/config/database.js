@@ -84,12 +84,12 @@ const setupDatabase = async () => {
               phone TEXT,
               created_at TEXT DEFAULT (datetime('now'))
             );`, (err) => {
-          if (err) {
-            console.error('Error creating leads table:', err.message);
-            return false;
-          }
+              if (err) {
+                console.error('Error creating leads table:', err.message);
+                return false;
+              }
 
-        db.run(`CREATE TABLE IF NOT EXISTS contacts (
+              db.run(`CREATE TABLE IF NOT EXISTS contacts (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           account_id INTEGER REFERENCES accounts(id) ON DELETE SET NULL,
           first_name TEXT NOT NULL,
@@ -104,22 +104,22 @@ const setupDatabase = async () => {
             return false;
           }
 
-        db.run(`CREATE TABLE IF NOT EXISTS deals (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          title TEXT NOT NULL,
-          amount REAL,
-          stage TEXT CHECK (stage IN ('Prospecting', 'Qualification', 'Proposal', 'Closed Won', 'Closed Lost')),
-          account_id INTEGER REFERENCES accounts(id) ON DELETE SET NULL,
-          contact_id INTEGER REFERENCES contacts(id) ON DELETE SET NULL,
-          close_date TEXT,
-          created_at TEXT DEFAULT (datetime('now'))
-        );`, (err) => {
-          if (err) {
-            console.error('Error creating deals table:', err.message);
-            return false;
-          }
+                db.run(`CREATE TABLE IF NOT EXISTS deals (
+                  id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  title TEXT NOT NULL,
+                  amount REAL,
+                  stage TEXT CHECK (stage IN ('Prospecting', 'Qualification', 'Proposal', 'Closed Won', 'Closed Lost')),
+                  account_id INTEGER REFERENCES accounts(id) ON DELETE SET NULL,
+                  contact_id INTEGER REFERENCES contacts(id) ON DELETE SET NULL,
+                  close_date TEXT,
+                  created_at TEXT DEFAULT (datetime('now'))
+                );`, (err) => {
+                  if (err) {
+                    console.error('Error creating deals table:', err.message);
+                    return false;
+                  }
 
-        db.run(`CREATE TABLE IF NOT EXISTS opportunities (
+                  db.run(`CREATE TABLE IF NOT EXISTS opportunities (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           account_id INTEGER REFERENCES accounts(id) ON DELETE CASCADE,
           name TEXT NOT NULL,
