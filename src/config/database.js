@@ -18,16 +18,24 @@ const db = new sqlite3.Database(dbPath, (err) => {
 });
 
 // Create tables in proper dependency order
-db.serialize(() => {
-  db.run('PRAGMA journal_mode = WAL', (err) => {
-    if (err) console.error('Error setting journal mode:', err.message);
-  });
-  
-  db.run('PRAGMA foreign_keys = ON', (err) => {
-    if (err) console.error('Error enabling foreign keys:', err.message);
-  });
+// Run all database setup in sequence
+const setupDatabase = async () => {
+  try {
+    await new Promise((resolve, reject) => {
+      db.run('PRAGMA journal_mode = WAL', (err) => {
+        if (err) return reject(err);
+        resolve();
+      });
+    });
 
-  // First create tables without foreign key dependencies
+    await new Promise((resolve, reject) => {
+      db.run('PRAGMA foreign_keys = ON', (err) => {
+        if (err) return reject(err);
+        resolve();
+      });
+    });
+
+    // Create tables in proper dependency order
   db.run(`
     CREATE TABLE IF NOT EXISTS accounts (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -179,51 +187,46 @@ db.serialize(() => {
  * @param {string} table - Table name
  * @param {Array<[string, string]>} columns - Array of [columnName, columnDefinition] pairs
  */
-function ensureColumns(table, columns) {
-  return new Promise((resolve) => {
-    db.all(`PRAGMA table_info(${table})`, (err, rows) => {
-      if (err) {
-        console.error(`Migration: cannot inspect table ${table}:`, err.message);
-        return resolve(false);
-      }
-
-      const existing = new Set(rows.map((row) => row.name));
-      const missing = columns.filter(([name]) => !existing.has(name));
-      
-      if (missing.length === 0) {
-        return resolve(true);
-      }
-
-      db.serialize(() => {
-        Promise.all(missing.map(([name, definition]) => 
-          new Promise((colResolve) => {
-            db.run(`ALTER TABLE ${table} ADD COLUMN ${name} ${definition}`, (alterErr) => {
-              if (alterErr) {
-                console.error(`Migration: failed to add ${table}.${name}:`, alterErr.message);
-                colResolve(false);
-              } else {
-                console.log(`Migration: added column ${table}.${name}`);
-                colResolve(true);
-              }
-            });
-          })
-        )).then(results => {
-          if (results.some(r => r === false)) {
-            console.error(`Migration: some columns failed to add to table ${table}`);
-          }
-          resolve(results.every(Boolean));
-        }).catch(err => {
-          console.error(`Migration: error adding columns to table ${table}:`, err.message);
-          resolve(false);
-        });
+async function ensureColumns(table, columns) {
+  try {
+    const rows = await new Promise((resolve, reject) => {
+      db.all(`PRAGMA table_info(${table})`, (err, rows) => {
+        if (err) return reject(err);
+        resolve(rows);
       });
     });
-  });
+
+    const existing = new Set(rows.map((row) => row.name));
+    const missing = columns.filter(([name]) => !existing.has(name));
+
+    if (missing.length === 0) return true;
+
+    const results = await Promise.all(missing.map(([name, definition]) => 
+      new Promise((resolve) => {
+        db.run(`ALTER TABLE ${table} ADD COLUMN ${name} ${definition}`, (err) => {
+          if (err) {
+            console.error(`Migration: failed to add ${table}.${name}:`, err.message);
+            return resolve(false);
+          }
+          console.log(`Migration: added column ${table}.${name}`);
+          resolve(true);
+        });
+      })
+    ));
+
+    if (results.some(r => r === false)) {
+      console.error(`Migration: some columns failed to add to table ${table}`);
+    }
+    return results.every(Boolean);
+  } catch (err) {
+    console.error(`Migration: error adding columns to table ${table}:`, err.message);
+    return false;
+  }
 }
 
-// รันหลัง CREATE TABLE ทั้งหมด (คิวของ db.serialize ทำงานเรียงตามลำดับ)
-db.serialize(() => {
-  ensureColumns('cases', [
+// Run after all tables are created
+setupDatabase().then(async () => {
+  await ensureColumns('cases', [
     ['account_id', 'INTEGER REFERENCES accounts(id) ON DELETE SET NULL'],
     ['contact_id', 'INTEGER REFERENCES contacts(id) ON DELETE SET NULL'],
     ['subject', 'TEXT'],
@@ -231,13 +234,16 @@ db.serialize(() => {
     ['status', "TEXT DEFAULT 'New'"],
   ]);
 
-  ensureColumns('tasks', [
+  await ensureColumns('tasks', [
     ['due_date', 'TEXT'],
     ['status', "TEXT DEFAULT 'Not Started'"],
     ['priority', "TEXT DEFAULT 'Medium'"],
     ['deal_id', 'INTEGER REFERENCES deals(id) ON DELETE SET NULL'],
     ['contact_id', 'INTEGER REFERENCES contacts(id) ON DELETE SET NULL']
   ]);
+}).catch(err => {
+  console.error('Database setup failed:', err);
+  process.exit(1);
 });
 
 module.exports = db;
