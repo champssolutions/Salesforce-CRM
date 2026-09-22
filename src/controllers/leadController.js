@@ -1,23 +1,9 @@
-const db = require('../config/database');
-
-// Promise wrappers for the callback-based sqlite3 API
-const all = (sql, params = []) => new Promise((resolve, reject) => {
-  db.all(sql, params, (err, rows) => (err ? reject(err) : resolve(rows)));
-});
-const get = (sql, params = []) => new Promise((resolve, reject) => {
-  db.get(sql, params, (err, row) => (err ? reject(err) : resolve(row)));
-});
-const run = (sql, params = []) => new Promise((resolve, reject) => {
-  db.run(sql, params, function (err) {
-    if (err) return reject(err);
-    resolve({ lastID: this.lastID, changes: this.changes });
-  });
-});
+const { getQuery, runQuery } = require('../config/database');
 
 // GET /api/leads
 exports.getAllLeads = async (req, res) => {
   try {
-    const leads = await all('SELECT * FROM leads ORDER BY id DESC');
+    const leads = await getQuery('SELECT * FROM leads ORDER BY id DESC');
     res.json(leads);
   } catch (err) {
     console.error(err.message);
@@ -28,7 +14,7 @@ exports.getAllLeads = async (req, res) => {
 // GET /api/leads/:id
 exports.getLeadById = async (req, res) => {
   try {
-    const lead = await get('SELECT * FROM leads WHERE id = ?', [req.params.id]);
+    const lead = await getQuery('SELECT * FROM leads WHERE id = ?', [req.params.id]);
     if (!lead) {
       return res.status(404).json({ error: 'Lead not found' });
     }
@@ -50,7 +36,7 @@ exports.createLead = async (req, res) => {
 
     const finalStatus = status || 'New';
 
-    const { lastID } = await run(
+    const { lastID } = await runQuery(
       'INSERT INTO leads (first_name, last_name, company, status, email, phone) VALUES (?, ?, ?, ?, ?, ?)',
       [first_name, last_name || null, company || null, finalStatus, email || null, phone || null]
     );
@@ -79,7 +65,7 @@ exports.updateLead = async (req, res) => {
       return res.status(400).json({ error: 'first_name is required' });
     }
 
-    const lead = await get('SELECT * FROM leads WHERE id = ?', [req.params.id]);
+    const lead = await getQuery('SELECT * FROM leads WHERE id = ?', [req.params.id]);
     if (!lead) {
       return res.status(404).json({ error: 'Lead not found' });
     }
@@ -90,7 +76,7 @@ exports.updateLead = async (req, res) => {
     const finalEmail = email !== undefined ? email : lead.email;
     const finalPhone = phone !== undefined ? phone : lead.phone;
 
-    await run(
+    await runQuery(
       'UPDATE leads SET first_name = ?, last_name = ?, company = ?, status = ?, email = ?, phone = ? WHERE id = ?',
       [first_name, finalLastName || null, finalCompany || null, finalStatus, finalEmail || null, finalPhone || null, req.params.id]
     );
@@ -113,7 +99,7 @@ exports.updateLead = async (req, res) => {
 // DELETE /api/leads/:id
 exports.deleteLead = async (req, res) => {
   try {
-    const { changes } = await run('DELETE FROM leads WHERE id = ?', [req.params.id]);
+    const { changes } = await runQuery('DELETE FROM leads WHERE id = ?', [req.params.id]);
     if (changes === 0) {
       return res.status(404).json({ error: 'Lead not found' });
     }
@@ -146,35 +132,35 @@ exports.convertLead = async (req, res) => {
     let accountId, contactId, dealId;
 
     try {
-      await run('BEGIN IMMEDIATE');
+      await runQuery('BEGIN IMMEDIATE');
 
-      const acc = await run(
+      const acc = await runQuery(
         'INSERT INTO accounts (name, industry, phone, website) VALUES (?, ?, ?, ?)',
         [accountName, null, lead.phone || null, null]
       );
       accountId = acc.lastID;
 
-      const con = await run(
+      const con = await runQuery(
         'INSERT INTO contacts (account_id, first_name, last_name, email, phone, title) VALUES (?, ?, ?, ?, ?, ?)',
         [accountId, lead.first_name, lead.last_name || null, lead.email || null, lead.phone || null, null]
       );
       contactId = con.lastID;
 
-      const deal = await run(
+      const deal = await runQuery(
         'INSERT INTO deals (title, amount, stage, account_id, contact_id, close_date) VALUES (?, ?, ?, ?, ?, ?)',
         [dealTitle, dealAmount, dealStage, accountId, contactId, closeDate]
       );
       dealId = deal.lastID;
 
-      await run('UPDATE leads SET status = ? WHERE id = ?', ['Converted', req.params.id]);
+      await runQuery('UPDATE leads SET status = ? WHERE id = ?', ['Converted', req.params.id]);
 
-      await run('COMMIT');
+      await runQuery('COMMIT');
     } catch (txErr) {
-      try { await run('ROLLBACK'); } catch (rbErr) { /* ignore rollback errors */ }
+      try { await runQuery('ROLLBACK'); } catch (rbErr) { /* ignore rollback errors */ }
       throw txErr;
     }
 
-    const updatedLead = await get('SELECT * FROM leads WHERE id = ?', [req.params.id]);
+    const updatedLead = await getQuery('SELECT * FROM leads WHERE id = ?', [req.params.id]);
 
     res.status(201).json({
       message: 'Lead converted successfully',
