@@ -50,68 +50,80 @@ app.use('/api/quotes', quoteRoutes);
 
 // Analytics endpoint
 app.get('/api/analytics/dashboard', async (req, res) => {
+    const fallbackData = {
+        dealsByStage: {},
+        casesByStatus: {},
+        quickStats: {
+            totalPipelineValue: 0,
+            openDeals: 0,
+            winRate: 0
+        }
+    };
+
     try {
-        // First verify the tables exist
+        // Verify tables exist using promises
         const tablesExist = await Promise.all([
-            db.get(`SELECT name FROM sqlite_master WHERE type='table' AND name='deals'`),
-            db.get(`SELECT name FROM sqlite_master WHERE type='table' AND name='cases'`)
+            new Promise((resolve, reject) => {
+                db.get(`SELECT name FROM sqlite_master WHERE type='table' AND name='deals'`, 
+                    (err, row) => err ? reject(err) : resolve(row));
+            }),
+            new Promise((resolve, reject) => {
+                db.get(`SELECT name FROM sqlite_master WHERE type='table' AND name='cases'`, 
+                    (err, row) => err ? reject(err) : resolve(row));
+            })
         ]);
 
         if (!tablesExist[0] || !tablesExist[1]) {
-            return res.json({
-                dealsByStage: {},
-                casesByStatus: {},
-                quickStats: {
-                    totalPipelineValue: 0,
-                    openDeals: 0,
-                    winRate: 0
-                }
-            });
+            return res.status(200).json(fallbackData);
         }
 
+        // Fetch all data using promises
         const [dealsByStage, casesByStatus, quickStats] = await Promise.all([
-            db.all(`
-                SELECT stage, COUNT(*) as count, SUM(amount) as total 
-                FROM deals 
-                GROUP BY stage
-            `).catch(() => []),
-            db.all(`
-                SELECT status, COUNT(*) as count 
-                FROM cases 
-                GROUP BY status
-            `).catch(() => []),
-            db.get(`
-                SELECT
-                    COALESCE(SUM(amount), 0) as totalPipelineValue,
-                    COALESCE(COUNT(CASE WHEN stage NOT IN ('Closed Won', 'Closed Lost') THEN 1 END), 0) as openDeals,
-                    COALESCE(ROUND(100.0 * COUNT(CASE WHEN stage = 'Closed Won' THEN 1 END) / COUNT(*), 1), 0) as winRate
-                FROM deals
-            `).catch(() => ({
-                totalPipelineValue: 0,
-                openDeals: 0,
-                winRate: 0
-            }))
+            new Promise((resolve, reject) => {
+                db.all(`
+                    SELECT stage, SUM(amount) as total 
+                    FROM deals 
+                    GROUP BY stage
+                `, (err, rows) => err ? reject(err) : resolve(rows));
+            }),
+            new Promise((resolve, reject) => {
+                db.all(`
+                    SELECT status, COUNT(*) as count 
+                    FROM cases 
+                    GROUP BY status
+                `, (err, rows) => err ? reject(err) : resolve(rows));
+            }),
+            new Promise((resolve, reject) => {
+                db.get(`
+                    SELECT
+                        COALESCE(SUM(amount), 0) as totalPipelineValue,
+                        COALESCE(COUNT(CASE WHEN stage NOT IN ('Closed Won', 'Closed Lost') THEN 1 END), 0) as openDeals,
+                        COALESCE(ROUND(100.0 * COUNT(CASE WHEN stage = 'Closed Won' THEN 1 END) / COUNT(*), 1), 0) as winRate
+                    FROM deals
+                `, (err, row) => err ? reject(err) : resolve(row));
+            })
         ]);
-        
-        // Convert arrays to objects for easier charting
-        const dealsByStageObj = dealsByStage.reduce((acc, { stage, total }) => {
+
+        // Convert arrays to objects
+        const dealsByStageObj = (dealsByStage || []).reduce((acc, { stage, total }) => {
             acc[stage] = total || 0;
             return acc;
         }, {});
-        
-        const casesByStatusObj = casesByStatus.reduce((acc, { status, count }) => {
+
+        const casesByStatusObj = (casesByStatus || []).reduce((acc, { status, count }) => {
             acc[status] = count;
             return acc;
         }, {});
 
-        res.json({
+        res.status(200).json({
             dealsByStage: dealsByStageObj,
             casesByStatus: casesByStatusObj,
-            quickStats
+            quickStats: quickStats || fallbackData.quickStats
         });
-    } catch (error) {
-        console.error('Error fetching analytics:', error);
-        res.status(500).json({ error: 'Failed to fetch analytics data' });
+
+    } catch (err) {
+        console.error("Dashboard API Error:", err.message);
+        res.status(200).json(fallbackData);
     }
 });
 
