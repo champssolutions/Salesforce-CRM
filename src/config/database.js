@@ -21,23 +21,19 @@ const db = new sqlite3.Database(dbPath, (err) => {
 // Run all database setup in sequence
 const setupDatabase = async () => {
   try {
-    await new Promise((resolve, reject) => {
-      db.run('PRAGMA journal_mode = WAL', (err) => {
-        if (err) return reject(err);
-        resolve();
-      });
-    });
-
-    await new Promise((resolve, reject) => {
+    db.run('PRAGMA journal_mode = WAL', (err) => {
+      if (err) {
+        console.error('Error setting journal mode:', err.message);
+        return false;
+      }
+      
       db.run('PRAGMA foreign_keys = ON', (err) => {
-        if (err) return reject(err);
-        resolve();
-      });
-    });
+        if (err) {
+          console.error('Error enabling foreign keys:', err.message);
+          return false;
+        }
 
-    // Create tables in proper dependency order
-    await Promise.all([
-      new Promise((resolve, reject) => {
+        // Create tables in proper dependency order
         db.run(`CREATE TABLE IF NOT EXISTS accounts (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           name TEXT NOT NULL,
@@ -60,23 +56,22 @@ const setupDatabase = async () => {
           is_active BOOLEAN DEFAULT 1,
           created_at TEXT DEFAULT (datetime('now'))
         );`, (err) => {
-          if (err) return reject(err);
-          resolve();
-        });
-      }),
-      new Promise((resolve, reject) => {
-        db.run(`CREATE TABLE IF NOT EXISTS users (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          username TEXT UNIQUE NOT NULL,
-          password TEXT NOT NULL,
-          role TEXT NOT NULL DEFAULT 'User',
-          created_at TEXT DEFAULT (datetime('now'))
-        );`, (err) => {
-          if (err) return reject(err);
-          resolve();
-        });
-      })
-    ]);
+          if (err) {
+            console.error('Error creating products table:', err.message);
+            return false;
+          }
+
+          db.run(`CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL,
+            role TEXT NOT NULL DEFAULT 'User',
+            created_at TEXT DEFAULT (datetime('now'))
+          );`, (err) => {
+            if (err) {
+              console.error('Error creating users table:', err.message);
+              return false;
+            }
 
     return true;
   } catch (err) {
@@ -85,9 +80,8 @@ const setupDatabase = async () => {
   }
 };
 
-    // Create remaining tables sequentially
-    await new Promise((resolve, reject) => {
-      db.run(`CREATE TABLE IF NOT EXISTS leads (
+            // Create remaining tables sequentially
+            db.run(`CREATE TABLE IF NOT EXISTS leads (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         first_name TEXT NOT NULL,
         last_name TEXT,
@@ -97,13 +91,12 @@ const setupDatabase = async () => {
         phone TEXT,
         created_at TEXT DEFAULT (datetime('now'))
       );`, (err) => {
-        if (err) return reject(err);
-        resolve();
-      });
-    });
+        if (err) {
+          console.error('Error creating leads table:', err.message);
+          return false;
+        }
 
-    await new Promise((resolve, reject) => {
-      db.run(`CREATE TABLE IF NOT EXISTS contacts (
+        db.run(`CREATE TABLE IF NOT EXISTS contacts (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         account_id INTEGER REFERENCES accounts(id) ON DELETE SET NULL,
         first_name TEXT NOT NULL,
@@ -113,13 +106,12 @@ const setupDatabase = async () => {
         title TEXT,
         created_at TEXT DEFAULT (datetime('now'))
       );`, (err) => {
-        if (err) return reject(err);
-        resolve();
-      });
-    });
+        if (err) {
+          console.error('Error creating contacts table:', err.message);
+          return false;
+        }
 
-    await new Promise((resolve, reject) => {
-      db.run(`CREATE TABLE IF NOT EXISTS deals (
+        db.run(`CREATE TABLE IF NOT EXISTS deals (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
         amount REAL,
@@ -129,13 +121,12 @@ const setupDatabase = async () => {
         close_date TEXT,
         created_at TEXT DEFAULT (datetime('now'))
       );`, (err) => {
-        if (err) return reject(err);
-        resolve();
-      });
-    });
+        if (err) {
+          console.error('Error creating deals table:', err.message);
+          return false;
+        }
 
-    await new Promise((resolve, reject) => {
-      db.run(`CREATE TABLE IF NOT EXISTS opportunities (
+        db.run(`CREATE TABLE IF NOT EXISTS opportunities (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         account_id INTEGER REFERENCES accounts(id) ON DELETE CASCADE,
         name TEXT NOT NULL,
@@ -144,13 +135,12 @@ const setupDatabase = async () => {
         close_date TEXT,
         created_at TEXT DEFAULT (datetime('now'))
       );`, (err) => {
-        if (err) return reject(err);
-        resolve();
-      });
-    });
+        if (err) {
+          console.error('Error creating opportunities table:', err.message);
+          return false;
+        }
 
-    await new Promise((resolve, reject) => {
-      db.run(`CREATE TABLE IF NOT EXISTS quotes (
+        db.run(`CREATE TABLE IF NOT EXISTS quotes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         quote_number TEXT UNIQUE NOT NULL,
         deal_id INTEGER REFERENCES deals(id) ON DELETE SET NULL,
@@ -159,13 +149,12 @@ const setupDatabase = async () => {
         expiration_date TEXT,
         created_at TEXT DEFAULT (datetime('now'))
       );`, (err) => {
-        if (err) return reject(err);
-        resolve();
-      });
-    });
+        if (err) {
+          console.error('Error creating quotes table:', err.message);
+          return false;
+        }
 
-    await new Promise((resolve, reject) => {
-      db.run(`CREATE TABLE IF NOT EXISTS quote_items (
+        db.run(`CREATE TABLE IF NOT EXISTS quote_items (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         quote_id INTEGER NOT NULL REFERENCES quotes(id) ON DELETE CASCADE,
         product_id INTEGER NOT NULL REFERENCES products(id),
@@ -174,13 +163,34 @@ const setupDatabase = async () => {
         total_price REAL NOT NULL DEFAULT 0 CHECK (total_price >= 0),
         created_at TEXT DEFAULT (datetime('now'))
       );`, (err) => {
-        if (err) return reject(err);
-        resolve();
+        if (err) {
+          console.error('Error creating quote_items table:', err.message);
+          return false;
+        }
+
+        // Insert default admin user if users table is empty
+        db.get("SELECT COUNT(*) as count FROM users", (err, row) => {
+          if (err) {
+            console.error('Error checking user count:', err.message);
+            return false;
+          }
+
+          if (row.count === 0) {
+            db.run("INSERT INTO users (username, password, role) VALUES (?, ?, ?)", 
+              ['admin', 'password', 'Admin'], (err) => {
+                if (err) {
+                  console.error('Error creating admin user:', err.message);
+                  return false;
+                }
+                console.log('Default admin user created');
+                return true;
+            });
+          }
+          return true;
+        });
       });
     });
-
-    // Insert default admin user if users table is empty
-    const userCount = await new Promise((resolve, reject) => {
+  });
       db.get("SELECT COUNT(*) as count FROM users", (err, row) => {
         if (err) return reject(err);
         resolve(row.count);
