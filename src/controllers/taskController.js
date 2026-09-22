@@ -18,7 +18,7 @@ exports.getAllTasks = async (req, res) => {
       LEFT JOIN contacts c ON t.contact_id = c.id
       ORDER BY t.due_date ASC, t.created_at DESC
     `);
-    res.json(rows);
+    res.json(Array.isArray(rows) ? rows : []);
   } catch (err) {
     console.error('Error getting tasks:', err);
     res.status(500).json({ error: 'Failed to get tasks', details: err.message });

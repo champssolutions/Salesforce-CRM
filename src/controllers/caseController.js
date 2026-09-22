@@ -17,7 +17,7 @@ exports.getAllCases = async (req, res) => {
       LEFT JOIN contacts ct ON c.contact_id = ct.id
       ORDER BY c.created_at DESC
     `);
-    res.json(rows);
+    res.json(Array.isArray(rows) ? rows : []);
   } catch (err) {
     console.error('Error getting cases:', err);
     res.status(500).json({ error: 'Failed to get cases' });

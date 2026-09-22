@@ -25,7 +25,7 @@ exports.getAllProducts = async (req, res) => {
     const dataParams = [...params, limit, offset];
     const rows = await getQuery(dataQuery, dataParams);
     res.json({
-      data: rows,
+      data: Array.isArray(rows) ? rows : [],
       pagination: { page, limit, total, totalPages }
     });
   } catch (err) {

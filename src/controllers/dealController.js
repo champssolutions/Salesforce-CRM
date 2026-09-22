@@ -15,7 +15,7 @@ const normalizeFk = async (table, value) => {
 exports.getAllDeals = async (req, res) => {
   try {
     const rows = await getQuery('SELECT * FROM deals ORDER BY id DESC');
-    res.json(rows);
+    res.json(Array.isArray(rows) ? rows : []);
   } catch (err) {
     console.error('getAllDeals Error:', err.message);
     res.status(500).json({ error: 'Database error' });

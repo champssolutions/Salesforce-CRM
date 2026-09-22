@@ -4,7 +4,7 @@ const { getQuery, runQuery } = require('../config/database');
 exports.getAllLeads = async (req, res) => {
   try {
     const rows = await getQuery('SELECT * FROM leads ORDER BY id DESC');
-    res.json(rows);
+    res.json(Array.isArray(rows) ? rows : []);
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ error: err.message });
