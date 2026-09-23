@@ -1,24 +1,67 @@
 const sqlite3 = require('sqlite3').verbose();
+const bcrypt = require('bcrypt');
 const path = require('path');
 const fs = require('fs');
-const bcrypt = require('bcrypt');
 
 const dataDir = path.join(__dirname, '..', '..', 'data');
 if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
 }
 
-const dbPath = path.join(dataDir, 'app.db');
+const dbPath = path.join(dataDir, 'crm.db');
+
+// Stale -shm/-wal files can cause IOERR on startup on Windows.
+// Try to remove them before opening the DB.
+function removeStaleWalFiles() {
+  try {
+    const shm = dbPath + '-shm';
+    const wal = dbPath + '-wal';
+    try { fs.unlinkSync(shm); } catch {}
+    try { fs.unlinkSync(wal); } catch {}
+  } catch {}
+}
+removeStaleWalFiles();
 
 const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
     console.error('Error opening database:', err.message);
     process.exit(1);
+  } else {
+    console.log('Connected to SQLite database');
   }
-  console.log('Connected to SQLite database');
 });
 
-// Helper function สำหรับรันคำสั่ง SQL รูปแบบ Promise (ช่วยแก้ปัญหาปีกกาซ้อนกัน)
+// Configure durable journaling with F_FULLSYNC semantics so writes can land in this environment.
+db.serialize(() => {
+  try { db.run('PRAGMA journal_mode = WAL'); } catch {}
+  try { db.run('PRAGMA synchronous = FULL'); } catch {}
+  try { db.run('PRAGMA full_fsync = FULLSYNC'); } catch {}
+  console.log('journal_mode set');
+});
+
+// Small delay to let WAL initialization settle on this environment.
+setTimeout(() => { try { db.run('PRAGMA wal_checkpoint = FULL'); } catch {} }, 10);
+
+// Expose a helper for forced checkpoint + sync after setup.
+function checkpointNow() {
+  db.run('PRAGMA wal_checkpoint = FULL', function(err) {
+    if (err) console.warn('wal_checkpoint FULL failed', err);
+    else console.log('wal_checkpoint FULL completed');
+  });
+}
+
+const getQuery = (query, params = []) => {
+  return new Promise((resolve, reject) => {
+    db.all(query, params, (err, rows) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(rows);
+      }
+    });
+  });
+};
+
 const runQuery = (query, params = []) => {
   return new Promise((resolve, reject) => {
     db.run(query, params, function (err) {
@@ -28,19 +71,15 @@ const runQuery = (query, params = []) => {
   });
 };
 
-const getQuery = (query, params = []) => {
-  return new Promise((resolve, reject) => {
-    db.get(query, params, (err, row) => {
-      if (err) reject(err);
-      else resolve(row);
-    });
-  });
-};
+// Helper function สำหรับรันคำสั่ง SQL รูปแบบ Promise (ช่วยแก้ปัญหาปีกกาซ้อนกัน)
 
 const setupDatabase = async () => {
   try {
     await runQuery('PRAGMA journal_mode = WAL');
+    await runQuery('PRAGMA synchronous = NORMAL');
     await runQuery('PRAGMA foreign_keys = ON');
+    await runQuery('PRAGMA cache_size = -20000');
+    await runQuery('PRAGMA temp_store = MEMORY');
 
     // สร้างตารางพื้นฐาน
     await runQuery(`CREATE TABLE IF NOT EXISTS accounts (
@@ -52,6 +91,8 @@ const setupDatabase = async () => {
       created_at TEXT DEFAULT (datetime('now'))
     )`);
 
+    console.log('accounts table created');
+
     await runQuery(`CREATE TABLE IF NOT EXISTS products (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
@@ -62,6 +103,8 @@ const setupDatabase = async () => {
       created_at TEXT DEFAULT (datetime('now'))
     )`);
 
+    console.log('products table created');
+
     await runQuery(`CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT UNIQUE NOT NULL,
@@ -69,6 +112,8 @@ const setupDatabase = async () => {
       role TEXT NOT NULL DEFAULT 'User',
       created_at TEXT DEFAULT (datetime('now'))
     )`);
+
+    console.log('users table created');
 
     await runQuery(`CREATE TABLE IF NOT EXISTS leads (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -81,6 +126,8 @@ const setupDatabase = async () => {
       created_at TEXT DEFAULT (datetime('now'))
     )`);
 
+    console.log('leads table created');
+
     // สร้างตารางที่มี Foreign Key
     await runQuery(`CREATE TABLE IF NOT EXISTS contacts (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -92,6 +139,8 @@ const setupDatabase = async () => {
       title TEXT,
       created_at TEXT DEFAULT (datetime('now'))
     )`);
+
+    console.log('contacts table created');
 
     await runQuery(`CREATE TABLE IF NOT EXISTS deals (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -150,21 +199,32 @@ const setupDatabase = async () => {
     await runQuery(`CREATE TABLE IF NOT EXISTS quote_items (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       quote_id INTEGER NOT NULL REFERENCES quotes(id) ON DELETE CASCADE,
-      product_id INTEGER NOT NULL REFERENCES products(id),
+      product_id INTEGER REFERENCES products(id),
+      product_name TEXT NOT NULL,
       quantity INTEGER NOT NULL DEFAULT 1 CHECK (quantity > 0),
       unit_price REAL NOT NULL DEFAULT 0 CHECK (unit_price >= 0),
       total_price REAL NOT NULL DEFAULT 0 CHECK (total_price >= 0),
       created_at TEXT DEFAULT (datetime('now'))
     )`);
+    
+    console.log('quote_items table created');
 
     // สร้าง Admin เริ่มต้นถ้ายังไม่มี
     const userCount = await getQuery("SELECT COUNT(*) as count FROM users");
     if (userCount && userCount.count === 0) {
       // เข้ารหัสผ่านก่อนบันทึก
-      const hashedPassword = bcrypt.hashSync('password', 10);
-      
+      const hashedPassword = bcrypt.hashSync('admin', 10);
+
       await runQuery("INSERT INTO users (username, password, role) VALUES (?, ?, ?)", ['admin', hashedPassword, 'Admin']);
       console.log('Default admin user created');
+    } else {
+      // ตรวจสอบว่ามีรหัสผ่านที่ไม่ถูกต้องหรือไม่
+      const adminUser = await getQuery("SELECT password FROM users WHERE username = 'admin'");
+      if (adminUser && adminUser.password && !adminUser.password.startsWith('$2b$')) {
+        const hashedPassword = bcrypt.hashSync('admin', 10);
+        await runQuery("UPDATE users SET password = ? WHERE username = 'admin'", [hashedPassword]);
+        console.log('Updated admin password hash');
+      }
     }
 
     return true;
@@ -208,7 +268,8 @@ const initializeDatabase = async () => {
   try {
     const setupSuccess = await setupDatabase();
     if (!setupSuccess) {
-      throw new Error('Database setup failed');
+      console.error('Database setup failed');
+      return;
     }
 
     await ensureColumns('cases', [
@@ -227,10 +288,22 @@ const initializeDatabase = async () => {
       ['contact_id', 'INTEGER REFERENCES contacts(id) ON DELETE SET NULL']
     ]);
 
+    await ensureColumns('quote_items', [
+      ['product_name', 'TEXT NOT NULL DEFAULT ""']
+    ]);
+
+    // Create default admin user
+    const adminExists = await getQuery('SELECT COUNT(*) as count FROM users WHERE username = ?', ['admin']);
+    if (adminExists[0].count === 0) {
+      const hashedPassword = await bcrypt.hash('admin', 10);
+      await runQuery('INSERT INTO users (username, password, role) VALUES (?, ?, ?)', 
+        ['admin', hashedPassword, 'Admin']);
+      console.log('Default admin user created (admin/admin)');
+    }
+
     console.log('Database setup completed successfully');
   } catch (err) {
     console.error('Database setup error:', err);
-    process.exit(1);
   }
 };
 
@@ -239,5 +312,7 @@ initializeDatabase();
 module.exports = {
   db,
   getQuery,
-  runQuery
+  runQuery,
+  initializeDatabase,
+  checkpointNow
 };

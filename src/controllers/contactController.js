@@ -1,15 +1,11 @@
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
-const dbPath = path.join(__dirname, '../../data/app.db');
+const { getQuery, runQuery } = require('../config/database');
 
-const execute = (sql, params = []) => new Promise((resolve, reject) => {
-    const db = new sqlite3.Database(dbPath);
+const execute = async (sql, params = []) => {
     if (sql.trim().toUpperCase().startsWith('SELECT')) {
-        db.all(sql, params, (err, rows) => { db.close(); err ? reject(err) : resolve(rows); });
-    } else {
-        db.run(sql, params, function(err) { db.close(); err ? reject(err) : resolve(this); });
+        return getQuery(sql, params);
     }
-});
+    return runQuery(sql, params);
+};
 
 const tableName = 'contacts';
 

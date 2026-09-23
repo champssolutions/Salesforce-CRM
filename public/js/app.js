@@ -16,6 +16,12 @@ async function login() {
     const username = document.getElementById('loginUsername').value;
     const password = document.getElementById('loginPassword').value;
 
+    // Basic validation
+    if (!username || !password) {
+        toastError('Please enter both username and password');
+        return;
+    }
+
     try {
         const res = await fetch('/api/auth/login', {
             method: 'POST',
@@ -29,15 +35,38 @@ async function login() {
         }
 
         const data = await res.json();
+        if (!data.token) {
+            throw new Error(data.error || 'Login failed — no token received');
+        }
         localStorage.setItem('token', data.token);
-        localStorage.setItem('role', data.role);
+        localStorage.setItem('role', data.user?.role || 'User');
         
-        checkAuth();
+        // Hide login screen and show CRM app
+        document.getElementById('loginScreen').classList.add('d-none');
+        document.getElementById('crmApp').classList.remove('d-none');
+        document.getElementById('userRoleDisplay').textContent = data.user?.role || 'User';
+        
         loadInitialData();
         toastSuccess('Login successful');
     } catch (err) {
         toastError(err.message);
     }
+}
+
+// Central fetch wrapper: auto-redirect to login on 401 Unauthorized
+async function fetchWithAuth(url, options = {}) {
+    const mergedHeaders = { ...getAuthHeaders(), ...options.headers };
+    const res = await fetch(url, { ...options, headers: mergedHeaders });
+
+    if (res.status === 401) {
+        // Unauthorized: ลบ token ออกแล้วกลับไปหน้า Login (SPA ให้บริการ login ที่ '/')
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        location.replace('/');
+        throw new Error('Session expired — redirected to login');
+    }
+
+    return res;
 }
 
 // Helper สำหรับดึง header Authorization จาก token ใน localStorage
@@ -163,7 +192,7 @@ function hideModalAndReset(modalId, formId) {
 
 async function loadAccounts() {
     try {
-        const res = await fetch('/api/accounts', { headers: getAuthHeaders() });
+        const res = await fetchWithAuth('/api/accounts');
         const data = await res.json();
         const items = Array.isArray(data) ? data : (data.data || []);
         populateSelect('dealAccount', items, 'id', 'name', '-- เลือก Account --');
@@ -188,7 +217,7 @@ async function loadAccounts() {
 
 async function loadLeads() {
     try {
-        const res = await fetch('/api/leads', { headers: getAuthHeaders() });
+        const res = await fetchWithAuth('/api/leads');
         const data = await res.json();
         const items = Array.isArray(data) ? data : (data.data || []);
         const tbody = document.getElementById('leadsTable');
@@ -213,7 +242,7 @@ async function loadLeads() {
 
 async function loadContacts() {
     try {
-        const res = await fetch('/api/contacts', { headers: getAuthHeaders() });
+        const res = await fetchWithAuth('/api/contacts');
         const data = await res.json();
         const items = Array.isArray(data) ? data : (data.data || []);
         const formatName = c => `${fmt(c.first_name)} ${fmt(c.last_name)}`.trim();
@@ -239,7 +268,7 @@ async function loadContacts() {
 
 async function loadCases() {
     try {
-        const res = await fetch('/api/cases', { headers: getAuthHeaders() });
+        const res = await fetchWithAuth('/api/cases');
         const data = await res.json();
         const items = Array.isArray(data) ? data : (data.data || []);
         const tbody = document.getElementById('casesTable');
@@ -263,7 +292,7 @@ async function loadCases() {
 
 async function loadTasks() {
     try {
-        const res = await fetch('/api/tasks', { headers: getAuthHeaders() });
+        const res = await fetchWithAuth('/api/tasks');
         const data = await res.json();
         const items = Array.isArray(data) ? data : (data.data || []);
         const tbody = document.getElementById('tasksTable');
@@ -291,7 +320,7 @@ async function loadTasks() {
 
 async function loadProducts() {
     try {
-        const res = await fetch('/api/products', { headers: getAuthHeaders() });
+        const res = await fetchWithAuth('/api/products');
         const data = await res.json();
         const items = Array.isArray(data) ? data : (data.data || []);
         const tbody = document.getElementById('productsTable');
@@ -315,11 +344,16 @@ let casesChartInstance = null;
 
 async function renderDashboardCharts() {
     try {
-        // Only render if on dashboard tab
-        const dashboardTab = document.getElementById('dashboard');
-        if (!dashboardTab || !dashboardTab.classList.contains('active')) return;
+        // Get chart data first (destroy/create happens below, right before rendering)
+        const res = await fetchWithAuth('/api/analytics/dashboard');
+        const data = await res.json();
 
-        // Destroy existing charts if they exist
+        // Re-check after await: user may have left the dashboard tab meanwhile
+        const dashboardTab = document.getElementById('dashboard');
+        if (!dashboardTab || !dashboardTab.classList.contains('show')) return;
+
+        // Destroy existing charts right before re-creating them (prevents
+        // "Canvas is already in use" when two renders race each other)
         if (dealsChartInstance) {
             dealsChartInstance.destroy();
             dealsChartInstance = null;
@@ -328,11 +362,22 @@ async function renderDashboardCharts() {
             casesChartInstance.destroy();
             casesChartInstance = null;
         }
-
-        // Get chart data
-        const res = await fetch('/api/analytics/dashboard', { headers: getAuthHeaders() });
-        const data = await res.json();
-        console.log("Dashboard API Response:", data);
+        
+        // Debug: log raw data and specific chart objects
+        console.log('Dashboard API Response (Raw):', data);
+        console.log('Deals by Stage Data:', data.dealsByStage);
+        console.log('Cases by Status Data:', data.casesByStatus);
+        
+        // Check if data objects are empty and warn accordingly
+        const dealsByStageObj = data.dealsByStage || {};
+        const casesByStatusObj = data.casesByStatus || {};
+        
+        if (Object.keys(dealsByStageObj).length === 0) {
+            console.warn('Deals by Stage data is empty — chart will render without bars');
+        }
+        if (Object.keys(casesByStatusObj).length === 0) {
+            console.warn('Cases by Status data is empty — chart will render without segments');
+        }
 
         // Update Quick Stats with proper fallbacks
         const stats = data.quickStats || {
@@ -355,37 +400,36 @@ async function renderDashboardCharts() {
             winEl.textContent = `${Number(stats.winRate).toFixed(1)}%`;
         }
 
-        // Render Deals Chart
+        // Render Deals Chart (Bar)
         const dealsCanvas = document.getElementById('dealsChart');
         if (!dealsCanvas) {
             console.warn('Deals chart canvas not found');
             return;
         }
-        
-        const dealsCtx = dealsCanvas?.getContext('2d');
+
+        const dealsCtx = dealsCanvas.getContext('2d');
         if (!dealsCtx) {
             console.warn('Could not get 2D context for deals chart');
             return;
         }
-        // Safely get data with fallbacks
-        const dealsByStage = data.dealsByStage || {};
-        const casesByStatus = data.casesByStatus || {};
-        const quickStats = data.quickStats || {
-            totalPipelineValue: 0,
-            openDeals: 0,
-            winRate: 0
-        };
 
-        // Ensure we have data for all stages
+        const dealsByStageRaw = data.dealsByStage;
         const allDealStages = ['Prospecting', 'Qualification', 'Proposal', 'Closed Won', 'Closed Lost'];
         const dealsLabels = allDealStages;
-        const dealsData = allDealStages.map(stage => {
-            return dealsByStage[stage] || 0;
-        });
+        let dealsData;
         
-        if (dealsChartInstance) {
-            dealsChartInstance.destroy();
+        if (Array.isArray(dealsByStageRaw)) {
+            dealsData = allDealStages.map(stage => {
+                const found = dealsByStageRaw.find(d => d.stage === stage);
+                return found ? Number(found.count || found.total) : 0;
+            });
+        } else if (typeof dealsByStageRaw === 'object') {
+            dealsData = allDealStages.map(stage => Number(dealsByStageRaw[stage]) || 0);
+            console.log('Deals by Stage (object format mapped):', dealsData);
+        } else {
+            dealsData = allDealStages.map(() => 0);
         }
+
         dealsChartInstance = new Chart(dealsCtx, {
             type: 'bar',
             data: {
@@ -393,8 +437,8 @@ async function renderDashboardCharts() {
                 datasets: [{
                     label: 'Total Amount',
                     data: dealsData,
-                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
+                    backgroundColor: ['rgba(54,162,235,0.5)', 'rgba(255,206,86,0.5)', 'rgba(75,192,192,0.5)', 'rgba(153,102,255,0.5)', 'rgba(255,159,64,0.5)'],
+                    borderColor: ['rgba(54,162,235,1)', 'rgba(255,206,86,1)', 'rgba(75,192,192,1)', 'rgba(153,102,255,1)', 'rgba(255,159,64,1)'],
                     borderWidth: 1
                 }]
             },
@@ -402,43 +446,44 @@ async function renderDashboardCharts() {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: {
-                        display: false
-                    }
+                    legend: { display: false }
                 },
                 scales: {
                     y: {
                         beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Total Amount'
-                        }
+                        title: { display: true, text: 'Total Amount' }
                     },
                     x: {
-                        title: {
-                            display: true,
-                            text: 'Deal Stage'
-                        }
+                        title: { display: true, text: 'Deal Stage' }
                     }
                 }
             }
         });
 
-        // Render Cases Chart
+        // Render Cases Chart (Doughnut)
         const casesCanvas = document.getElementById('casesChart');
         if (!casesCanvas) return;
-        
+
         const casesCtx = casesCanvas.getContext('2d');
-        // Ensure we have data for all statuses with fallbacks
+        const casesByStatusRaw = data.casesByStatus;
         const allCaseStatuses = ['New', 'Working', 'Closed'];
         const casesLabels = allCaseStatuses;
-        const casesData = allCaseStatuses.map(status => {
-            return casesByStatus[status] || 0;
-        });
+        let casesData;
         
-        if (casesChartInstance) {
-            casesChartInstance.destroy();
+        if (Array.isArray(casesByStatusRaw)) {
+            casesData = allCaseStatuses.map(status => {
+                const found = casesByStatusRaw.find(c => c.status === status);
+                return found ? Number(found.count) : 0;
+            });
+        } else if (typeof casesByStatusRaw === 'object') {
+            casesData = allCaseStatuses.map(status => Number(casesByStatusRaw[status]) || 0);
+            console.log('Cases by Status (object format mapped):', casesData);
+        } else {
+            casesData = allCaseStatuses.map(() => 0);
         }
+
+
+
         casesChartInstance = new Chart(casesCtx, {
             type: 'doughnut',
             data: {
@@ -447,11 +492,9 @@ async function renderDashboardCharts() {
                     label: 'Cases by Status',
                     data: casesData,
                     backgroundColor: [
-                        'rgba(54, 162, 235, 0.5)',
-                        'rgba(255, 206, 86, 0.5)',
-                        'rgba(75, 192, 192, 0.5)',
-                        'rgba(153, 102, 255, 0.5)',
-                        'rgba(255, 159, 64, 0.5)'
+                        'rgba(54,162,235,0.7)',
+                        'rgba(255,206,86,0.7)',
+                        'rgba(75,192,192,0.7)'
                     ],
                     borderColor: '#fff',
                     borderWidth: 2
@@ -461,9 +504,7 @@ async function renderDashboardCharts() {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: {
-                        position: 'bottom'
-                    }
+                    legend: { position: 'bottom' }
                 }
             }
         });
@@ -474,7 +515,7 @@ async function renderDashboardCharts() {
 
 async function loadDeals() {
     try {
-        const res = await fetch('/api/deals', { headers: getAuthHeaders() });
+        const res = await fetchWithAuth('/api/deals');
         const data = await res.json();
         dealsCache = Array.isArray(data) ? data : (data.data || []);
         
@@ -671,9 +712,139 @@ window.deleteDeal = async function(id) { if (await confirmDeleteMsg()) { await f
 
 // ==================== QUOTE FUNCTIONS ====================
 
+let quoteLineItems = [];
+let productsCache = [];
+let lineItemCounter = 0;
+
+function calculateTotalAmount() {
+    let total = 0;
+    const tbody = document.getElementById('quoteLineItems');
+    if (tbody) {
+        const rows = tbody.querySelectorAll('tr');
+        rows.forEach(row => {
+            const qtyInput = row.querySelector('input[data-field="quantity"]');
+            const priceInput = row.querySelector('input[data-field="unit_price"]');
+            const totalSpan = row.querySelector('span[data-field="line_total"]');
+            
+            if (qtyInput && priceInput && totalSpan) {
+                const qty = Number(qtyInput.value) || 0;
+                const price = Number(priceInput.value) || 0;
+                const lineTotal = qty * price;
+                totalSpan.textContent = lineTotal.toFixed(2);
+                total += lineTotal;
+            }
+        });
+    }
+    
+    document.getElementById('quoteAmount').value = total.toFixed(2);
+    document.getElementById('quoteTotalDisplay').textContent = total.toFixed(2);
+    return total;
+}
+
+window.addQuoteLineItem = function() {
+    const tbody = document.getElementById('quoteLineItems');
+    if (!tbody) return;
+    
+    // Populate products dropdown if products cache is empty
+    if (productsCache.length === 0) {
+        loadProductsSync();
+    }
+    
+    lineItemCounter++;
+    const rowId = `lineItem_${lineItemCounter}`;
+    
+    const row = document.createElement('tr');
+    row.id = rowId;
+    
+    // Product selection cell
+    const productCell = document.createElement('td');
+    const productSelect = document.createElement('select');
+    productSelect.className = 'form-select form-select-sm';
+    productSelect.setAttribute('data-field', 'product_id');
+    productSelect.innerHTML = '<option value="">-- Select Product --</option>' + 
+        productsCache.map(p => `<option value="${p.id}" data-price="${p.price || 0}" data-name="${p.name}">${p.name} (${p.code}) - $${(p.price || 0)}</option>`).join('');
+    
+    productSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const price = selectedOption.getAttribute('data-price') || 0;
+        
+        const priceInput = row.querySelector('input[data-field="unit_price"]');
+        if (priceInput) {
+            priceInput.value = price;
+        }
+        
+        calculateTotalAmount();
+    });
+    
+    productCell.appendChild(productSelect);
+    
+    // Quantity cell
+    const qtyCell = document.createElement('td');
+    const qtyInput = document.createElement('input');
+    qtyInput.type = 'number';
+    qtyInput.className = 'form-control form-control-sm';
+    qtyInput.setAttribute('data-field', 'quantity');
+    qtyInput.min = '1';
+    qtyInput.value = '1';
+    qtyInput.addEventListener('input', calculateTotalAmount);
+    qtyCell.appendChild(qtyInput);
+    
+    // Unit price cell
+    const priceCell = document.createElement('td');
+    const priceInput = document.createElement('input');
+    priceInput.type = 'number';
+    priceInput.className = 'form-control form-control-sm';
+    priceInput.setAttribute('data-field', 'unit_price');
+    priceInput.min = '0';
+    priceInput.step = '0.01';
+    priceInput.value = '0';
+    priceInput.addEventListener('input', calculateTotalAmount);
+    priceCell.appendChild(priceInput);
+    
+    // Line total cell
+    const totalCell = document.createElement('td');
+    const totalSpan = document.createElement('span');
+    totalSpan.className = 'fw-bold';
+    totalSpan.setAttribute('data-field', 'line_total');
+    totalSpan.textContent = '0.00';
+    totalCell.innerHTML = '$' + totalSpan.outerHTML;
+    
+    // Remove button cell
+    const actionCell = document.createElement('td');
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'btn btn-danger btn-sm';
+    removeBtn.innerHTML = '×';
+    removeBtn.onclick = function() {
+        row.remove();
+        calculateTotalAmount();
+    };
+    actionCell.appendChild(removeBtn);
+    
+    row.appendChild(productCell);
+    row.appendChild(qtyCell);
+    row.appendChild(priceCell);
+    row.appendChild(totalCell);
+    row.appendChild(actionCell);
+    
+    tbody.appendChild(row);
+    
+    calculateTotalAmount();
+};
+
+async function loadProductsSync() {
+    try {
+        const res = await fetchWithAuth('/api/products');
+        const data = await res.json();
+        productsCache = Array.isArray(data) ? data : (data.data || []);
+    } catch (e) {
+        console.error('Error loading products:', e);
+    }
+}
+
 async function loadQuotes() {
     try {
-        const res = await fetch('/api/quotes', { headers: getAuthHeaders() });
+        const res = await fetchWithAuth('/api/quotes');
         const data = await res.json();
         const items = Array.isArray(data) ? data : (data.data || []);
         
@@ -685,12 +856,14 @@ async function loadQuotes() {
                               q.status === 'Sent' ? 'info' : 
                               q.status === 'Accepted' ? 'success' : 
                               q.status === 'Rejected' ? 'danger' : 'secondary';
+            const lineItemsCount = (q.quote_items || []).length;
             return `
             <tr>
                 <td>${fmt(q.id)}</td>
                 <td>${fmt(q.quote_number)}</td>
                 <td>${fmt(q.deal_title)}</td>
                 <td>${fmt(q.total_amount)}</td>
+                <td>${lineItemsCount} items</td>
                 <td><span class="badge bg-${statusClass}">${fmt(q.status || 'Draft')}</span></td>
                 <td>${fmt(q.expiration_date)}</td>
                 <td>
@@ -713,8 +886,39 @@ window.addQuote = async function() {
         const status = document.getElementById('quoteStatus')?.value;
         const expirationDate = document.getElementById('quoteExpiration')?.value;
 
-        if (!quoteNumber || !dealId || !totalAmount || !status) {
+        if (!quoteNumber || !dealId || !status) {
             toastError('Please fill all required fields');
+            return;
+        }
+
+        // Collect line items from the table
+        const tbody = document.getElementById('quoteLineItems');
+        const lineItems = [];
+        
+        if (tbody) {
+            const rows = tbody.querySelectorAll('tr');
+            rows.forEach(row => {
+                const productSelect = row.querySelector('select[data-field="product_id"]');
+                const quantityInput = row.querySelector('input[data-field="quantity"]');
+                const priceInput = row.querySelector('input[data-field="unit_price"]');
+                
+                if (productSelect?.value && quantityInput?.value && priceInput?.value) {
+                    const selectedOption = productSelect.options[productSelect.selectedIndex];
+                    const productName = selectedOption.getAttribute('data-name') || '';
+                    
+                    lineItems.push({
+                        product_id: Number(productSelect.value),
+                        product_name: productName,
+                        quantity: Number(quantityInput.value),
+                        unit_price: Number(priceInput.value),
+                        total_price: Number(quantityInput.value) * Number(priceInput.value)
+                    });
+                }
+            });
+        }
+
+        if (lineItems.length === 0) {
+            toastError('Please add at least one line item');
             return;
         }
 
@@ -722,11 +926,12 @@ window.addQuote = async function() {
             quote_number: quoteNumber,
             deal_id: dealId,
             total_amount: totalAmount,
-            status: status || 'Draft',  // Default to Draft if no status provided
-            expiration_date: expirationDate || null
+            status: status || 'Draft',
+            expiration_date: expirationDate || null,
+            quote_items: lineItems
         };
 
-        const res = await fetch('/api/quotes', {
+        const res = await fetchWithAuth('/api/quotes', {
             method: 'POST',
             headers: getAuthHeaders(),
             body: JSON.stringify(payload)
@@ -736,6 +941,9 @@ window.addQuote = async function() {
             toastSuccess('Quote created successfully');
             loadQuotes();
             hideModalAndReset('addQuoteModal', 'addQuoteForm');
+            // Reset line items
+            document.getElementById('quoteLineItems').innerHTML = '';
+            lineItemCounter = 0;
         } else {
             const error = await res.json();
             toastError(error.error || 'Failed to create quote');
@@ -749,7 +957,7 @@ window.addQuote = async function() {
 window.deleteQuote = async function(id) { 
     if (await confirmDeleteMsg()) { 
         try {
-            const res = await fetch(`/api/quotes/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
+            const res = await fetchWithAuth(`/api/quotes/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
             if (res.ok) {
                 toastSuccess('Quote deleted successfully');
                 loadQuotes();
@@ -765,20 +973,29 @@ window.deleteQuote = async function(id) {
 
 // Initialize quote functionality when page loads
 document.addEventListener('DOMContentLoaded', () => {
-    // Load quotes along with other data
-    loadQuotes();
+    // Only preload quotes when already authenticated (prevents 401 redirect loop
+    // on the login screen with an expired token)
+    if (localStorage.getItem('token') && localStorage.getItem('role')) {
+        loadQuotes();
+    }
     
     // Populate deal dropdown in quote modal
     document.getElementById('addQuoteModal')?.addEventListener('show.bs.modal', async () => {
         try {
-            const res = await fetch('/api/deals', { headers: getAuthHeaders() });
+            const res = await fetchWithAuth('/api/deals');
             const data = await res.json();
             const deals = Array.isArray(data) ? data : (data.data || []);
             const select = document.getElementById('quoteDeal');
             if (select) {
                 select.innerHTML = '<option value="">-- Select Deal --</option>' + 
-                    deals.map(d => `<option value="${d.id}">${d.title} (${d.amount})</option>`).join('');
+                    deals.map(d => `<option value="${d.id}">${d.title} ($${Number(d.amount || 0).toLocaleString()})</option>`).join('');
             }
+            
+            // Load products for line items dropdown
+            await loadProductsSync();
+            document.getElementById('quoteLineItems').innerHTML = '';
+            lineItemCounter = 0;
+            calculateTotalAmount();
         } catch (e) {
             console.error('Error loading deals for quote modal:', e);
         }
@@ -995,8 +1212,8 @@ window.exportPipeline = function() {
     // ** หัวใจสำคัญ: ต้องมี preventDefault เพื่อให้เบราว์เซอร์ยอมรับการวาง **
     document.addEventListener('dragover', (e) => {
         const col = e.target.closest('.dnd-column');
-        if(col) {
-            e.preventDefault(); 
+        if (col) {
+            e.preventDefault();
             e.dataTransfer.dropEffect = 'move';
         }
     });

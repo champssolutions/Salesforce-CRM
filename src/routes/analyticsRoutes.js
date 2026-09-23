@@ -4,8 +4,9 @@ const router = express.Router();
 const analyticsController = require('../controllers/analyticsController');
 const { authenticate } = require('../middlewares/authMiddleware');
 
-// ป้องกันด้วย JWT authentication ทั้งหมด (ใช้ BEFORE กำหนด route)
+// Apply authentication middleware before defining the route.
 router.use(authenticate);
+router.get('/dashboard', analyticsController.getDashboardStats);
 
 router.get('/dashboard', analyticsController.getDashboardStats);
 

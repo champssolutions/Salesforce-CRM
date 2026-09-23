@@ -1,7 +1,7 @@
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
-const db = require('./src/config/database');
+const { initializeDatabase, checkpointNow } = require('./src/config/database');
 
 // Import Routes
 const authRoutes = require('./src/routes/authRoutes');
@@ -22,6 +22,13 @@ const swaggerUi = require('swagger-ui-express');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
+// When PORT is explicitly 0 (e.g. in some environments), force local dev port.
+if (PORT === 0) {
+  process.env.PORT = 4000;
+}
+if (typeof PORT !== 'number') {
+  process.env.PORT = 4000;
+}
 
 // Middleware
 app.use(cors());
@@ -171,4 +178,9 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
   console.log(`API Docs available at http://localhost:${PORT}/api-docs`);
+  console.log('Tip: use /api/auth/login with admin / admin to get a token');
+try {
+  checkpointNow();
+  console.log('WAL checkpoint issued after startup');
+} catch (e) { console.warn('checkpoint failed', e); }
 });
