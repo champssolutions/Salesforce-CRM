@@ -1,41 +1,41 @@
 
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
-const dbPath = path.join(__dirname, '../../data/app.db');
+const { getQuery, runQuery } = require('../config/database');
 
-exports.getDashboardStats = (req, res) => {
-    const db = new sqlite3.Database(dbPath);
-    const queries = {
-        pipeline: "SELECT SUM(amount) as total FROM deals WHERE stage != 'Closed Lost'",
-        openDeals: "SELECT COUNT(*) as count FROM deals WHERE stage NOT IN ('Closed Won', 'Closed Lost')",
-        allDeals: "SELECT COUNT(*) as count FROM deals",
-        wonDeals: "SELECT COUNT(*) as count FROM deals WHERE stage = 'Closed Won'",
-        dealsStage: "SELECT stage, SUM(amount) as total FROM deals GROUP BY stage",
-        casesStat: "SELECT status, COUNT(*) as count FROM cases GROUP BY status"
-    };
+const { db } = require('../config/database');
 
-    const results = {};
-    let completed = 0;
-    const totalQueries = Object.keys(queries).length;
+exports.getDashboardStats = async (req, res) => {
+  try {
+    const [pipeline, openDeals, allDeals, wonDeals, dealsStageRows, casesStatRows] = await Promise.all([
+      getQuery("SELECT SUM(amount) as total FROM deals WHERE stage != 'Closed Lost'"),
+      getQuery("SELECT COUNT(*) as count FROM deals WHERE stage NOT IN ('Closed Won', 'Closed Lost')"),
+      getQuery("SELECT COUNT(*) as count FROM deals"),
+      getQuery("SELECT COUNT(*) as count FROM deals WHERE stage = 'Closed Won'"),
+      getQuery("SELECT stage, SUM(amount) as total FROM deals GROUP BY stage"),
+      getQuery("SELECT status, COUNT(*) as count FROM cases GROUP BY status")
+    ]);
 
-    Object.keys(queries).forEach(key => {
-        db.all(queries[key], [], (err, rows) => {
-            results[key] = err ? [] : rows;
-            completed++;
-            if (completed === totalQueries) {
-                db.close();
-                const allD = results.allDeals[0]?.count || 0;
-                const wonD = results.wonDeals[0]?.count || 0;
-                res.json({
-                    quickStats: {
-                        totalPipelineValue: results.pipeline[0]?.total || 0,
-                        openDeals: results.openDeals[0]?.count || 0,
-                        winRate: allD > 0 ? parseFloat(((wonD / allD) * 100).toFixed(1)) : 0
-                    },
-                    dealsByStage: results.dealsStage.reduce((acc, c) => ({ ...acc, [c.stage]: c.total }), {}),
-                    casesByStatus: results.casesStat.reduce((acc, c) => ({ ...acc, [c.status]: c.count }), {})
-                });
-            }
-        });
+    // getQuery returns a single row (or null). For aggregation queries the value sits on the row.
+    const pipelineRows = Array.isArray(pipeline) ? pipeline : (pipeline ? [pipeline] : []);
+    const openRows = Array.isArray(openDeals) ? openDeals : (openDeals ? [openDeals] : []);
+    const allRows = Array.isArray(allDeals) ? allDeals : (allDeals ? [allDeals] : []);
+    const wonRows = Array.isArray(wonDeals) ? wonDeals : (wonDeals ? [wonDeals] : []);
+    const dealsStage = Array.isArray(dealsStageRows) ? dealsStageRows : [];
+    const casesStat = Array.isArray(casesStatRows) ? casesStatRows : [];
+
+    const allD = allRows[0]?.count || 0;
+    const wonD = wonRows[0]?.count || 0;
+
+    return res.json({
+      quickStats: {
+        totalPipelineValue: pipelineRows[0]?.total || 0,
+        openDeals: openRows[0]?.count || 0,
+        winRate: allD > 0 ? parseFloat(((wonD / allD) * 100).toFixed(1)) : 0
+      },
+      dealsByStage: dealsStage.reduce((acc, c) => ({ ...acc, [c.stage]: c.total }), {}),
+      casesByStatus: casesStat.reduce((acc, c) => ({ ...acc, [c.status]: c.count }), {})
     });
+  } catch (err) {
+    console.error('Dashboard stats error:', err);
+    res.status(500).json({ error: 'Failed to load dashboard stats' });
+  }
 };

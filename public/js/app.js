@@ -40,6 +40,16 @@ async function login() {
     }
 }
 
+// Helper สำหรับดึง header Authorization จาก token ใน localStorage
+function getAuthHeaders() {
+    const token = localStorage.getItem('token');
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+    return headers;
+}
+
 function logout() {
     localStorage.removeItem('token');
     localStorage.removeItem('role');
@@ -153,7 +163,7 @@ function hideModalAndReset(modalId, formId) {
 
 async function loadAccounts() {
     try {
-        const res = await fetch('/api/accounts');
+        const res = await fetch('/api/accounts', { headers: getAuthHeaders() });
         const data = await res.json();
         const items = Array.isArray(data) ? data : (data.data || []);
         populateSelect('dealAccount', items, 'id', 'name', '-- เลือก Account --');
@@ -178,7 +188,7 @@ async function loadAccounts() {
 
 async function loadLeads() {
     try {
-        const res = await fetch('/api/leads');
+        const res = await fetch('/api/leads', { headers: getAuthHeaders() });
         const data = await res.json();
         const items = Array.isArray(data) ? data : (data.data || []);
         const tbody = document.getElementById('leadsTable');
@@ -203,7 +213,7 @@ async function loadLeads() {
 
 async function loadContacts() {
     try {
-        const res = await fetch('/api/contacts');
+        const res = await fetch('/api/contacts', { headers: getAuthHeaders() });
         const data = await res.json();
         const items = Array.isArray(data) ? data : (data.data || []);
         const formatName = c => `${fmt(c.first_name)} ${fmt(c.last_name)}`.trim();
@@ -229,7 +239,7 @@ async function loadContacts() {
 
 async function loadCases() {
     try {
-        const res = await fetch('/api/cases');
+        const res = await fetch('/api/cases', { headers: getAuthHeaders() });
         const data = await res.json();
         const items = Array.isArray(data) ? data : (data.data || []);
         const tbody = document.getElementById('casesTable');
@@ -253,7 +263,7 @@ async function loadCases() {
 
 async function loadTasks() {
     try {
-        const res = await fetch('/api/tasks');
+        const res = await fetch('/api/tasks', { headers: getAuthHeaders() });
         const data = await res.json();
         const items = Array.isArray(data) ? data : (data.data || []);
         const tbody = document.getElementById('tasksTable');
@@ -281,7 +291,7 @@ async function loadTasks() {
 
 async function loadProducts() {
     try {
-        const res = await fetch('/api/products');
+        const res = await fetch('/api/products', { headers: getAuthHeaders() });
         const data = await res.json();
         const items = Array.isArray(data) ? data : (data.data || []);
         const tbody = document.getElementById('productsTable');
@@ -320,7 +330,7 @@ async function renderDashboardCharts() {
         }
 
         // Get chart data
-        const res = await fetch('/api/analytics/dashboard');
+        const res = await fetch('/api/analytics/dashboard', { headers: getAuthHeaders() });
         const data = await res.json();
         console.log("Dashboard API Response:", data);
 
@@ -464,7 +474,7 @@ async function renderDashboardCharts() {
 
 async function loadDeals() {
     try {
-        const res = await fetch('/api/deals');
+        const res = await fetch('/api/deals', { headers: getAuthHeaders() });
         const data = await res.json();
         dealsCache = Array.isArray(data) ? data : (data.data || []);
         
@@ -510,7 +520,7 @@ window.addAccount = async function() {
             phone: document.getElementById('accountPhone')?.value || '',
             website: document.getElementById('accountWebsite')?.value || ''
         };
-        const res = await fetch('/api/accounts', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) });
+        const res = await fetch('/api/accounts', { method: 'POST', headers: getAuthHeaders(), body: JSON.stringify(body) });
         if (res.ok) {
             toastSuccess('เพิ่ม Account สำเร็จ');
             loadAccounts();
@@ -529,7 +539,7 @@ window.addLead = async function() {
             phone: document.getElementById('leadPhone')?.value || '',
             status: document.getElementById('leadStatus')?.value || 'New'
         };
-        const res = await fetch('/api/leads', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) });
+        const res = await fetch('/api/leads', { method: 'POST', headers: getAuthHeaders(), body: JSON.stringify(body) });
         if (res.ok) {
             toastSuccess('เพิ่ม Lead สำเร็จ');
             loadLeads();
@@ -547,7 +557,7 @@ window.addContact = async function() {
             phone: document.getElementById('contactPhone')?.value || '',
             title: document.getElementById('contactTitle')?.value || ''
         };
-        const res = await fetch('/api/contacts', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) });
+        const res = await fetch('/api/contacts', { method: 'POST', headers: getAuthHeaders(), body: JSON.stringify(body) });
         if (res.ok) {
             toastSuccess('เพิ่ม Contact สำเร็จ');
             loadContacts();
@@ -568,7 +578,7 @@ window.addCase = async function() {
             priority: document.getElementById('casePriority')?.value || 'Medium',
             status: document.getElementById('caseStatus')?.value || 'New'
         };
-        const res = await fetch('/api/cases', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) });
+        const res = await fetch('/api/cases', { method: 'POST', headers: getAuthHeaders(), body: JSON.stringify(body) });
         if (res.ok) {
             toastSuccess('เพิ่ม Case สำเร็จ');
             loadCases();
@@ -589,7 +599,7 @@ window.addTask = async function() {
             deal_id: document.getElementById('taskDeal')?.value || null,
             contact_id: document.getElementById('taskContact')?.value || null
         };
-        const res = await fetch('/api/tasks', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) });
+        const res = await fetch('/api/tasks', { method: 'POST', headers: getAuthHeaders(), body: JSON.stringify(body) });
         if (res.ok) {
             toastSuccess('เพิ่ม Task สำเร็จ');
             loadTasks();
@@ -607,7 +617,7 @@ window.addProduct = async function() {
             description: document.getElementById('productDescription')?.value || '',
             is_active: document.getElementById('productIsActive')?.value === 'true'
         };
-        const res = await fetch('/api/products', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) });
+        const res = await fetch('/api/products', { method: 'POST', headers: getAuthHeaders(), body: JSON.stringify(body) });
         if (res.ok) {
             toastSuccess('เพิ่ม Product สำเร็จ');
             loadProducts();
@@ -626,7 +636,7 @@ window.addDeal = async function() {
             contact_id: document.getElementById('dealContact')?.value || null,
             close_date: document.getElementById('dealCloseDate')?.value || null
         };
-        const res = await fetch('/api/deals', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) });
+        const res = await fetch('/api/deals', { method: 'POST', headers: getAuthHeaders(), body: JSON.stringify(body) });
         if (res.ok) {
             toastSuccess('เพิ่ม Deal สำเร็จ');
             loadDeals();
@@ -637,33 +647,33 @@ window.addDeal = async function() {
 
 window.completeTask = async function(id) {
     try {
-        const res = await fetch(`/api/tasks/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'Completed' }) });
+        const res = await fetch(`/api/tasks/${id}`, { method: 'PUT', headers: getAuthHeaders(), body: JSON.stringify({ status: 'Completed' }) });
         if (res.ok) { toastSuccess('Task completed'); loadTasks(); }
     } catch (e) { console.error(e); }
 };
 
 window.convertLead = async function(id) {
     if (await confirmDeleteMsg()) {
-        const res = await fetch(`/api/leads/${id}/convert`, { method: 'POST' });
+        const res = await fetch(`/api/leads/${id}/convert`, { method: 'POST', headers: getAuthHeaders() });
         if (res.ok) { toastSuccess('แปลงข้อมูลสำเร็จ'); loadLeads(); }
     }
 };
 
 // ==================== DELETE FUNCTIONS ====================
 
-window.deleteAccount = async function(id) { if (await confirmDeleteMsg()) { await fetch(`/api/accounts/${id}`, { method: 'DELETE' }); loadAccounts(); } };
-window.deleteLead = async function(id) { if (await confirmDeleteMsg()) { await fetch(`/api/leads/${id}`, { method: 'DELETE' }); loadLeads(); } };
-window.deleteContact = async function(id) { if (await confirmDeleteMsg()) { await fetch(`/api/contacts/${id}`, { method: 'DELETE' }); loadContacts(); } };
-window.deleteCase = async function(id) { if (await confirmDeleteMsg()) { await fetch(`/api/cases/${id}`, { method: 'DELETE' }); loadCases(); } };
-window.deleteTask = async function(id) { if (await confirmDeleteMsg()) { await fetch(`/api/tasks/${id}`, { method: 'DELETE' }); loadTasks(); } };
-window.deleteProduct = async function(id) { if (await confirmDeleteMsg()) { await fetch(`/api/products/${id}`, { method: 'DELETE' }); loadProducts(); } };
-window.deleteDeal = async function(id) { if (await confirmDeleteMsg()) { await fetch(`/api/deals/${id}`, { method: 'DELETE' }); loadDeals(); } };
+window.deleteAccount = async function(id) { if (await confirmDeleteMsg()) { await fetch(`/api/accounts/${id}`, { method: 'DELETE', headers: getAuthHeaders() }); loadAccounts(); } };
+window.deleteLead = async function(id) { if (await confirmDeleteMsg()) { await fetch(`/api/leads/${id}`, { method: 'DELETE', headers: getAuthHeaders() }); loadLeads(); } };
+window.deleteContact = async function(id) { if (await confirmDeleteMsg()) { await fetch(`/api/contacts/${id}`, { method: 'DELETE', headers: getAuthHeaders() }); loadContacts(); } };
+window.deleteCase = async function(id) { if (await confirmDeleteMsg()) { await fetch(`/api/cases/${id}`, { method: 'DELETE', headers: getAuthHeaders() }); loadCases(); } };
+window.deleteTask = async function(id) { if (await confirmDeleteMsg()) { await fetch(`/api/tasks/${id}`, { method: 'DELETE', headers: getAuthHeaders() }); loadTasks(); } };
+window.deleteProduct = async function(id) { if (await confirmDeleteMsg()) { await fetch(`/api/products/${id}`, { method: 'DELETE', headers: getAuthHeaders() }); loadProducts(); } };
+window.deleteDeal = async function(id) { if (await confirmDeleteMsg()) { await fetch(`/api/deals/${id}`, { method: 'DELETE', headers: getAuthHeaders() }); loadDeals(); } };
 
 // ==================== QUOTE FUNCTIONS ====================
 
 async function loadQuotes() {
     try {
-        const res = await fetch('/api/quotes');
+        const res = await fetch('/api/quotes', { headers: getAuthHeaders() });
         const data = await res.json();
         const items = Array.isArray(data) ? data : (data.data || []);
         
@@ -718,7 +728,7 @@ window.addQuote = async function() {
 
         const res = await fetch('/api/quotes', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getAuthHeaders(),
             body: JSON.stringify(payload)
         });
 
@@ -739,7 +749,7 @@ window.addQuote = async function() {
 window.deleteQuote = async function(id) { 
     if (await confirmDeleteMsg()) { 
         try {
-            const res = await fetch(`/api/quotes/${id}`, { method: 'DELETE' });
+            const res = await fetch(`/api/quotes/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
             if (res.ok) {
                 toastSuccess('Quote deleted successfully');
                 loadQuotes();
@@ -761,7 +771,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Populate deal dropdown in quote modal
     document.getElementById('addQuoteModal')?.addEventListener('show.bs.modal', async () => {
         try {
-            const res = await fetch('/api/deals');
+            const res = await fetch('/api/deals', { headers: getAuthHeaders() });
             const data = await res.json();
             const deals = Array.isArray(data) ? data : (data.data || []);
             const select = document.getElementById('quoteDeal');
@@ -895,7 +905,7 @@ window.onKanbanDrop = async function(e, stage) {
 window.changeDealStage = async function(id, stage) {
     if (!DEAL_STAGES.includes(stage)) return;
     try {
-        await fetch(`/api/deals/${id}/stage`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ stage }) });
+        await fetch(`/api/deals/${id}/stage`, { method: 'PATCH', headers: getAuthHeaders(), body: JSON.stringify({ stage }) });
     } catch (e) {}
     loadDeals();
 };
@@ -928,7 +938,7 @@ window.exportPipeline = function() {
         try {
             const res = await fetch('/api/deals/' + dealId, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: getAuthHeaders(),
                 body: JSON.stringify({ stage: newStage })
             });
             if (res.ok) {

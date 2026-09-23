@@ -1,8 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const controller = require('../controllers/accountController');
+const { authenticate } = require('../middlewares/authMiddleware');
 
-// จับคู่ Route เข้ากับฟังก์ชันมาตรฐานใหม่ (getAll, getById, create, update, delete)
+// ป้องกันด้วย JWT authentication ทั้งหมด (apply middleware BEFORE routes)
+router.use(authenticate);
+
 router.get('/', controller.getAll);
 router.get('/:id', controller.getById);
 router.post('/', controller.create);

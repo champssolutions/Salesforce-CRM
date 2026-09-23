@@ -1,7 +1,11 @@
 const express = require('express');
 const opportunityController = require('../controllers/opportunityController');
+const { authenticate } = require('../middlewares/authMiddleware');
 
 const router = express.Router();
+
+// ป้องกันด้วย JWT authentication ทั้งหมด
+router.use(authenticate);
 
 router.get('/', opportunityController.getAllOpportunities);
 router.get('/:id', opportunityController.getOpportunityById);
